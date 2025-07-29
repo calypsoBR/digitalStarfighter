@@ -6,6 +6,12 @@
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; transform: scale(0.98); }
+            50% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 0.7; transform: scale(0.98); }
+        }
     </style>
 </head>
 <body>
@@ -51,6 +57,12 @@
         const POWERUP_COLOR = 0x00ff00;
         const BG_COLOR = 0x0a0e2a;
         const PLAY_AREA = { x: 16, y: 10 };
+
+        const TITLE_IMAGES = [
+            'logo_o-ultimo-guerreiro-digital-das-estrelas_homem_2.png',
+            'logo_o-ultimo-guerreiro-digital-das-estrelas_mulher_2.png'
+        ];
+        const FADE_DURATION = 1.5; // segundos para transição
 
         let renderer, scene, camera;
         let width = window.innerWidth, height = window.innerHeight;
@@ -523,6 +535,95 @@
             }
         }
 
+        function showImageSequence() {
+    // Remove overlay existente
+    if (startOverlay && startOverlay.parentNode) {
+        startOverlay.parentNode.removeChild(startOverlay);
+    }
+    
+    // Cria container
+    startOverlay = document.createElement('div');
+    startOverlay.style.position = 'fixed';
+    startOverlay.style.width = '100vw';
+    startOverlay.style.height = '100vh';
+    startOverlay.style.zIndex = '1000';
+    startOverlay.style.display = 'flex';
+    startOverlay.style.justifyContent = 'center';
+    startOverlay.style.alignItems = 'center';
+    startOverlay.style.background = '#000';
+    document.body.appendChild(startOverlay);
+
+    let currentImageIndex = 0;
+    const instructionText = 'PARA INICIAR O JOGO, PRESSIONE ESPAÇO';
+
+    function showNextImage() {
+        startOverlay.innerHTML = '';
+        
+        const imgContainer = document.createElement('div');
+        imgContainer.style.position = 'relative';
+        imgContainer.style.width = '80%';
+        imgContainer.style.height = '80%';
+        imgContainer.style.backgroundSize = 'contain';
+        imgContainer.style.backgroundRepeat = 'no-repeat';
+        imgContainer.style.backgroundPosition = 'center';
+        imgContainer.style.opacity = '0';
+        imgContainer.style.transition = `opacity ${FADE_DURATION}s ease-in-out`;
+        imgContainer.style.backgroundImage = `url(${TITLE_IMAGES[currentImageIndex]})`;
+        startOverlay.appendChild(imgContainer);
+
+        // Força o redesenho
+        void imgContainer.offsetWidth;
+
+        // Animação de fade in
+        imgContainer.style.opacity = '1';
+
+        // Configura o fade out e próxima imagem
+        setTimeout(() => {
+            imgContainer.style.opacity = '0';
+            setTimeout(() => {
+                currentImageIndex++;
+                if (currentImageIndex < TITLE_IMAGES.length) {
+                    showNextImage();
+                } else {
+                    showFinalInstruction();
+                }
+            }, FADE_DURATION * 1000);
+        }, 3000); // 3 segundos visível
+    }
+
+    function showFinalInstruction() {
+        startOverlay.innerHTML = `
+            <div style="
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.7);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                color: white;
+                text-align: center;
+            ">
+                <div style="
+                    font-family: 'Arial', sans-serif;
+                    font-size: 24px;
+                    text-shadow: 0 0 10px #0077ff;
+                    animation: pulse 2s infinite;
+                ">
+                    ${instructionText}
+                </div>
+            </div>
+        `;
+    }
+
+    // Inicia a sequência
+    showNextImage();
+    
+    return startOverlay;
+}
+
+        // Mantida para game over/pause
         function showOverlay(type, text, subtext) {
             let overlay = document.createElement('div');
             overlay.style.position = 'fixed';
@@ -557,6 +658,7 @@
             document.body.appendChild(overlay);
             return overlay;
         }
+        
 
         function removeOverlay(overlay) {
             if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
@@ -906,7 +1008,8 @@
         createCamera();
         createScene();
         initBombCounts();
-        startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+        //startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+        startOverlay = showImageSequence();
         gameLoop();
     </script>
 </body>
