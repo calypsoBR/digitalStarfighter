@@ -554,7 +554,7 @@
     document.body.appendChild(startOverlay);
 
     let currentImageIndex = 0;
-    const instructionText = 'PARA INICIAR O JOGO, PRESSIONE ESPAÇO';
+    const instructionText = 'PRESSIONE ESPAÇO PARA INICIAR';
 
     function showNextImage() {
         startOverlay.innerHTML = '';
@@ -676,12 +676,12 @@
                 removeOverlay(gameOverOverlay);
                 clearHUD();
                 gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Pressione ESPAÇO para iniciar</span>');
             } else if (gameState === GAME_STATE.WIN && e.code === 'Space') {
                 removeOverlay(winOverlay);
                 clearHUD();
                 gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Pressione ESPAÇO para iniciar</span>');
             } else if (gameState === GAME_STATE.PLAYING) {
                 if (e.code === 'KeyP') {
                     if (pauseOverlay) {
@@ -862,7 +862,7 @@
                     setBarValue(playerHealthBar, playerHealth / playerMaxHealth);
                     if (playerHealth <= 0) {
                         gameState = GAME_STATE.GAME_OVER;
-                        gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Score: ' + playerScore + '<br><br>Press SPACE to Restart');
+                        gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Score: ' + playerScore + '<br><br>Pressione ESPAÇO para reiniciar');
                     }
                 }
             }
@@ -983,7 +983,7 @@
                 }
                 if (miniBoss && !miniBoss.alive && gameState === GAME_STATE.PLAYING) {
                     gameState = GAME_STATE.WIN;
-                    winOverlay = showOverlay('win', 'VICTORY!', 'Score: ' + playerScore + '<br><br>Press SPACE to Restart');
+                    winOverlay = showOverlay('win', 'VICTORY!', 'Score: ' + playerScore + '<br><br>Pressione ESPAÇO para reiniciar');
                 }
                 checkScoreForBombReplenish();
                 updateHUD();
@@ -1008,7 +1008,7 @@
         createCamera();
         createScene();
         initBombCounts();
-        //startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+        //startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Pressione ESPAÇO para iniciar</span>');
         startOverlay = showImageSequence();
         gameLoop();
     </script>
