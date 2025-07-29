@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>O Último Guerreiro Digital das Estrelas</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+    <script>
+        const GAME_STATE = {
+            START: 0,
+            PLAYING: 1,
+            PAUSED: 2,
+            GAME_OVER: 3,
+            WIN: 4
+        };
+
+        const OPERATORS = [
+            { key: 'AND', fn: (a, b) => a & b },
+            { key: 'OR', fn: (a, b) => a | b },
+            { key: 'XOR', fn: (a, b) => a ^ b },
+            { key: 'NOT', fn: (a) => 1 - a },
+            { key: 'NAND', fn: (a, b) => 1 - (a & b) },
+            { key: 'NOR', fn: (a, b) => 1 - (a | b) },
+            { key: 'XNOR', fn: (a, b) => 1 - (a ^ b) }
+        ];
+
+        const ENEMY_TYPES = [
+            { shape: 'cube', ev: () => Math.round(Math.random()) },
+            { shape: 'cube', ev: () => Math.round(Math.random()), ab: true },
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true },
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A&B' },
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A|B' },
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A^B' }
+        ];
+
+        const MINI_BOSS = {
+            shape: 'boss',
+            expr: 'A^B'
+        };
+
+        const PLAYER_COLOR = 0x0077ff;
+        const ENEMY_COLOR = 0xff3300;
+        const PROJECTILE_COLOR = 0xffffff;
+        const ENEMY_PROJECTILE_COLOR = 0xff2200;
+        const STAR_COLOR = 0xffffff;
+        const POWERUP_COLOR = 0x00ff00;
+        const BG_COLOR = 0x0a0e2a;
+        const PLAY_AREA = { x: 16, y: 10 };
+
+        let renderer, scene, camera;
+        let width = window.innerWidth, height = window.innerHeight;
+        let gameState = GAME_STATE.START;
+        let player, playerPSB = 1, playerHealth = 5, playerMaxHealth = 5, playerScore = 0;
+        let playerShip, playerThruster, playerPSBMesh, playerHealthBar;
+        let enemies = [], projectiles = [], enemyProjectiles = [], explosions = [], powerUps = [];
+        let operatorIndex = 0;
+        let wave = 1, maxWaves = 4, waveEnemies = 0;
+        const INITIAL_BOMB_COUNT = 15;
+        let bombCounts = {};
+        let bombReplenishedAtScore = {};
+        let keys = {};
+        let stars = [];
+        let hud = {};
+        let pauseOverlay, startOverlay, gameOverOverlay, winOverlay;
+        let lastFire = 0, fireDelay = 0.25;
+        let lastEnemyFire = 0, enemyFireDelay = 1.5;
+        let miniBoss = null;
+        let bossGenerators = [];
+        let bossB = 0;
+        let bossHealth = 10, bossMaxHealth = 10;
+        let lastUpdate = performance.now();
+
+        // Inicializa os contadores de bombas
+        function initBombCounts() {
+            OPERATORS.forEach(op => {
+                bombCounts[op.key] = INITIAL_BOMB_COUNT;
+                bombReplenishedAtScore[op.key] = {};
+            });
+        }
+
+        function createRenderer() {
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setClearColor(BG_COLOR);
+            renderer.setSize(width, height);
+            document.body.appendChild(renderer.domElement);
+        }
+
+        function createCamera() {
+            camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
+            camera.position.set(0, 0, 22);
+        }
+
+        function createScene() {
+            scene = new THREE.Scene();
+            let ambient = new THREE.AmbientLight(0xffffff, 0.7);
+            let dir = new THREE.DirectionalLight(0xffffff, 0.8);
+            dir.position.set(0, 0, 10);
+            scene.add(ambient, dir);
+        }
+
+        function createStars() {
+            for (let i = 0; i < 80; i++) {
+                let geo = new THREE.SphereGeometry(Math.random() * 0.05 + 0.02, 6, 6);
+                let mat = new THREE.MeshBasicMaterial({ color: STAR_COLOR });
+                let mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(
+                    (Math.random() - 0.5) * PLAY_AREA.x * 1.2,
+                    (Math.random() - 0.5) * PLAY_AREA.y * 1.2,
+                    -3 - Math.random() * 3
+                );
+                scene.add(mesh);
+                stars.push(mesh);
+            }
+        }
+
+        function createPlayer() {
+            let geo = new THREE.ConeGeometry(0.6, 1.6, 5);
+            let mat = new THREE.MeshLambertMaterial({ color: PLAYER_COLOR });
+            playerShip = new THREE.Mesh(geo, mat);
+            playerShip.rotation.z = Math.PI;
+            playerShip.position.set(0, -PLAY_AREA.y / 2.2, 0);
+            scene.add(playerShip);
+
+            let thrusterGeo = new THREE.CylinderGeometry(0.18, 0.01, 0.4, 8);
+            let thrusterMat = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.7 });
+            playerThruster = new THREE.Mesh(thrusterGeo, thrusterMat);
+            playerThruster.position.set(0, -0.95, 0);
+            playerThruster.rotation.x = Math.PI / 2;
+            playerShip.add(playerThruster);
+
+            playerHealthBar = createBar(1.5, 0.12, 0x00ff55, 0.2);
+            playerHealthBar.position.set(0, 1.2, 0);
+            playerShip.add(playerHealthBar);
+
+            playerPSBMesh = createPSBMesh(playerPSB);
+            playerPSBMesh.position.set(0, 1.7, 0);
+            scene.add(playerPSBMesh);
+
+            player = {
+                x: 0,
+                y: -PLAY_AREA.y / 2.2,
+                speed: 7.5
+            };
+        }
+
+        function createPSBMesh(val) {
+            let canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            let ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 128, 128);
+            ctx.font = 'bold 88px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = val ? '#0090ff' : '#ff2222';
+            ctx.shadowBlur = 12;
+            ctx.fillStyle = val ? '#0090ff' : '#ff2222';
+            ctx.fillText(val ? '1' : '0', 64, 64);
+            let tex = new THREE.CanvasTexture(canvas);
+            let mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+            let sprite = new THREE.Sprite(mat);
+            sprite.scale.set(0.9, 0.9, 1);
+            sprite.psbValue = val;
+            return sprite;
+        }
+
+        function updatePSBMesh(val) {
+            let sprite = playerPSBMesh;
+            let canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            let ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 128, 128);
+            ctx.font = 'bold 88px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = val ? '#0090ff' : '#ff2222';
+            ctx.shadowBlur = 12;
+            ctx.fillStyle = val ? '#0090ff' : '#ff2222';
+            ctx.fillText(val ? '1' : '0', 64, 64);
+            sprite.material.map.image = canvas;
+            sprite.material.map.needsUpdate = true;
+            sprite.psbValue = val;
+        }
+
+        function createBar(w, h, color, border) {
+            let group = new THREE.Group();
+            let bgGeo = new THREE.PlaneGeometry(w + border, h + border);
+            let bgMat = new THREE.MeshBasicMaterial({ color: 0x222222 });
+            let bg = new THREE.Mesh(bgGeo, bgMat);
+            group.add(bg);
+            let fgGeo = new THREE.PlaneGeometry(w, h);
+            let fgMat = new THREE.MeshBasicMaterial({ color: color });
+            let fg = new THREE.Mesh(fgGeo, fgMat);
+            fg.position.z = 0.01;
+            fg.name = 'bar';
+            group.add(fg);
+            return group;
+        }
+
+        function setBarValue(bar, frac) {
+            let fg = bar.children.find(m => m.name === 'bar');
+            fg.scale.x = Math.max(0.01, frac);
+            fg.position.x = -(1 - frac) * (fg.geometry.parameters.width / 2);
+        }
+
+        function spawnEnemy(type, x, y) {
+            let mesh;
+            if (type.shape === 'cube') {
+                let geo = new THREE.BoxGeometry(1, 1, 1);
+                let mat = new THREE.MeshLambertMaterial({ color: ENEMY_COLOR });
+                mesh = new THREE.Mesh(geo, mat);
+            } else if (type.shape === 'tetra') {
+                let geo = new THREE.TetrahedronGeometry(0.7);
+                let mat = new THREE.MeshLambertMaterial({ color: ENEMY_COLOR });
+                mesh = new THREE.Mesh(geo, mat);
+            }
+            mesh.position.set(x, y, 0);
+            let health = 2 + wave;
+            let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
+            healthBar.position.set(0, -0.77, 0);
+            mesh.add(healthBar);
+            let ab = type.ab;
+            let A = ab ? Math.round(Math.random()) : null;
+            let B = ab ? Math.round(Math.random()) : null;
+            let ev, evText, expr = type.expr;
+            if (!expr) {
+                ev = typeof type.ev === 'function' ? type.ev() : type.ev;
+                evText = ev.toString();
+            } else {
+                let showExpr = expr.replace('&', '∧').replace('|', '∨').replace('^', '⊕');
+                evText = showExpr;
+                if (expr === 'A&B') ev = A & B;
+                if (expr === 'A|B') ev = A | B;
+                if (expr === 'A^B') ev = A ^ B;
+            }
+            let evMesh = createEVSprite(evText, A, B, expr);
+            evMesh.position.set(0, 1, 0);
+            mesh.add(evMesh);
+            scene.add(mesh);
+            return {
+                mesh, health, maxHealth: health, healthBar, ev, evMesh, ab, A, B, expr, alive: true, type
+            };
+        }
+
+        function createEVSprite(text, A, B, expr) {
+            let canvas = document.createElement('canvas');
+            canvas.width = 256;
+            canvas.height = 128;
+            let ctx = canvas.getContext('2d');
+            ctx.font = 'bold 60px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.clearRect(0, 0, 256, 128);
+            ctx.shadowColor = '#ff3300';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = '#ff3300';
+            ctx.fillText(text, 128, 64);
+            if (A !== null && B !== null && expr) {
+                ctx.font = '30px Arial';
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#fff';
+                ctx.fillText(`A:${A} B:${B}`, 128, 105);
+            }
+            let tex = new THREE.CanvasTexture(canvas);
+            let mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+            let sprite = new THREE.Sprite(mat);
+            sprite.scale.set(3.2, 1.5, 1);
+            return sprite;
+        }
+
+        function spawnProjectile(x, y, dx, dy, operator) {
+            let geo = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 10);
+            let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR, emissive: PROJECTILE_COLOR });
+            let mesh = new THREE.Mesh(geo, mat);
+            mesh.rotation.x = Math.PI / 2;
+            mesh.position.set(x, y + 0.8, 0.05);
+            scene.add(mesh);
+            projectiles.push({
+                mesh, dx, dy, operator, alive: true
+            });
+        }
+
+        function spawnEnemyProjectile(x, y, dx, dy) {
+            let geo = new THREE.CylinderGeometry(0.14, 0.14, 0.5, 8);
+            let mat = new THREE.MeshBasicMaterial({ color: ENEMY_PROJECTILE_COLOR });
+            let mesh = new THREE.Mesh(geo, mat);
+            mesh.rotation.x = Math.PI / 2;
+            mesh.position.set(x, y - 1.0, 0.05);
+            scene.add(mesh);
+            enemyProjectiles.push({
+                mesh, dx, dy, alive: true
+            });
+        }
+
+        function spawnExplosion(x, y) {
+            let group = [];
+            for (let i = 0; i < 15; i++) {
+                let geo = new THREE.SphereGeometry(0.13 + Math.random() * 0.09, 6, 6);
+                let mat = new THREE.MeshBasicMaterial({ color: Math.random() < 0.5 ? 0xff3300 : 0xff9900 });
+                let mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(x, y, 0.1);
+                mesh.dx = (Math.random() - 0.5) * 2.2;
+                mesh.dy = (Math.random() - 0.5) * 2.2;
+                mesh.ttl = 0.45 + Math.random() * 0.2;
+                scene.add(mesh);
+                group.push(mesh);
+            }
+            explosions.push({ group, time: 0 });
+            
+            // 30% chance de dropar power-up
+            if (Math.random() < 0.3) {
+                spawnPowerUp(x, y);
+            }
+        }
+
+        function spawnPowerUp(x, y) {
+            let geo = new THREE.SphereGeometry(0.3, 16, 16);
+            let mat = new THREE.MeshBasicMaterial({ color: POWERUP_COLOR, emissive: POWERUP_COLOR });
+            let mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(x, y, 0.1);
+            scene.add(mesh);
+            powerUps.push({
+                mesh,
+                alive: true,
+                ttl: 8.0,
+                dy: -1.0
+            });
+        }
+
+        function resetGame() {
+            while (scene.children.length) scene.remove(scene.children[0]);
+            stars = [];
+            enemies = [];
+            projectiles = [];
+            enemyProjectiles = [];
+            explosions = [];
+            powerUps = [];
+            miniBoss = null;
+            bossGenerators = [];
+            bossHealth = 10;
+            bossB = 0;
+            createStars();
+            createPlayer();
+            playerHealth = playerMaxHealth;
+            playerScore = 0;
+            wave = 1;
+            operatorIndex = 0;
+            playerPSB = 1;
+            updatePSBMesh(playerPSB);
+            lastFire = 0;
+            lastEnemyFire = 0;
+            waveEnemies = 0;
+            initBombCounts();
+            bombReplenishedAtScore = {};
+        }
+
+        function startWave(n) {
+            let nEnemies = Math.min(4 + n, 7);
+            waveEnemies = nEnemies;
+            for (let i = 0; i < nEnemies; i++) {
+                let type;
+                if (n === 1) type = ENEMY_TYPES[0];
+                else if (n === 2) type = ENEMY_TYPES[1 + (i % 2)];
+                else type = ENEMY_TYPES[2 + (i % 3)];
+                let x = -PLAY_AREA.x / 2 + 1.5 + (i % nEnemies) * (PLAY_AREA.x - 3) / (nEnemies - 1);
+                let y = PLAY_AREA.y / 2 - 1.5 - Math.random() * 1.4;
+                let enemy = spawnEnemy(type, x, y);
+                enemies.push(enemy);
+            }
+        }
+
+        function startMiniBoss() {
+            let geo = new THREE.BoxGeometry(2.7, 1.1, 1.1);
+            let mat = new THREE.MeshLambertMaterial({ color: ENEMY_COLOR });
+            let mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set(0, PLAY_AREA.y / 2.5, 0);
+            let healthBar = createBar(2.2, 0.18, 0xff4444, 0.23);
+            healthBar.position.set(0, -0.95, 0);
+            mesh.add(healthBar);
+            let exprText = 'A⊕B';
+            let evMesh = createEVSprite(exprText, null, null, null);
+            evMesh.position.set(0, 1.1, 0);
+            mesh.add(evMesh);
+            scene.add(mesh);
+            bossGenerators = [];
+            let genA = createBossGen('A');
+            let genB = createBossGen('B');
+            genA.angle = 0;
+            genB.angle = Math.PI;
+            genA.value = Math.round(Math.random());
+            genB.value = Math.round(Math.random());
+            genA.mesh.position.set(mesh.position.x + Math.cos(genA.angle) * 1.8, mesh.position.y + Math.sin(genA.angle) * 1.05, 0.1);
+            genB.mesh.position.set(mesh.position.x + Math.cos(genB.angle) * 1.8, mesh.position.y + Math.sin(genB.angle) * 1.05, 0.1);
+            bossGenerators.push(genA, genB);
+            bossHealth = bossMaxHealth;
+            miniBoss = {
+                mesh, health: bossHealth, maxHealth: bossMaxHealth, healthBar, evMesh, alive: true, expr: 'A^B'
+            };
+        }
+
+        function createBossGen(label) {
+            let geo = new THREE.SphereGeometry(0.32, 10, 10);
+            let mat = new THREE.MeshBasicMaterial({ color: 0xffbb33 });
+            let mesh = new THREE.Mesh(geo, mat);
+            let spr = createEVSprite(label + ':0', null, null, null);
+            spr.position.set(0, 0.55, 0);
+            mesh.add(spr);
+            scene.add(mesh);
+            return { mesh, label, value: 0, sprite: spr, angle: 0 };
+        }
+
+        function updateBossGenerators(dt) {
+            if (!miniBoss) return;
+            let r = 1.8, cy = miniBoss.mesh.position.y, cx = miniBoss.mesh.position.x;
+            for (let i = 0; i < bossGenerators.length; i++) {
+                let g = bossGenerators[i];
+                g.angle += dt * 0.7 * (i === 0 ? 1 : -1);
+                g.mesh.position.set(cx + Math.cos(g.angle) * r, cy + Math.sin(g.angle) * 1.05, 0.1);
+            }
+        }
+
+        function updateBossGenValues() {
+            for (let g of bossGenerators) {
+                g.value = Math.round(Math.random());
+                let canvas = document.createElement('canvas');
+                canvas.width = 96;
+                canvas.height = 48;
+                let ctx = canvas.getContext('2d');
+                ctx.font = 'bold 30px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.clearRect(0, 0, 96, 48);
+                ctx.shadowColor = '#ffbb33';
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = '#ffbb33';
+                ctx.fillText(g.label + ':' + g.value, 48, 24);
+                g.sprite.material.map.image = canvas;
+                g.sprite.material.map.needsUpdate = true;
+            }
+        }
+
+        function updateHUD() {
+            if (!hud.health) {
+                hud.health = document.createElement('div');
+                hud.health.style.position = 'fixed';
+                hud.health.style.left = '18px';
+                hud.health.style.top = '12px';
+                hud.health.style.color = '#00ff88';
+                hud.health.style.font = 'bold 22px monospace';
+                hud.health.style.textShadow = '0 0 5px #003';
+                document.body.appendChild(hud.health);
+            }
+            hud.health.innerHTML = 'Health: ' + playerHealth;
+            
+            if (!hud.score) {
+                hud.score = document.createElement('div');
+                hud.score.style.position = 'fixed';
+                hud.score.style.right = '18px';
+                hud.score.style.top = '12px';
+                hud.score.style.color = '#fff';
+                hud.score.style.font = 'bold 22px monospace';
+                hud.score.style.textShadow = '0 0 5px #003';
+                document.body.appendChild(hud.score);
+            }
+            hud.score.innerHTML = 'Score: ' + playerScore;
+            
+            if (!hud.psb) {
+                hud.psb = document.createElement('div');
+                hud.psb.style.position = 'fixed';
+                hud.psb.style.left = '18px';
+                hud.psb.style.bottom = '18px';
+                hud.psb.style.color = '#fff';
+                hud.psb.style.font = 'bold 32px monospace';
+                hud.psb.style.textShadow = '0 0 8px #0077ff';
+                document.body.appendChild(hud.psb);
+            }
+            hud.psb.innerHTML = 'PSB: <span style="color:' + (playerPSB ? '#0090ff' : '#ff2222') + '">' + playerPSB + '</span>';
+            
+            if (!hud.op) {
+                hud.op = document.createElement('div');
+                hud.op.style.position = 'fixed';
+                hud.op.style.bottom = '18px';
+                hud.op.style.left = '50%';
+                hud.op.style.transform = 'translateX(-50%)';
+                hud.op.style.color = '#fff';
+                hud.op.style.font = 'bold 28px monospace';
+                hud.op.style.textShadow = '0 0 8px #fff';
+                document.body.appendChild(hud.op);
+            }
+            const currentOperatorKey = OPERATORS[operatorIndex].key;
+            hud.op.innerHTML = 'Operator: <span style="color:#fff;background:#222;padding:2px 10px;border-radius:7px;">' + currentOperatorKey + '</span>' +
+                               ' <span style="color:#00ff88;font-size:22px;">(' + bombCounts[currentOperatorKey] + ')</span>';
+            
+            if (!hud.wave) {
+                hud.wave = document.createElement('div');
+                hud.wave.style.position = 'fixed';
+                hud.wave.style.top = '12px';
+                hud.wave.style.left = '50%';
+                hud.wave.style.transform = 'translateX(-50%)';
+                hud.wave.style.color = '#fff';
+                hud.wave.style.font = 'bold 22px monospace';
+                hud.wave.style.textShadow = '0 0 7px #0077ff';
+                document.body.appendChild(hud.wave);
+            }
+            if (gameState === GAME_STATE.PLAYING && !miniBoss)
+                hud.wave.innerHTML = 'Wave ' + wave + ' of ' + maxWaves;
+            else if (miniBoss && gameState === GAME_STATE.PLAYING)
+                hud.wave.innerHTML = 'Mini-Boss';
+            else
+                hud.wave.innerHTML = '';
+        }
+
+        function clearHUD() {
+            for (let k in hud) {
+                if (hud[k] && hud[k].parentNode) hud[k].parentNode.removeChild(hud[k]);
+                hud[k] = null;
+            }
+        }
+
+        function showOverlay(type, text, subtext) {
+            let overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.left = '0';
+            overlay.style.top = '0';
+            overlay.style.width = '100vw';
+            overlay.style.height = '100vh';
+            overlay.style.background = 'rgba(10,14,42,0.93)';
+            overlay.style.display = 'flex';
+            overlay.style.flexDirection = 'column';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.zIndex = '1000';
+            overlay.style.fontFamily = 'monospace';
+            let title = document.createElement('div');
+            title.style.fontSize = '58px';
+            title.style.color = '#fff';
+            title.style.textShadow = '0 0 24px #0077ff, 0 0 12px #fff';
+            title.style.fontWeight = 'bold';
+            title.style.letterSpacing = '2px';
+            title.innerHTML = text;
+            overlay.appendChild(title);
+            if (subtext) {
+                let st = document.createElement('div');
+                st.style.fontSize = '28px';
+                st.style.color = '#fff';
+                st.style.marginTop = '28px';
+                st.style.textShadow = '0 0 8px #0077ff';
+                st.innerHTML = subtext;
+                overlay.appendChild(st);
+            }
+            document.body.appendChild(overlay);
+            return overlay;
+        }
+
+        function removeOverlay(overlay) {
+            if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }
+
+        function keyDown(e) {
+            if (e.repeat) return;
+            keys[e.code] = true;
+            if (gameState === GAME_STATE.START && e.code === 'Space') {
+                removeOverlay(startOverlay);
+                resetGame();
+                gameState = GAME_STATE.PLAYING;
+                startWave(wave);
+            } else if (gameState === GAME_STATE.GAME_OVER && e.code === 'Space') {
+                removeOverlay(gameOverOverlay);
+                clearHUD();
+                gameState = GAME_STATE.START;
+                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+            } else if (gameState === GAME_STATE.WIN && e.code === 'Space') {
+                removeOverlay(winOverlay);
+                clearHUD();
+                gameState = GAME_STATE.START;
+                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+            } else if (gameState === GAME_STATE.PLAYING) {
+                if (e.code === 'KeyP') {
+                    if (pauseOverlay) {
+                        removeOverlay(pauseOverlay);
+                        pauseOverlay = null;
+                        gameState = GAME_STATE.PLAYING;
+                    } else {
+                        pauseOverlay = showOverlay('pause', 'Paused', '<span style="font-size:22px;">Press P to Resume</span>');
+                        gameState = GAME_STATE.PAUSED;
+                    }
+                }
+                if (e.code === 'Tab') {
+                    operatorIndex = (operatorIndex + 1) % OPERATORS.length;
+                    e.preventDefault();
+                }
+                if (e.code === 'Space') {
+                    if (OPERATORS[operatorIndex].key === 'NOT') {
+                        playerPSB = 1 - playerPSB;
+                        updatePSBMesh(playerPSB);
+                    } else {
+                        let now = performance.now() / 1000;
+                        const currentOperatorKey = OPERATORS[operatorIndex].key;
+                        if (bombCounts[currentOperatorKey] > 0 && now - lastFire > fireDelay) {
+                            fireProjectile();
+                            bombCounts[currentOperatorKey]--;
+                            lastFire = now;
+                        }
+                    }
+                }
+            }
+        }
+
+        function keyUp(e) {
+            keys[e.code] = false;
+        }
+
+        function fireProjectile() {
+            let target = null, minDist = 1000;
+            for (let e of enemies) {
+                if (!e.alive) continue;
+                let dx = e.mesh.position.x - player.x;
+                let dy = e.mesh.position.y - player.y;
+                let d = dx * dx + dy * dy;
+                if (d < minDist) {
+                    minDist = d;
+                    target = e;
+                }
+            }
+            if (miniBoss && miniBoss.alive) {
+                let dx = miniBoss.mesh.position.x - player.x;
+                let dy = miniBoss.mesh.position.y - player.y;
+                let d = dx * dx + dy * dy;
+                if (d < minDist) {
+                    minDist = d;
+                    target = miniBoss;
+                }
+            }
+            if (!target) return;
+            let dx = target.mesh.position.x - player.x;
+            let dy = target.mesh.position.y - player.y;
+            let mag = Math.sqrt(dx * dx + dy * dy);
+            if (mag === 0) mag = 1;
+            dx /= mag; dy /= mag;
+            spawnProjectile(player.x, player.y, dx * 13, dy * 13, operatorIndex);
+        }
+
+        function enemyFireLogic(dt) {
+            let now = performance.now() / 1000;
+            if (now - lastEnemyFire > enemyFireDelay) {
+                for (let e of enemies) {
+                    if (!e.alive) continue;
+                    let dx = player.x - e.mesh.position.x;
+                    let dy = player.y - e.mesh.position.y;
+                    let mag = Math.sqrt(dx * dx + dy * dy);
+                    if (mag === 0) mag = 1;
+                    dx /= mag; dy /= mag;
+                    if (Math.random() < 0.7)
+                        spawnEnemyProjectile(e.mesh.position.x, e.mesh.position.y, dx * 7, dy * 7);
+                }
+                if (miniBoss && miniBoss.alive && Math.random() < 0.8) {
+                    let dx = player.x - miniBoss.mesh.position.x;
+                    let dy = player.y - miniBoss.mesh.position.y;
+                    let mag = Math.sqrt(dx * dx + dy * dy);
+                    if (mag === 0) mag = 1;
+                    dx /= mag; dy /= mag;
+                    spawnEnemyProjectile(miniBoss.mesh.position.x, miniBoss.mesh.position.y - 0.6, dx * 8, dy * 8);
+                }
+                lastEnemyFire = now;
+            }
+        }
+
+        function updateProjectiles(dt) {
+            for (let p of projectiles) {
+                if (!p.alive) continue;
+                p.mesh.position.x += p.dx * dt;
+                p.mesh.position.y += p.dy * dt;
+                if (Math.abs(p.mesh.position.x) > PLAY_AREA.x / 2 + 2 || Math.abs(p.mesh.position.y) > PLAY_AREA.y / 2 + 2) {
+                    scene.remove(p.mesh);
+                    p.alive = false;
+                    continue;
+                }
+                for (let e of enemies) {
+                    if (!e.alive) continue;
+                    let ex = e.mesh.position.x, ey = e.mesh.position.y;
+                    let px = p.mesh.position.x, py = p.mesh.position.y;
+                    let dist = Math.sqrt((ex - px) ** 2 + (ey - py) ** 2);
+                    if (dist < 0.8) {
+                        let op = OPERATORS[p.operator];
+                        let psb = playerPSB;
+                        let ev = e.ev;
+                        if (e.expr) {
+                            if (e.expr === 'A&B') ev = e.A & e.B;
+                            if (e.expr === 'A|B') ev = e.A | e.B;
+                            if (e.expr === 'A^B') ev = e.A ^ e.B;
+                        }
+                        let result = op.fn(psb, ev);
+                        if (result === 1) {
+                            e.health--;
+                            setBarValue(e.healthBar, e.health / e.maxHealth);
+                            if (e.health <= 0) {
+                                e.alive = false;
+                                scene.remove(e.mesh);
+                                spawnExplosion(ex, ey);
+                                playerScore += 100;
+                                waveEnemies--;
+                            }
+                        }
+                        scene.remove(p.mesh);
+                        p.alive = false;
+                        break;
+                    }
+                }
+                if (miniBoss && miniBoss.alive) {
+                    let ex = miniBoss.mesh.position.x, ey = miniBoss.mesh.position.y;
+                    let px = p.mesh.position.x, py = p.mesh.position.y;
+                    let dist = Math.sqrt((ex - px) ** 2 + (ey - py) ** 2);
+                    if (dist < 1.5) {
+                        let op = OPERATORS[p.operator];
+                        let psb = playerPSB;
+                        let B = bossGenerators[1].value;
+                        let result = op.fn(psb, B);
+                        let expected = psb ^ B;
+                        if (result === 1 && expected === 1) {
+                            bossHealth--;
+                            setBarValue(miniBoss.healthBar, bossHealth / bossMaxHealth);
+                            if (bossHealth <= 0) {
+                                miniBoss.alive = false;
+                                scene.remove(miniBoss.mesh);
+                                spawnExplosion(ex, ey);
+                                playerScore += 900;
+                            }
+                        }
+                        scene.remove(p.mesh);
+                        p.alive = false;
+                        break;
+                    }
+                }
+            }
+            projectiles = projectiles.filter(p => p.alive);
+        }
+
+        function updateEnemyProjectiles(dt) {
+            for (let p of enemyProjectiles) {
+                if (!p.alive) continue;
+                p.mesh.position.x += p.dx * dt;
+                p.mesh.position.y += p.dy * dt;
+                if (Math.abs(p.mesh.position.x) > PLAY_AREA.x / 2 + 2 || Math.abs(p.mesh.position.y) > PLAY_AREA.y / 2 + 2) {
+                    scene.remove(p.mesh);
+                    p.alive = false;
+                    continue;
+                }
+                let px = p.mesh.position.x, py = p.mesh.position.y;
+                let dist = Math.sqrt((player.x - px) ** 2 + (player.y - py) ** 2);
+                if (dist < 0.7) {
+                    scene.remove(p.mesh);
+                    p.alive = false;
+                    playerHealth--;
+                    setBarValue(playerHealthBar, playerHealth / playerMaxHealth);
+                    if (playerHealth <= 0) {
+                        gameState = GAME_STATE.GAME_OVER;
+                        gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Score: ' + playerScore + '<br><br>Press SPACE to Restart');
+                    }
+                }
+            }
+            enemyProjectiles = enemyProjectiles.filter(p => p.alive);
+        }
+
+        function updateExplosions(dt) {
+            for (let e of explosions) {
+                for (let m of e.group) {
+                    m.position.x += m.dx * dt;
+                    m.position.y += m.dy * dt;
+                    m.ttl -= dt;
+                    if (m.ttl < 0) {
+                        scene.remove(m);
+                    }
+                }
+            }
+            explosions = explosions.filter(e => e.group.some(m => m.ttl > 0));
+        }
+
+        function updatePowerUps(dt) {
+            for (let pu of powerUps) {
+                if (!pu.alive) continue;
+                pu.mesh.position.y += pu.dy * dt;
+                pu.ttl -= dt;
+                if (pu.ttl < 0 || pu.mesh.position.y < -PLAY_AREA.y / 2 - 1) {
+                    scene.remove(pu.mesh);
+                    pu.alive = false;
+                    continue;
+                }
+                let dist = Math.sqrt((player.x - pu.mesh.position.x) ** 2 + (player.y - pu.mesh.position.y) ** 2);
+                if (dist < 1.0) {
+                    for (let key in bombCounts) {
+                        bombCounts[key] = Math.min(bombCounts[key] + 5, INITIAL_BOMB_COUNT * 2);
+                    }
+                    scene.remove(pu.mesh);
+                    pu.alive = false;
+                    
+                    // Efeito visual ao coletar
+                    let particles = [];
+                    for (let i = 0; i < 20; i++) {
+                        let geo = new THREE.SphereGeometry(0.1, 6, 6);
+                        let mat = new THREE.MeshBasicMaterial({ color: POWERUP_COLOR });
+                        let mesh = new THREE.Mesh(geo, mat);
+                        mesh.position.set(pu.mesh.position.x, pu.mesh.position.y, 0.1);
+                        mesh.dx = (Math.random() - 0.5) * 3;
+                        mesh.dy = (Math.random() - 0.5) * 3;
+                        mesh.ttl = 0.8 + Math.random() * 0.4;
+                        scene.add(mesh);
+                        particles.push(mesh);
+                    }
+                    explosions.push({ group: particles, time: 0 });
+                }
+            }
+            powerUps = powerUps.filter(pu => pu.alive);
+        }
+
+        function checkScoreForBombReplenish() {
+            const scoreThresholds = [500, 1500, 3000, 5000, 8000];
+            for (const threshold of scoreThresholds) {
+                if (playerScore >= threshold && !bombReplenishedAtScore[threshold]) {
+                    for (let key in bombCounts) {
+                        bombCounts[key] = Math.min(bombCounts[key] + 10, INITIAL_BOMB_COUNT * 2);
+                    }
+                    bombReplenishedAtScore[threshold] = true;
+                    break;
+                }
+            }
+        }
+
+        function updatePlayer(dt) {
+            let moveX = 0, moveY = 0;
+            if (keys['KeyA'] || keys['ArrowLeft']) moveX -= 1;
+            if (keys['KeyD'] || keys['ArrowRight']) moveX += 1;
+            if (keys['KeyW'] || keys['ArrowUp']) moveY += 1;
+            if (keys['KeyS'] || keys['ArrowDown']) moveY -= 1;
+            let mag = Math.sqrt(moveX * moveX + moveY * moveY);
+            if (mag > 0) {
+                moveX /= mag; moveY /= mag;
+                player.x += moveX * player.speed * dt;
+                player.y += moveY * player.speed * dt;
+                player.x = Math.max(-PLAY_AREA.x / 2 + 0.8, Math.min(PLAY_AREA.x / 2 - 0.8, player.x));
+                player.y = Math.max(-PLAY_AREA.y / 2 + 0.7, Math.min(PLAY_AREA.y / 2 - 0.7, player.y));
+                playerShip.position.set(player.x, player.y, 0);
+                playerPSBMesh.position.set(player.x, player.y + 1.7, 0);
+            }
+            playerThruster.material.opacity = 0.7 + 0.2 * Math.abs(Math.sin(performance.now() / 110));
+        }
+
+        function gameLoop() {
+            let now = performance.now();
+            let dt = Math.min((now - lastUpdate) / 1000, 0.045);
+            lastUpdate = now;
+            if (gameState === GAME_STATE.PLAYING) {
+                updatePlayer(dt);
+                updateProjectiles(dt);
+                updateEnemyProjectiles(dt);
+                updateExplosions(dt);
+                updatePowerUps(dt);
+                enemyFireLogic(dt);
+                for (let e of enemies) {
+                    if (!e.alive) continue;
+                    let t = Math.sin(now / 800 + e.mesh.position.x * 0.7) * 0.7;
+                    e.mesh.position.y += Math.sin(now / 1300 + e.mesh.position.x * 0.5) * 0.3 * dt;
+                    e.mesh.position.x += t * dt * 0.25;
+                }
+                if (miniBoss && miniBoss.alive) {
+                    updateBossGenerators(dt);
+                    if (now % 1500 < 40) updateBossGenValues();
+                }
+                if (waveEnemies === 0 && !miniBoss && wave <= maxWaves) {
+                    if (wave === maxWaves) {
+                        startMiniBoss();
+                    } else {
+                        wave++;
+                        startWave(wave);
+                    }
+                }
+                if (miniBoss && !miniBoss.alive && gameState === GAME_STATE.PLAYING) {
+                    gameState = GAME_STATE.WIN;
+                    winOverlay = showOverlay('win', 'VICTORY!', 'Score: ' + playerScore + '<br><br>Press SPACE to Restart');
+                }
+                checkScoreForBombReplenish();
+                updateHUD();
+            }
+            renderer.render(scene, camera);
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Inicialização do jogo
+        window.addEventListener('resize', () => {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
+
+        window.addEventListener('keydown', keyDown);
+        window.addEventListener('keyup', keyUp);
+
+        createRenderer();
+        createCamera();
+        createScene();
+        initBombCounts();
+        startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+        gameLoop();
+    </script>
+</body>
+</html>
