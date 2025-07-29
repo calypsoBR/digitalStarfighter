@@ -2,11 +2,23 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>O Último Guerreiro Digital das Estrelas</title>
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
     </style>
+
+   //Para transição suave das imagens de apresentação  
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+    
 </head>
 <body>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
@@ -19,6 +31,12 @@
             WIN: 4
         };
 
+        const TITLE_IMAGES = [
+            'logo_o-ultimo-guerreiro-digital-das-estrelas_homem_2.png',
+            'logo_o-ultimo-guerreiro-digital-das-estrelas_mulher_2.png'
+        ];
+        const FADE_DURATION = 1.5; // segundos
+        
         const OPERATORS = [
             { key: 'AND', fn: (a, b) => a & b },
             { key: 'OR', fn: (a, b) => a | b },
@@ -523,40 +541,97 @@
             }
         }
 
-        function showOverlay(type, text, subtext) {
-            let overlay = document.createElement('div');
-            overlay.style.position = 'fixed';
-            overlay.style.left = '0';
-            overlay.style.top = '0';
-            overlay.style.width = '100vw';
-            overlay.style.height = '100vh';
-            overlay.style.background = 'rgba(10,14,42,0.93)';
-            overlay.style.display = 'flex';
-            overlay.style.flexDirection = 'column';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.style.zIndex = '1000';
-            overlay.style.fontFamily = 'monospace';
-            let title = document.createElement('div');
-            title.style.fontSize = '58px';
-            title.style.color = '#fff';
-            title.style.textShadow = '0 0 24px #0077ff, 0 0 12px #fff';
-            title.style.fontWeight = 'bold';
-            title.style.letterSpacing = '2px';
-            title.innerHTML = text;
-            overlay.appendChild(title);
-            if (subtext) {
-                let st = document.createElement('div');
-                st.style.fontSize = '28px';
-                st.style.color = '#fff';
-                st.style.marginTop = '28px';
-                st.style.textShadow = '0 0 8px #0077ff';
-                st.innerHTML = subtext;
-                overlay.appendChild(st);
+        function showImageSequence() {
+    // Remove overlay existente se houver
+    removeOverlay(startOverlay);
+    
+    // Cria container principal
+    startOverlay = document.createElement('div');
+    startOverlay.style.position = 'fixed';
+    startOverlay.style.width = '100vw';
+    startOverlay.style.height = '100vh';
+    startOverlay.style.zIndex = '1000';
+    document.body.appendChild(startOverlay);
+
+    let currentImageIndex = 0;
+    const instructionText = 'PARA INICIAR O JOGO, PRESSIONE ESPAÇO';
+
+    function showNextImage() {
+        // Limpa o overlay
+        startOverlay.innerHTML = '';
+        
+        // Cria elemento da imagem
+        const img = document.createElement('div');
+        img.style.position = 'absolute';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.background = `url(${TITLE_IMAGES[currentImageIndex]}) center/contain no-repeat`;
+        img.style.opacity = '0';
+        img.style.transition = `opacity ${FADE_DURATION}s ease-in-out`;
+        startOverlay.appendChild(img);
+
+        // Fade in
+        setTimeout(() => {
+            img.style.opacity = '1';
+        }, 50);
+
+        // Fade out após 3 segundos visíveis
+        setTimeout(() => {
+            img.style.opacity = '0';
+            
+            // Mostra próxima imagem ou instrução final
+            setTimeout(() => {
+                currentImageIndex++;
+                if (currentImageIndex < TITLE_IMAGES.length) {
+                    showNextImage();
+                } else {
+                    showFinalInstruction();
+                }
+            }, FADE_DURATION * 1000);
+        }, (FADE_DURATION + 3) * 1000);
+    }
+
+    function showFinalInstruction() {
+        startOverlay.innerHTML = '';
+        
+        // Fundo preto semi-transparente
+        const bg = document.createElement('div');
+        bg.style.position = 'absolute';
+        bg.style.width = '100%';
+        bg.style.height = '100%';
+        bg.style.background = 'rgba(0,0,0,0.7)';
+        startOverlay.appendChild(bg);
+        
+        // Texto de instrução
+        const text = document.createElement('div');
+        text.textContent = instructionText;
+        text.style.position = 'absolute';
+        text.style.top = '70%';
+        text.style.left = '50%';
+        text.style.transform = 'translate(-50%, -50%)';
+        text.style.color = 'white';
+        text.style.fontFamily = 'monospace';
+        text.style.fontSize = '24px';
+        text.style.textAlign = 'center';
+        text.style.textShadow = '0 0 10px #0077ff';
+        text.style.animation = 'pulse 2s infinite';
+        startOverlay.appendChild(text);
+
+        // Adiciona animação de pulsação
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0% { opacity: 0.7; }
+                50% { opacity: 1; }
+                100% { opacity: 0.7; }
             }
-            document.body.appendChild(overlay);
-            return overlay;
+        `;
+        document.head.appendChild(style);
         }
+
+        // Inicia a sequência
+        showNextImage();
+    }
 
         function removeOverlay(overlay) {
             if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
@@ -574,12 +649,14 @@
                 removeOverlay(gameOverOverlay);
                 clearHUD();
                 gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+                //startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+                startOverlay = showImageSequence();
             } else if (gameState === GAME_STATE.WIN && e.code === 'Space') {
                 removeOverlay(winOverlay);
                 clearHUD();
                 gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+                //startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
+                startOverlay = showImageSequence();
             } else if (gameState === GAME_STATE.PLAYING) {
                 if (e.code === 'KeyP') {
                     if (pauseOverlay) {
