@@ -38,15 +38,20 @@
         const ENEMY_TYPES = [
             { shape: 'cube', ev: () => Math.round(Math.random()) },
             { shape: 'cube', ev: () => Math.round(Math.random()), ab: true },
+            
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A&B' },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A|B' },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A^B' }
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A AND B' },
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A OR B' },
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A XNOR B' }
+            
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: '^A OR ^B' }
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: '^A AND ^B' }
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: '^AB OR A^B' }
         ];
 
         const MINI_BOSS = {
             shape: 'boss',
-            expr: 'A^B'
+            expr: 'A XNOR B'
         };
 
         const PLAYER_COLOR = 0x0077ff;
