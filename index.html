@@ -34,13 +34,13 @@
             { shape: 'cube', ev: () => Math.round(Math.random()), ab: true },
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true },
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A.B' },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A|B' },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A^B' }
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A+B' },
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A⊕B' }
         ];
 
         const MINI_BOSS = {
             shape: 'boss',
-            expr: 'A^B'
+            expr: 'A⊕B'
         };
 
         const PLAYER_COLOR = 0x0077ff;
@@ -233,11 +233,11 @@
                 ev = typeof type.ev === 'function' ? type.ev() : type.ev;
                 evText = ev.toString();
             } else {
-                let showExpr = expr.replace('&', '∧').replace('|', '∨').replace('^', '⊕');
+                let showExpr = expr.replace('&', '.').replace('|', '+').replace('^', '⊕');
                 evText = showExpr;
-                if (expr === 'A&B') ev = A & B;
-                if (expr === 'A|B') ev = A | B;
-                if (expr === 'A^B') ev = A ^ B;
+                if (expr === 'A.B') ev = A & B;
+                if (expr === 'A+B') ev = A | B;
+                if (expr === 'A⊕B') ev = A ^ B;
             }
             let evMesh = createEVSprite(evText, A, B, expr);
             evMesh.position.set(0, 1, 0);
