@@ -468,7 +468,7 @@
                 hud.score.style.textShadow = '0 0 5px #003';
                 document.body.appendChild(hud.score);
             }
-            hud.score.innerHTML = 'Score: ' + playerScore;
+            hud.score.innerHTML = 'Pontuação: ' + playerScore;
             
             if (!hud.psb) {
                 hud.psb = document.createElement('div');
@@ -760,7 +760,7 @@
                     setBarValue(playerHealthBar, playerHealth / playerMaxHealth);
                     if (playerHealth <= 0) {
                         gameState = GAME_STATE.GAME_OVER;
-                        gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Score: ' + playerScore + '<br><br>Tecle ESPAÇO para reiniciar');
+                        gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Pontuação: ' + playerScore + '<br><br>Tecle ESPAÇO para reiniciar');
                     }
                 }
             }
@@ -881,7 +881,7 @@
                 }
                 if (miniBoss && !miniBoss.alive && gameState === GAME_STATE.PLAYING) {
                     gameState = GAME_STATE.WIN;
-                    winOverlay = showOverlay('win', 'VICTORY!', 'Score: ' + playerScore + '<br><br>Tecle ESPAÇO para reiniciar');
+                    winOverlay = showOverlay('win', 'VITÓRIA! VOCÊ ANIQUILOU A ARMADA KODAN!', 'Pontuação: ' + playerScore + '<br><br>Tecle ESPAÇO para reiniciar');
                 }
                 checkScoreForBombReplenish();
                 updateHUD();
