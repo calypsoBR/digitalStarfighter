@@ -45,19 +45,19 @@
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A^B' },
 
             // (NOT A OR NOT B) → Lei de De Morgan equivalente a NAND
-            { shape: 'tetra', ev: () => (1 - A) | (1 - B),  // Cálculo real
-              ab: true, expr: '(!A)+(!B)'  // Exibição visual
-            },
+         //  { shape: 'tetra', ev: () => (1 - A) | (1 - B),  // Cálculo real
+         //     ab: true, expr: '(!A)+(!B)'  // Exibição visual
+         //   },
             
             // (NOT A AND NOT B) → Lei de De Morgan equivalente a NOR
-            { shape: 'tetra', ev: () => (1 - A) & (1 - B),  // Cálculo real
-              ab: true, expr: '(!A).(!B)'  // Exibição visual
-            },
+         //   { shape: 'tetra', ev: () => (1 - A) & (1 - B),  // Cálculo real
+         //     ab: true, expr: '(!A).(!B)'  // Exibição visual
+         //   },
             
             // XOR (A XOR B) → (NOT A AND B) OR (NOT B AND A)
-            { shape: 'tetra', ev: () => (1 - A & B) | (1 - B & A),  // Cálculo real
-              ab: true, expr: '(!A.B)+(A.!B)'  // Exibição visual
-            }
+         //   { shape: 'tetra', ev: () => (1 - A & B) | (1 - B & A),  // Cálculo real
+         //     ab: true, expr: '(!A.B)+(A.!B)'  // Exibição visual
+         //   }
             
             
         ];
