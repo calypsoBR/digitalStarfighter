@@ -42,7 +42,7 @@
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true },
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A&B' },
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A|B' },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A^B' }
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A^B' },
 
             // (NOT A OR NOT B) → Lei de De Morgan equivalente a NAND
             { shape: 'tetra', ev: () => (1 - A) | (1 - B),  // Cálculo real
