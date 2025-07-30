@@ -1,0 +1,15 @@
+by deepseek
+
+
+/
+├── index.html          # Arquivo principal HTML
+├── css/
+│   └── style.css       # Estilos gerais
+└── js/
+    ├── main.js         # Inicialização do jogo
+    ├── game.js         # Lógica principal do jogo
+    ├── player.js       # Tudo relacionado ao jogador
+    ├── enemies.js      # Inimigos e lógica de waves
+    ├── projectiles.js  # Projéteis e colisões
+    ├── ui.js           # Interface do usuário e HUD
+    └── utils.js        # Funções auxiliares

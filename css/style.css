@@ -1,0 +1,61 @@
+body { 
+    margin: 0; 
+    overflow: hidden; 
+    font-family: 'Arial', sans-serif;
+}
+
+canvas { 
+    display: block; 
+}
+
+/* Estilos para elementos de UI */
+.health-display {
+    position: fixed;
+    left: 18px;
+    top: 12px;
+    color: #00ff88;
+    font: bold 22px monospace;
+    text-shadow: 0 0 5px #003;
+}
+
+.score-display {
+    position: fixed;
+    right: 18px;
+    top: 12px;
+    color: #fff;
+    font: bold 22px monospace;
+    text-shadow: 0 0 5px #003;
+}
+
+/* Estilos para overlays */
+.overlay {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10,14,42,0.93);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    font-family: monospace;
+}
+
+.overlay-title {
+    font-size: 58px;
+    color: #fff;
+    text-shadow: 0 0 24px #0077ff, 0 0 12px #fff;
+    font-weight: bold;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+.overlay-subtext {
+    font-size: 28px;
+    color: #fff;
+    margin-top: 28px;
+    text-shadow: 0 0 8px #0077ff;
+    text-align: center;
+}
