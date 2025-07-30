@@ -70,8 +70,11 @@ function updateHUD() {
 }
 
 function createOverlay(title, subtext) {
+    // Remove overlays existentes primeiro
+    removeAllOverlays();
+
     let overlay = document.createElement('div');
-    overlay.className = 'overlay';
+    overlay.className = 'overlay active';
     
     let titleEl = document.createElement('div');
     titleEl.className = 'overlay-title';
@@ -89,6 +92,18 @@ function createOverlay(title, subtext) {
     return overlay;
 }
 
+// NOVA FUNÇÃO ADICIONADA
+function removeAllOverlays() {
+    const overlays = document.querySelectorAll('.overlay');
+    overlays.forEach(overlay => {
+        overlay.classList.remove('active');
+        setTimeout(() => {
+            if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        }, 300);
+    });
+    pauseOverlay = startOverlay = gameOverOverlay = winOverlay = null;
+}
+
 function showGameOver() {
     gameOverOverlay = createOverlay(
         'GAME OVER',
@@ -104,12 +119,11 @@ function showWin() {
 }
 
 function clearUI() {
+    // Atualizado para usar removeAllOverlays
+    removeAllOverlays();
+    
     for (let k in hud) {
         if (hud[k] && hud[k].parentNode) hud[k].parentNode.removeChild(hud[k]);
         hud[k] = null;
     }
-    
-    [pauseOverlay, startOverlay, gameOverOverlay, winOverlay].forEach(ov => {
-        if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
-    });
 }
