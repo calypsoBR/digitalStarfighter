@@ -101,14 +101,13 @@ function onKeyDown(e) {
     keys[e.code] = true;
     
     if (gameState === GAME_STATE.START && e.code === 'Space') {
-        removeOverlay(startOverlay);
+        removeAllOverlays(); // Alterado para a nova função
         resetGame();
         gameState = GAME_STATE.PLAYING;
         startWave(wave);
     } 
     else if ((gameState === GAME_STATE.GAME_OVER || gameState === GAME_STATE.WIN) && e.code === 'Space') {
-        removeOverlay(gameOverOverlay || winOverlay);
-        clearUI();
+        clearUI(); // Já inclui removeAllOverlays()
         gameState = GAME_STATE.START;
         initUI();
     }
@@ -123,12 +122,11 @@ function onKeyDown(e) {
 }
 
 function togglePause() {
-    if (pauseOverlay) {
-        removeOverlay(pauseOverlay);
-        pauseOverlay = null;
+    if (gameState === GAME_STATE.PAUSED) {
+        removeAllOverlays();
         gameState = GAME_STATE.PLAYING;
     } else {
-        pauseOverlay = createOverlay('Paused', '<span style="font-size:22px;">Tecle P para retomar</span>');
+        createOverlay('Paused', '<span class="pause-instruction">Tecle P para continuar</span>');
         gameState = GAME_STATE.PAUSED;
     }
 }
@@ -151,7 +149,6 @@ function handleShoot() {
 function fireProjectile() {
     let target = null, minDist = 1000;
     
-    // Encontrar alvo mais próximo
     for (let e of enemies) {
         if (!e.alive) continue;
         let d = (e.mesh.position.x - player.x)**2 + (e.mesh.position.y - player.y)**2;
@@ -165,7 +162,6 @@ function fireProjectile() {
     
     if (!target) return;
     
-    // Calcular direção
     let dx = target.mesh.position.x - player.x;
     let dy = target.mesh.position.y - player.y;
     let mag = Math.sqrt(dx*dx + dy*dy);
@@ -187,6 +183,9 @@ function onWindowResize() {
     camera.updateProjectionMatrix();
 }
 
+// Função mantida para compatibilidade (será removida nas próximas versões)
 function removeOverlay(overlay) {
-    if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+    if (overlay && overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+    }
 }
