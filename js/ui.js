@@ -1,4 +1,5 @@
 let hud = {};
+let currentOverlay = null;
 let pauseOverlay, startOverlay, gameOverOverlay, winOverlay;
 
 function initUI() {
@@ -69,28 +70,33 @@ function updateHUD() {
     hud.wave.innerHTML = miniBoss ? 'Mini-Boss' : (gameState === GAME_STATE.PLAYING ? 'Wave ' + wave + ' of ' + maxWaves : '');
 }
 
-function createOverlay(title, subtext) {
-    // Remove overlays existentes primeiro
-    removeAllOverlays();
 
-    let overlay = document.createElement('div');
-    overlay.className = 'overlay active';
+function createOverlay(title, subtext) {
+    // Remove overlay existente primeiro
+    if (currentOverlay) {
+        currentOverlay.remove();
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay';
     
-    let titleEl = document.createElement('div');
+    const titleEl = document.createElement('div');
     titleEl.className = 'overlay-title';
-    titleEl.innerHTML = title;
+    titleEl.textContent = title;
     overlay.appendChild(titleEl);
     
     if (subtext) {
-        let subtextEl = document.createElement('div');
-        subtextEl.className = 'overlay-subtext';
-        subtextEl.innerHTML = subtext;
-        overlay.appendChild(subtextEl);
+        const subEl = document.createElement('div');
+        subEl.className = 'overlay-subtext';
+        subEl.innerHTML = subtext;
+        overlay.appendChild(subEl);
     }
-    
+
     document.body.appendChild(overlay);
+    currentOverlay = overlay;
     return overlay;
 }
+
 
 // NOVA FUNÇÃO ADICIONADA
 function removeAllOverlays() {
@@ -119,11 +125,16 @@ function showWin() {
 }
 
 function clearUI() {
-    // Atualizado para usar removeAllOverlays
-    removeAllOverlays();
-    
-    for (let k in hud) {
-        if (hud[k] && hud[k].parentNode) hud[k].parentNode.removeChild(hud[k]);
-        hud[k] = null;
+    if (currentOverlay) {
+        currentOverlay.remove();
+        currentOverlay = null;
     }
+    
+    // Limpa HUD
+    for (const key in hud) {
+        if (hud[key]?.parentNode) {
+            hud[key].parentNode.removeChild(hud[key]);
+        }
+    }
+    hud = {};
 }
