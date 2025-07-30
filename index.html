@@ -40,13 +40,26 @@
             { shape: 'cube', ev: () => Math.round(Math.random()), ab: true },
             
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A AND B' },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A OR B' },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A XNOR B' }
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A&B' },
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A|B' },
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A^B' }
+
+            // (NOT A OR NOT B) → Lei de De Morgan equivalente a NAND
+            { shape: 'tetra', ev: () => (1 - A) | (1 - B),  // Cálculo real
+              ab: true, expr: '(!A)+(!B)'  // Exibição visual
+            },
             
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: '^A OR ^B' }
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: '^A AND ^B' }
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: '^AB OR A^B' }
+            // (NOT A AND NOT B) → Lei de De Morgan equivalente a NOR
+            { shape: 'tetra', ev: () => (1 - A) & (1 - B),  // Cálculo real
+              ab: true, expr: '(!A).(!B)'  // Exibição visual
+            },
+            
+            // XOR (A XOR B) → (NOT A AND B) OR (NOT B AND A)
+            { shape: 'tetra', ev: () => (1 - A & B) | (1 - B & A),  // Cálculo real
+              ab: true, expr: '(!A.B)+(A.!B)'  // Exibição visual
+            }
+            
+            
         ];
 
         const MINI_BOSS = {
@@ -250,7 +263,8 @@
                 ev = typeof type.ev === 'function' ? type.ev() : type.ev;
                 evText = ev.toString();
             } else {
-                let showExpr = expr.replace('&', '∧').replace('|', '∨').replace('^', '⊕');
+                //let showExpr = expr.replace('&', '∧').replace('|', '∨').replace('^', '⊕');
+                let showExpr = expr.replace('&', '·').replace('|', '+').replace('^', '⊕');
                 evText = showExpr;
                 if (expr === 'A&B') ev = A & B;
                 if (expr === 'A|B') ev = A | B;
@@ -277,13 +291,22 @@
             ctx.shadowColor = '#ff3300';
             ctx.shadowBlur = 8;
             ctx.fillStyle = '#ff3300';
-            ctx.fillText(text, 128, 64);
-            if (A !== null && B !== null && expr) {
+        
+            // Apenas formata a exibição visual (sem alterar a lógica)
+            let displayText = expr
+                .replace(/!/g, '!')       // NOT como !
+                .replace(/&/g, '·')       // AND como ·
+                .replace(/\|/g, '+')      // OR como +
+                .replace(/\^/g, '⊕');     // XOR como ⊕
+        
+            ctx.fillText(displayText, 128, 64);
+        
+            // Mostra valores de A e B (opcional)
+            if (A !== null && B !== null) {
                 ctx.font = '30px Arial';
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#fff';
                 ctx.fillText(`A:${A} B:${B}`, 128, 105);
             }
+        
             let tex = new THREE.CanvasTexture(canvas);
             let mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
             let sprite = new THREE.Sprite(mat);
@@ -291,6 +314,7 @@
             return sprite;
         }
 
+        
         function spawnProjectile(x, y, dx, dy, operator) {
             let geo = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 10);
             let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR, emissive: PROJECTILE_COLOR });
