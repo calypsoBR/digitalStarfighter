@@ -6,12 +6,6 @@
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
-
-        @keyframes pulse {
-            0% { opacity: 0.7; transform: scale(0.98); }
-            50% { opacity: 1; transform: scale(1.02); }
-            100% { opacity: 0.7; transform: scale(0.98); }
-        }
     </style>
 </head>
 <body>
@@ -38,28 +32,10 @@
         const ENEMY_TYPES = [
             { shape: 'cube', ev: () => Math.round(Math.random()) },
             { shape: 'cube', ev: () => Math.round(Math.random()), ab: true },
-            
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true },
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A&B' },
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A|B' },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A^B' },
-
-            // (NOT A OR NOT B) → Lei de De Morgan equivalente a NAND
-         //  { shape: 'tetra', ev: () => (1 - A) | (1 - B),  // Cálculo real
-         //     ab: true, expr: '(!A)+(!B)'  // Exibição visual
-         //   },
-            
-            // (NOT A AND NOT B) → Lei de De Morgan equivalente a NOR
-         //   { shape: 'tetra', ev: () => (1 - A) & (1 - B),  // Cálculo real
-         //     ab: true, expr: '(!A).(!B)'  // Exibição visual
-         //   },
-            
-            // XOR (A XOR B) → (NOT A AND B) OR (NOT B AND A)
-         //   { shape: 'tetra', ev: () => (1 - A & B) | (1 - B & A),  // Cálculo real
-         //     ab: true, expr: '(!A.B)+(A.!B)'  // Exibição visual
-         //   }
-            
-            
+            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A^B' }
         ];
 
         const MINI_BOSS = {
@@ -75,12 +51,6 @@
         const POWERUP_COLOR = 0x00ff00;
         const BG_COLOR = 0x0a0e2a;
         const PLAY_AREA = { x: 16, y: 10 };
-
-        const TITLE_IMAGES = [
-            'logo_o-ultimo-guerreiro-digital-das-estrelas_homem_2.png',
-            'logo_o-ultimo-guerreiro-digital-das-estrelas_mulher_2.png'
-        ];
-        const FADE_DURATION = 1.5; // segundos para transição
 
         let renderer, scene, camera;
         let width = window.innerWidth, height = window.innerHeight;
@@ -263,8 +233,7 @@
                 ev = typeof type.ev === 'function' ? type.ev() : type.ev;
                 evText = ev.toString();
             } else {
-                //let showExpr = expr.replace('&', '∧').replace('|', '∨').replace('^', '⊕');
-                let showExpr = expr.replace('&', '·').replace('|', '+').replace('^', '⊕');
+                let showExpr = expr.replace('&', '∧').replace('|', '∨').replace('^', '⊕');
                 evText = showExpr;
                 if (expr === 'A&B') ev = A & B;
                 if (expr === 'A|B') ev = A | B;
@@ -291,22 +260,13 @@
             ctx.shadowColor = '#ff3300';
             ctx.shadowBlur = 8;
             ctx.fillStyle = '#ff3300';
-        
-            // Apenas formata a exibição visual (sem alterar a lógica)
-            let displayText = expr
-                .replace(/!/g, '!')       // NOT como !
-                .replace(/&/g, '·')       // AND como ·
-                .replace(/\|/g, '+')      // OR como +
-                .replace(/\^/g, '⊕');     // XOR como ⊕
-        
-            ctx.fillText(displayText, 128, 64);
-        
-            // Mostra valores de A e B (opcional)
-            if (A !== null && B !== null) {
+            ctx.fillText(text, 128, 64);
+            if (A !== null && B !== null && expr) {
                 ctx.font = '30px Arial';
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#fff';
                 ctx.fillText(`A:${A} B:${B}`, 128, 105);
             }
-        
             let tex = new THREE.CanvasTexture(canvas);
             let mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
             let sprite = new THREE.Sprite(mat);
@@ -314,7 +274,6 @@
             return sprite;
         }
 
-        
         function spawnProjectile(x, y, dx, dy, operator) {
             let geo = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 10);
             let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR, emissive: PROJECTILE_COLOR });
@@ -564,95 +523,6 @@
             }
         }
 
-        function showImageSequence() {
-    // Remove overlay existente
-    if (startOverlay && startOverlay.parentNode) {
-        startOverlay.parentNode.removeChild(startOverlay);
-    }
-    
-    // Cria container
-    startOverlay = document.createElement('div');
-    startOverlay.style.position = 'fixed';
-    startOverlay.style.width = '100vw';
-    startOverlay.style.height = '100vh';
-    startOverlay.style.zIndex = '1000';
-    startOverlay.style.display = 'flex';
-    startOverlay.style.justifyContent = 'center';
-    startOverlay.style.alignItems = 'center';
-    startOverlay.style.background = '#000';
-    document.body.appendChild(startOverlay);
-
-    let currentImageIndex = 0;
-    const instructionText = 'PRESSIONE ESPAÇO PARA INICIAR';
-
-    function showNextImage() {
-        startOverlay.innerHTML = '';
-        
-        const imgContainer = document.createElement('div');
-        imgContainer.style.position = 'relative';
-        imgContainer.style.width = '80%';
-        imgContainer.style.height = '80%';
-        imgContainer.style.backgroundSize = 'contain';
-        imgContainer.style.backgroundRepeat = 'no-repeat';
-        imgContainer.style.backgroundPosition = 'center';
-        imgContainer.style.opacity = '0';
-        imgContainer.style.transition = `opacity ${FADE_DURATION}s ease-in-out`;
-        imgContainer.style.backgroundImage = `url(${TITLE_IMAGES[currentImageIndex]})`;
-        startOverlay.appendChild(imgContainer);
-
-        // Força o redesenho
-        void imgContainer.offsetWidth;
-
-        // Animação de fade in
-        imgContainer.style.opacity = '1';
-
-        // Configura o fade out e próxima imagem
-        setTimeout(() => {
-            imgContainer.style.opacity = '0';
-            setTimeout(() => {
-                currentImageIndex++;
-                if (currentImageIndex < TITLE_IMAGES.length) {
-                    showNextImage();
-                } else {
-                    showFinalInstruction();
-                }
-            }, FADE_DURATION * 1000);
-        }, 3000); // 3 segundos visível
-    }
-
-    function showFinalInstruction() {
-        startOverlay.innerHTML = `
-            <div style="
-                position: absolute;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.7);
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: center;
-                color: white;
-                text-align: center;
-            ">
-                <div style="
-                    font-family: 'Arial', sans-serif;
-                    font-size: 24px;
-                    text-shadow: 0 0 10px #0077ff;
-                    animation: pulse 2s infinite;
-                ">
-                    ${instructionText}
-                </div>
-            </div>
-        `;
-    }
-
-    // Inicia a sequência
-    showNextImage();
-    
-    return startOverlay;
-}
-
-        // Mantida para game over/pause
         function showOverlay(type, text, subtext) {
             let overlay = document.createElement('div');
             overlay.style.position = 'fixed';
@@ -687,7 +557,6 @@
             document.body.appendChild(overlay);
             return overlay;
         }
-        
 
         function removeOverlay(overlay) {
             if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
@@ -705,12 +574,12 @@
                 removeOverlay(gameOverOverlay);
                 clearHUD();
                 gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Pressione ESPAÇO para iniciar</span>');
+                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
             } else if (gameState === GAME_STATE.WIN && e.code === 'Space') {
                 removeOverlay(winOverlay);
                 clearHUD();
                 gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Pressione ESPAÇO para iniciar</span>');
+                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
             } else if (gameState === GAME_STATE.PLAYING) {
                 if (e.code === 'KeyP') {
                     if (pauseOverlay) {
@@ -891,7 +760,7 @@
                     setBarValue(playerHealthBar, playerHealth / playerMaxHealth);
                     if (playerHealth <= 0) {
                         gameState = GAME_STATE.GAME_OVER;
-                        gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Score: ' + playerScore + '<br><br>Pressione ESPAÇO para reiniciar');
+                        gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Score: ' + playerScore + '<br><br>Press SPACE to Restart');
                     }
                 }
             }
@@ -1012,7 +881,7 @@
                 }
                 if (miniBoss && !miniBoss.alive && gameState === GAME_STATE.PLAYING) {
                     gameState = GAME_STATE.WIN;
-                    winOverlay = showOverlay('win', 'VICTORY!', 'Score: ' + playerScore + '<br><br>Pressione ESPAÇO para reiniciar');
+                    winOverlay = showOverlay('win', 'VICTORY!', 'Score: ' + playerScore + '<br><br>Press SPACE to Restart');
                 }
                 checkScoreForBombReplenish();
                 updateHUD();
@@ -1037,8 +906,7 @@
         createCamera();
         createScene();
         initBombCounts();
-        //startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Pressione ESPAÇO para iniciar</span>');
-        startOverlay = showImageSequence();
+        startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Press SPACE to Start</span>');
         gameLoop();
     </script>
 </body>
