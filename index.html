@@ -609,7 +609,14 @@
                         }
                     }
                 }
+            } else if (gameState === GAME_STATE.PAUSED) {
+                if (e.code === 'KeyP') {
+                    removeOverlay(pauseOverlay);
+                    pauseOverlay = null;
+                    gameState = GAME_STATE.PLAYING;
+                }
             }
+
         }
 
         function keyUp(e) {
