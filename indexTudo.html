@@ -18,7 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script>
     
-        // ===== [REPLACE POR ESTE CÓDIGO DE SONS] ===== //
+        // ===== [SISTEMA DE SONS ATUALIZADO] ===== //
         let audioEnabled = false;
         const sounds = {
             shoot: 'https://assets.mixkit.co/sfx/preview/mixkit-short-laser-gun-shot-1670.mp3',
@@ -27,21 +27,47 @@
             gameOver: 'https://assets.mixkit.co/sfx/preview/mixkit-sad-game-over-1943.mp3',
             victory: 'https://assets.mixkit.co/sfx/preview/mixkit-game-level-completed-2059.mp3'
         };
-    
+
+        // Pré-carrega todos os sons
+        const audioElements = {};
+        function preloadSounds() {
+            for (const [key, url] of Object.entries(sounds)) {
+                audioElements[key] = new Audio(url);
+                audioElements[key].volume = 0.3;
+                audioElements[key].load();
+            }
+        }
+        preloadSounds();
+
         document.getElementById('unmute').addEventListener('click', () => {
-            audioEnabled = true;
-            document.getElementById('unmute').style.display = 'none';
-            // Destrava o áudio
+            // Toca um som dummy para destravar o áudio
             const dummy = new Audio();
+            dummy.volume = 0;
             dummy.src = sounds.shoot;
-            dummy.play().then(() => {}).catch(e => {});
+            dummy.play().then(() => {
+                audioEnabled = true;
+                document.getElementById('unmute').style.display = 'none';
+                // Testa todos os sons
+                Object.values(audioElements).forEach(audio => {
+                    audio.currentTime = 0;
+                    audio.play().catch(e => console.log("Erro ao testar som:", e.message));
+                });
+            }).catch(e => {
+                console.log("Erro ao destravar áudio:", e.message);
+                alert("Por favor, clique em qualquer lugar da página primeiro para permitir sons!");
+            });
         });
-    
+
         function playSound(name) {
             if (!audioEnabled) return;
-            const audio = new Audio(sounds[name]);
-            audio.volume = 0.3;
-            audio.play().catch(e => {});
+            try {
+                const audio = audioElements[name].cloneNode(); // Usa clone para permitir sobreposição
+                audio.volume = 0.3;
+                audio.currentTime = 0;
+                audio.play().catch(e => console.log("Erro ao reproduzir som:", e.message));
+            } catch (e) {
+                console.log("Erro no sistema de áudio:", e);
+            }
         }
         // ===== [FIM DA SEÇÃO DE SONS] ===== //
 
@@ -752,7 +778,7 @@
                         if (e.expr) {
                             if (e.expr === 'A&B') ev = e.A & e.B;
                             if (e.expr === 'A|B') ev = e.A | e.B;
-                            if (e.expr === 'A^B') ev = e.A ^ e.B;
+                            if (e.expr === 'A^B') ev = e.A ^ B;
                         }
                         let result = op.fn(psb, ev);
                         if (result === 1) {
