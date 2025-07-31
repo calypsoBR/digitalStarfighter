@@ -25,7 +25,8 @@
                 explosion: new Audio('./sounds/explosion.mp3'),
                 powerup: new Audio('./sounds/powerup.mp3'),
                 gameOver: new Audio('./sounds/game_over.mp3'),
-                victory: new Audio('./sounds/victory.mp3')
+                victory: new Audio('./sounds/victory.mp3'),
+                powerupCollect: new Audio('./sounds/powerup_collect.mp3')
             };
             
             Object.values(sounds).forEach(audio => {
@@ -866,6 +867,7 @@
                 }
                 let dist = Math.sqrt((player.x - pu.mesh.position.x) ** 2 + (player.y - pu.mesh.position.y) ** 2);
                 if (dist < 1.0) {
+                    playSound('powerupCollect');
                     for (let key in bombCounts) {
                         bombCounts[key] = Math.min(bombCounts[key] + 5, INITIAL_BOMB_COUNT * 2);
                     }
