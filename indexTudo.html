@@ -28,6 +28,24 @@
 <body>
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script>
+
+    // ===== [ INÍCIO DA SEÇÃO DE ÁUDIO ] ===== //
+        const sounds = {
+            shoot: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-laser-weapon-shot-1680.mp3'),
+            explosion: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-explosion-impact-1684.mp3'),
+            powerup: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-health-pick-up-2590.mp3'),
+            gameOver: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3'),
+            victory: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3')
+        };
+        
+      // Configuração dos sons
+        Object.values(sounds).forEach(sound => {
+            sound.volume = 0.3; // Ajuste o volume entre 0 e 1
+            sound.preload = 'auto'; });
+    // ===== [ FIM DA SEÇÃO DE ÁUDIO ] ===== //
+
+
+        
         const GAME_STATE = {
             START: 0,
             PLAYING: 1,
@@ -113,22 +131,6 @@
                 bombReplenishedAtScore[op.key] = {};
             });
         }
-
-    // ===== [ INÍCIO DA SEÇÃO DE ÁUDIO ] ===== //
-        const sounds = {
-            shoot: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-laser-weapon-shot-1680.mp3'),
-            explosion: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-explosion-impact-1684.mp3'),
-            powerup: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-health-pick-up-2590.mp3'),
-            gameOver: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3'),
-            victory: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3')
-        };
-        
-        // Configuração dos sons
-        Object.values(sounds).forEach(sound => {
-            sound.volume = 0.3; // Ajuste o volume entre 0 e 1
-            sound.preload = 'auto';
-        });
-    // ===== [ FIM DA SEÇÃO DE ÁUDIO ] ===== //
         
         function createRenderer() {
             renderer = new THREE.WebGLRenderer({ antialias: true });
