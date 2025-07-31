@@ -24,16 +24,21 @@
         
         // Tipos de sons disponíveis
         const SOUND_TYPES = {
-            //shoot: new Audio('https://assets.mixkit.co/active_storage/sfx/1670/1670-preview.mp3'),
-            shoot: { frequency: 880, duration: 0.1, type: "square" },
-            explosion: { frequency: 220, duration: 0.3, type: "sawtooth" },
-            powerup: { frequency: 523.25, duration: 0.15, type: "sine" },
-            gameOver: { frequency: 110, duration: 0.5, type: "sine" },
-            victory: { 
-                frequencies: [659.25, 783.99, 1046.50],
-                durations: [0.2, 0.2, 0.3],
-                type: "sine"
-            }
+
+            shoot: new Audio('./sounds/shoot.mp3'),
+            explosion: new Audio('./sounds/explosion.mp3'),
+            powerup: new Audio('./sounds/powerup.mp3'),
+            gameOver: new Audio('./sounds/game_over.mp3'),
+            victory: new Audio('./sounds/victory.mp3')
+            //shoot: { frequency: 880, duration: 0.1, type: "square" },
+            //explosion: { frequency: 220, duration: 0.3, type: "sawtooth" },
+            //powerup: { frequency: 523.25, duration: 0.15, type: "sine" },
+            //gameOver: { frequency: 110, duration: 0.5, type: "sine" },
+            //victory: { 
+            //    frequencies: [659.25, 783.99, 1046.50],
+            //    durations: [0.2, 0.2, 0.3],
+            //    type: "sine"
+           // }
         };
         
         // Ativação do áudio (chamar no clique do botão)
