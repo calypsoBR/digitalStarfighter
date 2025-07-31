@@ -6,6 +6,23 @@
     <style>
         body { margin: 0; overflow: hidden; }
         canvas { display: block; }
+
+        /* ========== NOVOS ESTILOS PARA ÁUDIO ========== */
+        body {
+            -webkit-tap-highlight-color: transparent; /* Remove efeito de toque em mobile */
+            user-select: none; /* Evita seleção de texto acidental */
+        }
+        
+        /* Garante que o canvas não tenha foco visível */
+        canvas:focus {
+            outline: none;
+        }
+        
+        /* Otimiza desempenho de áudio no Chrome */
+        audio {
+            display: none; /* Esconde elementos de áudio */
+        }
+        
     </style>
 </head>
 <body>
