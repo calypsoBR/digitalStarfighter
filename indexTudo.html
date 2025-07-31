@@ -97,6 +97,22 @@
             });
         }
 
+    // ===== [ INÍCIO DA SEÇÃO DE ÁUDIO ] ===== //
+        const sounds = {
+            shoot: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-laser-weapon-shot-1680.mp3'),
+            explosion: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-explosion-impact-1684.mp3'),
+            powerup: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-health-pick-up-2590.mp3'),
+            gameOver: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3'),
+            victory: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3')
+        };
+        
+        // Configuração dos sons
+        Object.values(sounds).forEach(sound => {
+            sound.volume = 0.3; // Ajuste o volume entre 0 e 1
+            sound.preload = 'auto';
+        });
+    // ===== [ FIM DA SEÇÃO DE ÁUDIO ] ===== //
+        
         function createRenderer() {
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setClearColor(BG_COLOR);
@@ -289,6 +305,8 @@
         }
 
         function spawnProjectile(x, y, dx, dy, operator) {
+            sounds.shoot.currentTime = 0; // Reinicia o som
+            sounds.shoot.play();          // Toca o som de tiro
             let geo = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 10);
             let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR, emissive: PROJECTILE_COLOR });
             let mesh = new THREE.Mesh(geo, mat);
@@ -313,6 +331,8 @@
         }
 
         function spawnExplosion(x, y) {
+            sounds.explosion.currentTime = 0;
+            sounds.explosion.play();
             let group = [];
             for (let i = 0; i < 15; i++) {
                 let geo = new THREE.SphereGeometry(0.13 + Math.random() * 0.09, 6, 6);
@@ -334,6 +354,8 @@
         }
 
         function spawnPowerUp(x, y) {
+            sounds.powerup.currentTime = 0;
+            sounds.powerup.play();
             let geo = new THREE.SphereGeometry(0.3, 16, 16);
             let mat = new THREE.MeshBasicMaterial({ color: POWERUP_COLOR, emissive: POWERUP_COLOR });
             let mesh = new THREE.Mesh(geo, mat);
@@ -781,6 +803,8 @@
                     setBarValue(playerHealthBar, playerHealth / playerMaxHealth);
                     if (playerHealth <= 0) {
                         gameState = GAME_STATE.GAME_OVER;
+                        sounds.gameOver.currentTime = 0;
+                        sounds.gameOver.play();                        
                         gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Pontuação: ' + playerScore + '<br><br>Tecle ESPAÇO para reiniciar');
                     }
                 }
@@ -902,6 +926,8 @@
                 }
                 if (miniBoss && !miniBoss.alive && gameState === GAME_STATE.PLAYING) {
                     gameState = GAME_STATE.WIN;
+                    sounds.victory.currentTime = 0;
+                    sounds.victory.play();                    
                     winOverlay = showOverlay('win', 'VITÓRIA! VOCÊ ANIQUILOU A ARMADA KODAN!', 'Pontuação: ' + playerScore + '<br><br>Tecle ESPAÇO para reiniciar');
                 }
                 checkScoreForBombReplenish();
