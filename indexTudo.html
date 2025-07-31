@@ -16,61 +16,89 @@
 
     
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
-    <script>
-    
-        // ===== [SISTEMA DE SONS ATUALIZADO] ===== //
+    <script>    
+        
+     // ===== [SISTEMA DE SONS ATUALIZADO] ===== //
         let audioEnabled = false;
-        const sounds = {
-            shoot: 'https://assets.mixkit.co/sfx/preview/mixkit-short-laser-gun-shot-1670.mp3',
-            explosion: 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-explosion-2759.mp3',
-            powerup: 'https://assets.mixkit.co/sfx/preview/mixkit-extra-bonus-in-a-game-2045.mp3',
-            gameOver: 'https://assets.mixkit.co/sfx/preview/mixkit-sad-game-over-1943.mp3',
-            victory: 'https://assets.mixkit.co/sfx/preview/mixkit-game-level-completed-2059.mp3'
+        const audioContexts = {}; // Armazena os contextos de áudio
+        
+        // Tipos de sons disponíveis
+        const SOUND_TYPES = {
+            shoot: { frequency: 880, duration: 0.1, type: "square" },
+            explosion: { frequency: 220, duration: 0.3, type: "sawtooth" },
+            powerup: { frequency: 523.25, duration: 0.15, type: "sine" },
+            gameOver: { frequency: 110, duration: 0.5, type: "sine" },
+            victory: { 
+                frequencies: [659.25, 783.99, 1046.50],
+                durations: [0.2, 0.2, 0.3],
+                type: "sine"
+            }
         };
-
-        // Pré-carrega todos os sons
-        const audioElements = {};
-        function preloadSounds() {
-            for (const [key, url] of Object.entries(sounds)) {
-                audioElements[key] = new Audio(url);
-                audioElements[key].volume = 0.3;
-                audioElements[key].load();
-            }
-        }
-        preloadSounds();
-
-        document.getElementById('unmute').addEventListener('click', () => {
-            // Toca um som dummy para destravar o áudio
-            const dummy = new Audio();
-            dummy.volume = 0;
-            dummy.src = sounds.shoot;
-            dummy.play().then(() => {
-                audioEnabled = true;
-                document.getElementById('unmute').style.display = 'none';
-                // Testa todos os sons
-                Object.values(audioElements).forEach(audio => {
-                    audio.currentTime = 0;
-                    audio.play().catch(e => console.log("Erro ao testar som:", e.message));
-                });
-            }).catch(e => {
-                console.log("Erro ao destravar áudio:", e.message);
-                alert("Por favor, clique em qualquer lugar da página primeiro para permitir sons!");
-            });
-        });
-
-        function playSound(name) {
-            if (!audioEnabled) return;
+        
+        // Ativação do áudio (chamar no clique do botão)
+        function enableAudio() {
             try {
-                const audio = audioElements[name].cloneNode(); // Usa clone para permitir sobreposição
-                audio.volume = 0.3;
-                audio.currentTime = 0;
-                audio.play().catch(e => console.log("Erro ao reproduzir som:", e.message));
+                // Cria contextos para cada tipo de som
+                for (const type in SOUND_TYPES) {
+                    audioContexts[type] = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                audioEnabled = true;
+                
+                // Testa todos os sons
+                for (const type in SOUND_TYPES) {
+                    playSound(type);
+                }
             } catch (e) {
-                console.log("Erro no sistema de áudio:", e);
+                console.error("Erro ao ativar áudio:", e);
             }
         }
-        // ===== [FIM DA SEÇÃO DE SONS] ===== //
-
+        
+        // Função para tocar os sons
+        function playSound(type) {
+            if (!audioEnabled) return;
+        
+            const sound = SOUND_TYPES[type];
+            const ctx = audioContexts[type];
+            
+            try {
+                if (type === 'victory') {
+                    // Som especial para vitória (três tons)
+                    sound.frequencies.forEach((freq, i) => {
+                        setTimeout(() => {
+                            const osc = ctx.createOscillator();
+                            const gain = ctx.createGain();
+                            osc.type = sound.type;
+                            osc.frequency.value = freq;
+                            gain.gain.value = 0.1;
+                            osc.connect(gain);
+                            gain.connect(ctx.destination);
+                            osc.start();
+                            osc.stop(ctx.currentTime + sound.durations[i]);
+                        }, i * 200);
+                    });
+                } else {
+                    // Sons normais
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = sound.type;
+                    osc.frequency.value = sound.frequency;
+                    gain.gain.value = 0.1;
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start();
+                    osc.stop(ctx.currentTime + sound.duration);
+                }
+            } catch (e) {
+                console.error(`Erro ao tocar som ${type}:`, e);
+            }
+        }
+        
+        // No seu botão "Ativar Som", substitua por:
+        document.getElementById('unmute').addEventListener('click', () => {
+            enableAudio();
+            document.getElementById('unmute').style.display = 'none';
+        });
+     // ===== [FIM DA SEÇÃO DE SONS] ===== //
         
         const GAME_STATE = {
             START: 0,
