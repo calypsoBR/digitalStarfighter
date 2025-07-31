@@ -24,7 +24,8 @@
         
         // Tipos de sons disponíveis
         const SOUND_TYPES = {
-            shoot: { frequency: 880, duration: 0.1, type: "square" },
+            shoot: new Audio('https://assets.mixkit.co/active_storage/sfx/1670/1670-preview.mp3'),
+            //shoot: { frequency: 880, duration: 0.1, type: "square" },
             explosion: { frequency: 220, duration: 0.3, type: "sawtooth" },
             powerup: { frequency: 523.25, duration: 0.15, type: "sine" },
             gameOver: { frequency: 110, duration: 0.5, type: "sine" },
