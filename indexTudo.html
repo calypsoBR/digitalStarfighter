@@ -5,24 +5,7 @@
     <title>O Último Guerreiro Digital das Estrelas</title>
     <style>
         body { margin: 0; overflow: hidden; }
-        canvas { display: block; }
-
-        /* ========== NOVOS ESTILOS PARA ÁUDIO ========== */
-        body {
-            -webkit-tap-highlight-color: transparent; /* Remove efeito de toque em mobile */
-            user-select: none; /* Evita seleção de texto acidental */
-        }
-        
-        /* Garante que o canvas não tenha foco visível */
-        canvas:focus {
-            outline: none;
-        }
-        
-        /* Otimiza desempenho de áudio no Chrome */
-        audio {
-            display: none; /* Esconde elementos de áudio */
-        }
-        
+        canvas { display: block; }        
     </style>
 </head>
 <body>
@@ -43,7 +26,6 @@
             sound.volume = 0.3; // Ajuste o volume entre 0 e 1
             sound.preload = 'auto'; });
     // ===== [ FIM DA SEÇÃO DE ÁUDIO ] ===== //
-
 
         
         const GAME_STATE = {
@@ -323,7 +305,7 @@
             return sprite;
         }
 
-        function spawnProjectile(x, y, dx, dy, operator) {
+        function spawnProjectile(x, y, dx, dy, operator) {            
             sounds.shoot.currentTime = 0; // Reinicia o som
             sounds.shoot.play();          // Toca o som de tiro
             let geo = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 10);
