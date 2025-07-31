@@ -9,22 +9,53 @@
     </style>
 </head>
 <body>
+
+    <button id="unmute" style="position:fixed; z-index:9999; padding:10px; background:#0077ff; color:white; border:none; cursor:pointer;">
+        ATIVAR SOM (Clique Aqui)
+    </button>
+    
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script>
 
-    // ===== [ INÍCIO DA SEÇÃO DE ÁUDIO ] ===== //
-        const sounds = {
-            shoot: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-laser-weapon-shot-1680.mp3'),
-            explosion: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-explosion-impact-1684.mp3'),
-            powerup: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-health-pick-up-2590.mp3'),
-            gameOver: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3'),
-            victory: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3')
+        // ===== [CONFIGURAÇÃO À PROVA DE NAVEGADORES] ===== //
+        let audioEnabled = false;
+        document.getElementById('unmute').addEventListener('click', () => {
+            audioEnabled = true;
+            document.getElementById('unmute').remove();
+            // Toca um som invisível para "destravar" o áudio
+            new Audio().play().then(() => {}).catch(e => {});
+        });
+        
+        const playSound = (name) => {
+            if (!audioEnabled) return;
+            const sound = new Audio(sounds[name]);
+            sound.volume = 0.3;
+            sound.play().catch(e => {});
         };
         
+        const sounds = {
+            shoot: 'https://assets.mixkit.co/sfx/preview/mixkit-short-laser-gun-shot-1670.mp3',
+            explosion: 'https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-explosion-2759.mp3',
+            powerup: 'https://assets.mixkit.co/sfx/preview/mixkit-extra-bonus-in-a-game-2045.mp3',
+            gameOver: 'https://assets.mixkit.co/sfx/preview/mixkit-sad-game-over-1943.mp3',
+            victory: 'https://assets.mixkit.co/sfx/preview/mixkit-game-level-completed-2059.mp3'
+        };
+        // =============================================== //
+
+        
+    // ===== [ INÍCIO DA SEÇÃO DE ÁUDIO ] ===== //
+        //const sounds = {
+        //    shoot: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-laser-weapon-shot-1680.mp3'),
+        //    explosion: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-explosion-impact-1684.mp3'),
+        //    powerup: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-health-pick-up-2590.mp3'),
+        //    gameOver: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-retro-arcade-lose-2027.mp3'),
+        //    victory: new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3')
+       // };
+        
       // Configuração dos sons
-        Object.values(sounds).forEach(sound => {
-            sound.volume = 0.3; // Ajuste o volume entre 0 e 1
-            sound.preload = 'auto'; });
+       // Object.values(sounds).forEach(sound => {
+       //     sound.volume = 0.3; // Ajuste o volume entre 0 e 1
+       //     sound.preload = 'auto'; });
     // ===== [ FIM DA SEÇÃO DE ÁUDIO ] ===== //
 
         
@@ -306,8 +337,7 @@
         }
 
         function spawnProjectile(x, y, dx, dy, operator) {            
-            sounds.shoot.currentTime = 0; // Reinicia o som
-            sounds.shoot.play();          // Toca o som de tiro
+            playSound('shoot');             
             let geo = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 10);
             let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR, emissive: PROJECTILE_COLOR });
             let mesh = new THREE.Mesh(geo, mat);
@@ -332,8 +362,7 @@
         }
 
         function spawnExplosion(x, y) {
-            sounds.explosion.currentTime = 0;
-            sounds.explosion.play();
+            playSound('explosion');
             let group = [];
             for (let i = 0; i < 15; i++) {
                 let geo = new THREE.SphereGeometry(0.13 + Math.random() * 0.09, 6, 6);
@@ -355,8 +384,7 @@
         }
 
         function spawnPowerUp(x, y) {
-            sounds.powerup.currentTime = 0;
-            sounds.powerup.play();
+            playSound('powerup')
             let geo = new THREE.SphereGeometry(0.3, 16, 16);
             let mat = new THREE.MeshBasicMaterial({ color: POWERUP_COLOR, emissive: POWERUP_COLOR });
             let mesh = new THREE.Mesh(geo, mat);
@@ -804,8 +832,7 @@
                     setBarValue(playerHealthBar, playerHealth / playerMaxHealth);
                     if (playerHealth <= 0) {
                         gameState = GAME_STATE.GAME_OVER;
-                        sounds.gameOver.currentTime = 0;
-                        sounds.gameOver.play();                        
+                        playSound('gameOver');                        
                         gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Pontuação: ' + playerScore + '<br><br>Tecle ESPAÇO para reiniciar');
                     }
                 }
@@ -927,8 +954,7 @@
                 }
                 if (miniBoss && !miniBoss.alive && gameState === GAME_STATE.PLAYING) {
                     gameState = GAME_STATE.WIN;
-                    sounds.victory.currentTime = 0;
-                    sounds.victory.play();                    
+                    playSound('victory');                    
                     winOverlay = showOverlay('win', 'VITÓRIA! VOCÊ ANIQUILOU A ARMADA KODAN!', 'Pontuação: ' + playerScore + '<br><br>Tecle ESPAÇO para reiniciar');
                 }
                 checkScoreForBombReplenish();
