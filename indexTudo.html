@@ -324,11 +324,19 @@
             ctx.shadowBlur = 8;
             ctx.fillStyle = '#ff3300';
             ctx.fillText(text, 128, 64);
+          //  if (A !== null && B !== null && expr) {
+          //      ctx.font = '30px Arial';
+          //      ctx.shadowBlur = 0;
+          //      ctx.fillStyle = '#fff';
+          //      ctx.fillText(`A:${A} B:${B}`, 128, 105);
+          //  }
+
             if (A !== null && B !== null && expr) {
-                ctx.font = '30px Arial';
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#fff';
-                ctx.fillText(`A:${A} B:${B}`, 128, 105);
+                ctx.font = 'bold 42px Arial'; // Fonte maior e em negrito
+                ctx.shadowColor = '#000';
+                ctx.shadowBlur = 4;
+                ctx.fillStyle = '#00ff00'; // Verde
+                ctx.fillText(`A:${A} | B:${B}`, 128, 95); // Posição ajustada
             }
             let tex = new THREE.CanvasTexture(canvas);
             let mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
