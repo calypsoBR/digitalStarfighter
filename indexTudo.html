@@ -86,15 +86,15 @@
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A+B' },
             { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A⊕B' },
           
-        // (NOT A OR NOT B) → Lei de De Morgan equivalente a NAND
+            // (NOT A OR NOT B) → Lei de De Morgan equivalente a NAND
             { shape: 'tetra', ev: () => (1 - A) | (1 - B),  // Cálculo real
               ab: true, expr: '(!A)+(!B)'  // Exibição visual
             },
-        // (NOT A AND NOT B) → Lei de De Morgan equivalente a NOR
+            // (NOT A AND NOT B) → Lei de De Morgan equivalente a NOR
             { shape: 'tetra', ev: () => (1 - A) & (1 - B),  // Cálculo real
              ab: true, expr: '(!A).(!B)'  // Exibição visual
             },            
-        // (NOT A AND B) OR (NOT B AND A) → equivalente ao XOR de A e B
+            // (NOT A AND B) OR (NOT B AND A) → equivalente ao XOR de A e B
             { shape: 'tetra', ev: () => (1 - A & B) | (1 - B & A),  // Cálculo real
               ab: true, expr: '(!A.B)+(A.!B)'  // Exibição visual
             }
@@ -434,14 +434,36 @@
             bombReplenishedAtScore = {};
         }
 
+        function getEnemyType(wave, index) {
+            // Grupos organizados por dificuldade
+            const difficultyGroups = [
+                [0],                     // Wave 1: apenas tipo básico
+                [1, 2],                  // Wave 2: tipos com 1 variável
+                [3, 4, 5],               // Wave 3: expressões simples (AND/OR/XOR)
+                [6, 7, 8],               // Wave 4: leis de De Morgan
+                [2, 5, 6, 7, 8]          // Waves 5+: mistura de tipos avançados
+    
+                //[0],                          // Wave 1
+                //[0, 1],                       // Wave 2 (mais fácil)
+                //[1, 2, 3],                    // Wave 3
+                //[4, 5, 6],                    // Wave 4
+                //[3, 4, 5, 6, 7, 8]            // Waves 5+ (todos os tipos)
+            ];
+            
+            const groupIndex = Math.min(wave - 1, difficultyGroups.length - 1);
+            const availableTypes = difficultyGroups[groupIndex];
+            return ENEMY_TYPES[availableTypes[index % availableTypes.length]];
+        }
+
+        
         function startWave(n) {
             let nEnemies = Math.min(4 + n, 7);
             waveEnemies = nEnemies;
+            
             for (let i = 0; i < nEnemies; i++) {
-                let type;
-                if (n === 1) type = ENEMY_TYPES[0];
-                else if (n === 2) type = ENEMY_TYPES[1 + (i % 2)];
-                else type = ENEMY_TYPES[2 + (i % 3)];
+                
+                let type = getEnemyType(n, i);
+                console.log(`Wave ${n}, Inimigo ${i}:`, type.expr); // Mostra a expressão no console 
                 let x = -PLAY_AREA.x / 2 + 1.5 + (i % nEnemies) * (PLAY_AREA.x - 3) / (nEnemies - 1);
                 let y = PLAY_AREA.y / 2 - 1.5 - Math.random() * 1.4;
                 let enemy = spawnEnemy(type, x, y);
