@@ -141,8 +141,17 @@
         // Inicializa os contadores de bombas
         function initBombCounts() {
             OPERATORS.forEach(op => {
-                bombCounts[op.key] = INITIAL_BOMB_COUNT;
-                bombReplenishedAtScore[op.key] = {};
+                //bombCounts[op.key] = INITIAL_BOMB_COUNT;
+                //bombReplenishedAtScore[op.key] = {};
+                bombCounts = {
+                    'AND': 10,
+                    'OR': 8,
+                    'XOR': 12,
+                    'NAND': 8,
+                    'NOR': 15,
+                    'XNOR': 15
+                };
+                bombReplenishedAtScore = {};                
             });
         }
         
@@ -898,8 +907,17 @@
                 let dist = Math.sqrt((player.x - pu.mesh.position.x) ** 2 + (player.y - pu.mesh.position.y) ** 2);
                 if (dist < 1.0) {
                     playSound('powerupCollect');
+                    //for (let key in bombCounts) {
+                    //    bombCounts[key] = Math.min(bombCounts[key] + 5, INITIAL_BOMB_COUNT * 2);
+                    //}
                     for (let key in bombCounts) {
-                        bombCounts[key] = Math.min(bombCounts[key] + 5, INITIAL_BOMB_COUNT * 2);
+                        if (key === 'OR' || key === 'NAND') {
+                            bombCounts[key] = Math.min(bombCounts[key] + 3, 20); // Limite máximo de 20
+                        } else if (key === 'NOR') {
+                            bombCounts[key] = Math.min(bombCounts[key] + 5, 20);
+                        } else {
+                            bombCounts[key] = Math.min(bombCounts[key] + 4, 20);
+                        }
                     }
                     scene.remove(pu.mesh);
                     pu.alive = false;
