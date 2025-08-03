@@ -333,7 +333,7 @@
             canvas.height = 128;
             
             let ctx = canvas.getContext('2d');
-            ctx.font = 'bold 60px Arial';
+            ctx.font = 'bold 50px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.clearRect(0, 0, 256, 128);
@@ -341,16 +341,16 @@
             ctx.shadowColor = '#ff3300';
             ctx.shadowBlur = 8;
             ctx.fillStyle = '#ff3300';
-            ctx.fillText(text, 128, 60);
+            ctx.fillText(text, 128, 65);
 
             // Mostra estado lógicos das variáveis da expressão booleana
             if (A !== null && B !== null && expr) {
-                ctx.font = 'bold 35px Arial'; 
+                ctx.font = 'bold 40px Arial'; 
                 ctx.shadowColor = '#000';
                 ctx.shadowBlur = 4;
                 ctx.fillStyle = '#00ff00'; // Verde
                 //ctx.fillText(`A:${A} | B:${B}`, 128, 110); // Posição ajustada
-                ctx.fillText(`A:${A}   B:${B}`, 128, 05);
+                ctx.fillText(`A:${A}   B:${B}`, 128, 15);
             }
             
             let tex = new THREE.CanvasTexture(canvas);
