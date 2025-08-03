@@ -287,21 +287,25 @@
                 let geo = new THREE.BoxGeometry(1, 1, 1);
                 let mat = new THREE.MeshLambertMaterial({ color: ENEMY_COLOR });
                 mesh = new THREE.Mesh(geo, mat);
+                
             } else if (type.shape === 'tetra') {
                 let geo = new THREE.TetrahedronGeometry(0.7);
                 let mat = new THREE.MeshLambertMaterial({ color: ENEMY_COLOR });
-                mesh = new THREE.Mesh(geo, mat);
-                //healthBar.position.set(0, -0.9, 0); // Ajusta a barra de vida para baixo
+                mesh = new THREE.Mesh(geo, mat);                
             }
+            
             mesh.position.set(x, y, 0);
             let health = 2 + wave;
             let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
-            healthBar.position.set(0, -0.77, 0);
+            //healthBar.position.set(0, -0.77, 0);
+            healthBar.position.set(0, -0.9, 0); // Ajusta a barra de vida para baixo
             mesh.add(healthBar);
+            
             let ab = type.ab;
             let A = ab ? Math.round(Math.random()) : null;
             let B = ab ? Math.round(Math.random()) : null;
             let ev, evText, expr = type.expr;
+            
             if (!expr) {
                 ev = typeof type.ev === 'function' ? type.ev() : type.ev;
                 evText = ev.toString();
@@ -312,11 +316,12 @@
                 if (expr === 'A+B') ev = A | B;
                 if (expr === 'A⊕B') ev = A ^ B;
             }
+            
             let evMesh = createEVSprite(evText, A, B, expr);
-            evMesh.position.set(0, 0.8, 0);
-            //evMesh.position.set(0, 0.8, 0); // Baixa um pouco o sprite
+            evMesh.position.set(0, 0.8, 0);            
             mesh.add(evMesh);
             scene.add(mesh);
+            
             return {
                 mesh, health, maxHealth: health, healthBar, ev, evMesh, ab, A, B, expr, alive: true, type
             };
@@ -328,7 +333,7 @@
             canvas.height = 164;
             
             let ctx = canvas.getContext('2d');
-            ctx.font = 'bold 60px Arial';
+            ctx.font = 'bold 52px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.clearRect(0, 0, 256, 164);
@@ -336,11 +341,11 @@
             ctx.shadowColor = '#ff3300';
             ctx.shadowBlur = 8;
             ctx.fillStyle = '#ff3300';
-            ctx.fillText(text, 128, 64);
+            ctx.fillText(text, 128, 50);
             
             if (A !== null && B !== null && expr) {
                 ctx.font = 'bold 42px Arial'; // Fonte maior e em negrito
-                ctx.shadowColor = '#000';
+                //ctx.shadowColor = '#000';
                 ctx.shadowBlur = 4;
                 ctx.fillStyle = '#00ff00'; // Verde
                 ctx.fillText(`A:${A} | B:${B}`, 128, 110); // Posição ajustada
