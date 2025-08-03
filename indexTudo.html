@@ -341,15 +341,16 @@
             ctx.shadowColor = '#ff3300';
             ctx.shadowBlur = 8;
             ctx.fillStyle = '#ff3300';
-            ctx.fillText(text, 128, 64);
-            
+            ctx.fillText(text, 128, 60);
+
+            // Mostra estado lógicos das variáveis da expressão booleana
             if (A !== null && B !== null && expr) {
-                ctx.font = 'bold 42px Arial'; // Fonte maior e em negrito
+                ctx.font = 'bold 35px Arial'; 
                 ctx.shadowColor = '#000';
                 ctx.shadowBlur = 4;
                 ctx.fillStyle = '#00ff00'; // Verde
                 //ctx.fillText(`A:${A} | B:${B}`, 128, 110); // Posição ajustada
-                ctx.fillText(`A:${A} B:${B}`, 128, 14);
+                ctx.fillText(`A:${A}   B:${B}`, 128, 05);
             }
             
             let tex = new THREE.CanvasTexture(canvas);
