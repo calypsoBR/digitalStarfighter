@@ -345,10 +345,10 @@
             
             if (A !== null && B !== null && expr) {
                 ctx.font = 'bold 42px Arial'; // Fonte maior e em negrito
-                //ctx.shadowColor = '#000';
+                ctx.shadowColor = '#000';
                 ctx.shadowBlur = 4;
                 ctx.fillStyle = '#00ff00'; // Verde
-                ctx.fillText(`A:${A} | B:${B}`, 128, 110); // Posição ajustada
+                ctx.fillText(`A:${A} | B:${B}`, 128, 220); // Posição ajustada
             }
             
             let tex = new THREE.CanvasTexture(canvas);
