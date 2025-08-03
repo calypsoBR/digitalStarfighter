@@ -297,8 +297,8 @@
             mesh.position.set(x, y, 0);
             let health = 2 + wave;
             let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
-            //healthBar.position.set(0, -0.77, 0);
-            healthBar.position.set(0, -0.9, 0); // Ajusta a barra de vida para baixo
+            healthBar.position.set(0, -0.77, 0);
+            //healthBar.position.set(0, -0.9, 0); // Ajusta a barra de vida para baixo
             mesh.add(healthBar);
             
             let ab = type.ab;
@@ -330,32 +330,33 @@
         function createEVSprite(text, A, B, expr) {
             let canvas = document.createElement('canvas');
             canvas.width = 256;
-            canvas.height = 164;
+            canvas.height = 128;
             
             let ctx = canvas.getContext('2d');
-            ctx.font = 'bold 52px Arial';
+            ctx.font = 'bold 60px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
-            ctx.clearRect(0, 0, 256, 164);
+            ctx.clearRect(0, 0, 256, 128);
             
             ctx.shadowColor = '#ff3300';
             ctx.shadowBlur = 8;
             ctx.fillStyle = '#ff3300';
-            ctx.fillText(text, 128, 50);
+            ctx.fillText(text, 128, 64);
             
             if (A !== null && B !== null && expr) {
                 ctx.font = 'bold 42px Arial'; // Fonte maior e em negrito
                 ctx.shadowColor = '#000';
                 ctx.shadowBlur = 4;
                 ctx.fillStyle = '#00ff00'; // Verde
-                ctx.fillText(`A:${A} | B:${B}`, 128, 110); // Posição ajustada
+                //ctx.fillText(`A:${A} | B:${B}`, 128, 110); // Posição ajustada
+                ctx.fillText(`A:${A} B:${B}`, 128, 105);
             }
             
             let tex = new THREE.CanvasTexture(canvas);
             let mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
             let sprite = new THREE.Sprite(mat);
-            //sprite.scale.set(3.2, 1.5, 1);
-            sprite.scale.set(3.2, 2.0, 1); // Ajustamos a altura do sprite
+            sprite.scale.set(3.2, 1.5, 1);
+            //sprite.scale.set(3.2, 2.0, 1); // Ajustamos a altura do sprite
             return sprite;           
         }
         
