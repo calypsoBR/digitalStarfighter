@@ -473,13 +473,9 @@
 
         
         function startWave(n) {
-            
-            if (n==3){
-                let nEnemies = 5
-                else {
-                    let nEnemies = Math.min(4 + n, 7);  // Calcula o número de inimigos (mínimo de 4, máximo de 7)
-                }
-            }
+
+            let nEnemies = (n === 3) ? 5 : Math.min(4 + n, 7); // Wave 3 = 5 naves, outras waves seguem lógica original
+            //let nEnemies = Math.min(4 + n, 7);  // Calcula o número de inimigos (mínimo de 4, máximo de 7)
             waveEnemies = nEnemies;
             
             for (let i = 0; i < nEnemies; i++) {
