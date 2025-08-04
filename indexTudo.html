@@ -71,32 +71,82 @@
         const OPERATORS = [
             { key: 'AND', fn: (a, b) => a & b },
             { key: 'OR', fn: (a, b) => a | b },
-            { key: 'XOR', fn: (a, b) => a ^ b },
-           // { key: 'NOT', fn: (a) => 1 - a },
+            { key: 'XOR', fn: (a, b) => a ^ b },           
             { key: 'NAND', fn: (a, b) => 1 - (a & b) },
             { key: 'NOR', fn: (a, b) => 1 - (a | b) },
             { key: 'XNOR', fn: (a, b) => 1 - (a ^ b) }
         ];
 
         const ENEMY_TYPES = [
-            { shape: 'cube', ev: () => Math.round(Math.random()) },
-            { shape: 'cube', ev: () => Math.round(Math.random()), ab: true },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A.B' },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A+B' },
-            { shape: 'tetra', ev: () => Math.round(Math.random()), ab: true, expr: 'A⊕B' },
-          
+            
+        // --- NÍVEL 1 (caças, com valor gearado aleatoriamente, que fica CONSTANTE)
+            { 
+                shape: 'cube', 
+                ev: () => Math.round(Math.random()),
+                isDynamic: false 
+            },
+
+            
+        // --- NÍVEL 2 (caças, com valor gearado aleatoriamente, mudando a cada "changeInterval" segundos)
+            { 
+                shape: 'cube', 
+                ev: () => Math.round(Math.random()), 
+                isDynamic: true,
+                changeInterval: 3 
+            },
+
+            
+         // --- NÍVEL 3 (caças, com valor condicionado ao PSB, mudando a cada "changeInterval" segundos)
+            { 
+                shape: 'cube', 
+                //ev: (psb) => Math.random() > 0.5 ? psb : 1 - psb
+                ev: (psb) => Math.round(Math.random()) ? psb : 1 - psb , // 50% de chance de ser psb ou !psb
+                isDynamic: true,
+                changeInterval: 4 
+            }
+
+            
+        // --- NÍVEL 4 (cruzadores, com expressão simples, com valor de A e B gerado aleatoriamente, que fica CONSTANTE)
+            {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
+                ab: true, expr: 'A.B', // o cálculo real
+                isDynamic: false    },
+            {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
+                ab: true, expr: 'A+B', // o cálculo real
+                isDynamic: false    },
+            {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
+                ab: true, expr: 'A⊕B', // o cálculo real
+                isDynamic: false    },
+                        
+        
+        // --- NÍVEL 5 (cruzadores, com expressão simples, com valor de A e B gerado aleatoriamente, mudando a cada "changeInterval" segundos)
+            {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
+                ab: true, expr: 'A.B', // o cálculo real
+                isDynamic: true, changeInterval: 5    },
+            {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
+                ab: true, expr: 'A+B', // o cálculo real
+                isDynamic: true, changeInterval: 5    },
+            {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
+                ab: true, expr: 'A⊕B', // o cálculo real
+                isDynamic: true, changeInterval: 5    },
+        
+        
+        // --- NÍVEL 6 (cruzadores, com expressão complexas, com valor de A e B gerado aleatoriamente, que fica constante)
+        
             // (NOT A OR NOT B) → Lei de De Morgan equivalente a NAND
-            { shape: 'tetra', ev: () => (1 - A) | (1 - B),  // Cálculo real
-              ab: true, expr: '(!A)+(!B)'  // Exibição visual
+            { shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
+              ev: () => (1 - A) | (1 - B),  // Cálculo real
+              ab: true, expr: '(!A)+(!B)', // Exibição visual
+              isDynamic: false 
             },
             // (NOT A AND NOT B) → Lei de De Morgan equivalente a NOR
             { shape: 'tetra', ev: () => (1 - A) & (1 - B),  // Cálculo real
-             ab: true, expr: '(!A).(!B)'  // Exibição visual
+              ab: true, expr: '(!A).(!B)',  // Exibição visual
+              isDynamic: false 
             },            
             // (NOT A AND B) OR (NOT B AND A) → equivalente ao XOR de A e B
             { shape: 'tetra', ev: () => (1 - A & B) | (1 - B & A),  // Cálculo real
               ab: true, expr: '(!A.B)+(A.!B)'  // Exibição visual
+              isDynamic: false 
             }
         
         ];
@@ -295,7 +345,8 @@
             }
             
             mesh.position.set(x, y, 0);
-            let health = 2 + wave;
+            //let health = 2 + wave;
+            let health = Math.max(3, 2 + Math.floor(wave * 0.7)); // Mínimo 3,
             let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
             healthBar.position.set(0, -0.77, 0);
             //healthBar.position.set(0, -0.9, 0); // Ajusta a barra de vida para baixo
