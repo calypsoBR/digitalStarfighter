@@ -473,12 +473,18 @@
 
         
         function startWave(n) {
-            let nEnemies = Math.min(4 + n, 7);
+            
+            if (n==3){
+                let nEnemies = 5
+                else {
+                    let nEnemies = Math.min(4 + n, 7);  // Calcula o número de inimigos (mínimo de 4, máximo de 7)
+                }
+            }
             waveEnemies = nEnemies;
             
             for (let i = 0; i < nEnemies; i++) {
                 
-                let type = getEnemyType(n, i);
+                let type = getEnemyType(n, i);  // Define o tipo de nave
                 console.log(`Wave ${n}, Inimigo ${i}:`, type.expr); // Mostra a expressão no console 
                 let x = -PLAY_AREA.x / 2 + 1.5 + (i % nEnemies) * (PLAY_AREA.x - 3) / (nEnemies - 1);
                 let y = PLAY_AREA.y / 2 - 1.5 - Math.random() * 1.4;
