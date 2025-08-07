@@ -853,7 +853,7 @@
                 document.body.appendChild(hud.wave);
             }
             if (gameState === GAME_STATE.PLAYING && !mothership)
-                hud.wave.innerHTML = 'Wave ' + wave + ' of ' + maxWaves;
+                hud.wave.innerHTML = 'Fase ' + wave + ' de ' + maxWaves;
             else if (mothership && gameState === GAME_STATE.PLAYING)
                 hud.wave.innerHTML = 'Nave-Mãe';
             else
@@ -1265,7 +1265,7 @@
                 
                 if (waveEnemies === 0 && !mothership && wave <= maxWaves) {
                     if (wave === maxWaves) {
-                        spawnMothership(); // Substitui startMiniBoss()
+                        spawnMothership();
                         waveEnemies = 1;
                     } else {
                         wave++;
