@@ -77,6 +77,8 @@
             { key: 'XNOR', fn: (a, b) => 1 - (a ^ b) }
         ];
 
+        let wave = 1, maxWaves = 10, waveEnemies = 0;  // número de ondas (fases)
+        
         const ENEMY_TYPES = [
             
         // --- NÍVEL 1 (caças, com valor lógico constante, gearado aleatoriamente)
@@ -235,7 +237,7 @@
               },
               expr: '(A⊕B).C',
               isBoss: true,
-              health: 12 + wave
+              health: 12 + maxWaves
             }
         ];
 
@@ -255,8 +257,7 @@
         let player, playerPSB = 1, playerHealth = 5, playerMaxHealth = 5, playerScore = 0;
         let playerShip, playerThruster, playerPSBMesh, playerHealthBar;
         let enemies = [], projectiles = [], enemyProjectiles = [], explosions = [], powerUps = [];
-        let operatorIndex = 0;
-        let wave = 1, maxWaves = 10, waveEnemies = 0;
+        let operatorIndex = 0;        
         const INITIAL_BOMB_COUNT = 15;
         let bombCounts = {};
         let bombReplenishedAtScore = {};
@@ -264,7 +265,7 @@
         let stars = [];
         let hud = {};
         let pauseOverlay, startOverlay, gameOverOverlay, winOverlay;
-        let lastFire = 0, fireDelay = 0.25;
+        let lastFire = 0, fireDelay = 0.25;  // atraso no tiro (segundos)
         let lastEnemyFire = 0, enemyFireDelay = 1.5;        
         let lastUpdate = performance.now();
 
