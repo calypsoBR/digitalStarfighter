@@ -79,74 +79,151 @@
 
         const ENEMY_TYPES = [
             
-        // --- NÍVEL 1 (caças, com valor gearado aleatoriamente, que fica CONSTANTE)
-            { 
-                shape: 'cube', 
-                ev: () => Math.round(Math.random()),
-                isDynamic: false 
+        // --- NÍVEL 1 (caças, com valor lógico constante, gearado aleatoriamente)
+            
+            {   shape: 'cube', ev: () => Math.round(Math.random()),   // define nave, gera valor lógico de forma aleatória
+                isDynamic: false  // valor não muda após ser gerado
             },
 
             
-        // --- NÍVEL 2 (caças, com valor gearado aleatoriamente, mudando a cada "changeInterval" segundos)
-            { 
-                shape: 'cube', 
-                ev: () => Math.round(Math.random()), 
-                isDynamic: true,
-                changeInterval: 3 
+        // --- NÍVEL 2 (caças, com valor mudando a cada "changeInterval" segundos, gearado aleatoriamente)
+            
+            {   shape: 'cube', ev: () => Math.round(Math.random()),  // define nave, gera valor lógico de forma aleatória
+                isDynamic: true, changeInterval: 3  // muda o valor a cada 3 segundos
             },
 
             
-         // --- NÍVEL 3 (caças, com valor condicionado ao PSB, mudando a cada "changeInterval" segundos)
-            { 
-                shape: 'cube', 
-                //ev: (psb) => Math.random() > 0.5 ? psb : 1 - psb
-                ev: (psb) => Math.round(Math.random()) ? psb : 1 - psb , // 50% de chance de ser psb ou !psb
-                isDynamic: true,
-                changeInterval: 4 
+         // --- NÍVEL 3 (caças, com valor mudando a cada "changeInterval" segundos, condicionado ao PSB ou seu contraditório)
+            
+            {   shape: 'cube', ev: (psb) => Math.random() > 0.5 ? psb : 1 - psb, // define nave, gera valor com 50% de chance de ser psb ou !psb
+                isDynamic: true, changeInterval: 4   // muda o valor a cada 4 segundos
             }
 
             
-        // --- NÍVEL 4 (cruzadores, com expressão simples, com valor de A e B gerado aleatoriamente, que fica CONSTANTE)
+        // --- NÍVEL 4 (cruzadores, com expressão básicas, com valor de A e B constante, gerados aleatoriamente)
+
+            // 1) Operação AND
+            {     shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
+                  ev: function() { return this.A() & this.B(); },  // Cálculo real: A AND B
+                  ab: true, expr: 'A.B', // Exibição visual
+                  isDynamic: false  // não muda os valores de A e B
+            },
+
+            // 2) Operação OR
             {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
-                ab: true, expr: 'A.B', // o cálculo real
-                isDynamic: false    },
+                ev: function() { return this.A() | this.B(); }, // Cálculo real: A OR B
+                ab: true, expr: 'A+B', // Exibição visual
+                isDynamic: false  // não muda os valores de A e B
+            },
+
+            // 3) Operação OR
             {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
-                ab: true, expr: 'A+B', // o cálculo real
-                isDynamic: false    },
-            {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
-                ab: true, expr: 'A⊕B', // o cálculo real
-                isDynamic: false    },
+                ev: function() { return this.A() ^ this.B(); }, // Cálculo real: A XOR B
+                ab: true, expr: 'A⊕B',  // Exibição visual
+                isDynamic: false  // não muda os valores de A e B
+            },
                         
         
         // --- NÍVEL 5 (cruzadores, com expressão simples, com valor de A e B gerado aleatoriamente, mudando a cada "changeInterval" segundos)
-            {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
-                ab: true, expr: 'A.B', // o cálculo real
-                isDynamic: true, changeInterval: 5    },
-            {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
-                ab: true, expr: 'A+B', // o cálculo real
-                isDynamic: true, changeInterval: 5    },
-            {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
-                ab: true, expr: 'A⊕B', // o cálculo real
-                isDynamic: true, changeInterval: 5    },
-        
-        
-        // --- NÍVEL 6 (cruzadores, com expressão complexas, com valor de A e B gerado aleatoriamente, que fica constante)
-        
-            // (NOT A OR NOT B) → Lei de De Morgan equivalente a NAND
-            { shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
-              ev: () => (1 - A) | (1 - B),  // Cálculo real
-              ab: true, expr: '(!A)+(!B)', // Exibição visual
-              isDynamic: false 
+
+            // 1) Operação AND
+            {     shape: 'tetra', A: () => Math.round(Math.random()),  B: () => Math.round(Math.random()),
+                  ev: function() { return this.A() & this.B(); }, // Cálculo real: A AND B
+                  ab: true, expr: 'A.B', // Exibição visual
+                  isDynamic: true, changeInterval: 5 
             },
-            // (NOT A AND NOT B) → Lei de De Morgan equivalente a NOR
-            { shape: 'tetra', ev: () => (1 - A) & (1 - B),  // Cálculo real
-              ab: true, expr: '(!A).(!B)',  // Exibição visual
-              isDynamic: false 
-            },            
-            // (NOT A AND B) OR (NOT B AND A) → equivalente ao XOR de A e B
-            { shape: 'tetra', ev: () => (1 - A & B) | (1 - B & A),  // Cálculo real
-              ab: true, expr: '(!A.B)+(A.!B)'  // Exibição visual
-              isDynamic: false 
+
+            // 2) Operação OR
+            {     shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
+                  ev: function() { return this.A() | this.B(); }, // Cálculo real: A OR B
+                  ab: true, expr: 'A+B', // Exibição visual
+                  isDynamic: true,  changeInterval: 5
+            },
+
+            // 3) Operação XOR
+            {     shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
+                  ev: function() { return this.A() ^ this.B(); }, // Cálculo real: A XOR B
+                  ab: true, expr: 'A⊕B', // Exibição visual
+                  isDynamic: true,  changeInterval: 5 
+            },
+
+        
+        // --- NÍVEL 6 (cruzadores, com expressões básicas, A fixo, B dinâmico = PSB ou !PSB), ambos mudando de tempos em tempos
+
+            // 1) Operação AND            
+            {   shape: 'tetra', 
+                A: () => Math.round(Math.random()), // gerado aleatoriamente
+                B: () => Math.random() > 0.5 ? playerPSB : 1 - playerPSB, // usa playerPSB para definição
+                B: function() { return Math.random() > 0.5 ? playerPSB : 1 - playerPSB; },  // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
+                ev: function() { return this.A() & this.B(); }, // Cálculo A.B
+                ab: true, expr: 'A.B',   // Exibição visual
+                isDynamic: true, changeInterval: 4   // muda os valores de A e B a cada 4 segundos
+            },
+
+            // 2) Operação OR 
+            {   
+                shape: 'tetra',
+                A: () => Math.round(Math.random()), 
+                B: function() { return Math.random() > 0.5 ? playerPSB : 1 - playerPSB; },  // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
+                ev: function() { return this.A() | this.B(); }, // Cálculo A+B
+                ab: true, expr: 'A+B', // Exibição visual
+                isDynamic: true, changeInterval: 4   // muda os valores de A e B a cada 4 segundos
+            },
+
+            // 3) Operação XOR
+            {   
+                shape: 'tetra',
+                A: () => Math.round(Math.random()), 
+                B: function() { return Math.random() > 0.5 ? playerPSB : 1 - playerPSB; },  // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
+                ev: function() { return this.A() ^ this.B(playerPSB); }, // Cálculo A⊕B
+                ab: true, expr: 'A⊕B', // Exibição visual
+                isDynamic: true, changeInterval: 4    // muda os valores de A e B a cada 4 segundos
+            }
+        
+        // --- NÍVEL 7 (destroyers, com expressão complexas, com valor de A e B gerado aleatoriamente, que fica constante)
+        
+            // 1) (NOT A OR NOT B) → Lei de De Morgan equivalente a NAND
+            { shape: 'octahedron', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),  // define nave, gera A e B de forma aleatória
+              ev: function() { return (1 - this.A()) | (1 - this.B()); },  // Cálculo real
+              ab: true, expr: '(!A)+(!B)', // Exibição visual
+              isDynamic: false  // valores de A e B não mudam após serem gerados
+            },
+                    
+            // 2) (NOT A AND NOT B) → Lei de De Morgan equivalente a NOR
+            { shape: 'octahedron', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()), // define nave, gera A e B de forma aleatória
+              ev: function() { return (1 - this.A()) & (1 - this.B()); },  // Cálculo real
+              ab: true, expr: '(!A).(!B)', // Exibição visual
+              isDynamic: false  // valores de A e B não mudam após serem gerados
+            },
+        
+            // 3) (NOT A AND B) OR (NOT B AND A) → equivalente ao XOR de A e B            
+            { shape: 'octahedron', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),  // define nave, gera A e B de forma aleatória                            
+              ev: function() { return ((1 - this.A()) & this.B()) | (this.A() & (1 - this.B())); },  // cálculo real
+              ab: true, expr: '(!A.B)+(A.!B)', // Exibição visual
+              isDynamic: false  // valores de A e B não mudam após serem gerados
+            }        
+
+        // --- NÍVEL 8 (destroyers, com expressão complexas, com valor de A e B gerado aleatoriamente, mudando de tempos em tempos)
+        
+            // 1) (NOT A OR NOT B) → Lei de De Morgan equivalente a NAND
+            { shape: 'octahedron', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),  // define nave, gera A e B de forma aleatória
+              ev: function() { return (1 - this.A()) | (1 - this.B()); },  // Cálculo real
+              ab: true, expr: '(!A)+(!B)', // Exibição visual
+              isDynamic: true, changeInterval: 5     // muda os valores de A e B a cada 5 segundos
+            },
+                    
+            // 2) (NOT A AND NOT B) → Lei de De Morgan equivalente a NOR
+            { shape: 'octahedron', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()), // define nave, gera A e B de forma aleatória
+              ev: function() { return (1 - this.A()) & (1 - this.B()); },  // Cálculo real
+              ab: true, expr: '(!A).(!B)', // Exibição visual
+              isDynamic: true, changeInterval: 5     // muda os valores de A e B a cada 5 segundos
+            },
+        
+            // 3) (NOT A AND B) OR (NOT B AND A) → equivalente ao XOR de A e B            
+            { shape: 'octahedron', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),  // define nave, gera A e B de forma aleatória              
+              ev: function() { return ((1 - this.A()) & this.B()) | (this.A() & (1 - this.B())); },  // cálculo real
+              ab: true, expr: '(!A.B)+(A.!B)', // Exibição visual
+              isDynamic: true, changeInterval: 5     // muda os valores de A e B a cada 5 segundos
             }
         
         ];
@@ -172,7 +249,7 @@
         let playerShip, playerThruster, playerPSBMesh, playerHealthBar;
         let enemies = [], projectiles = [], enemyProjectiles = [], explosions = [], powerUps = [];
         let operatorIndex = 0;
-        let wave = 1, maxWaves = 4, waveEnemies = 0;
+        let wave = 1, maxWaves = 10, waveEnemies = 0;
         const INITIAL_BOMB_COUNT = 15;
         let bombCounts = {};
         let bombReplenishedAtScore = {};
@@ -331,53 +408,98 @@
             fg.position.x = -(1 - frac) * (fg.geometry.parameters.width / 2);
         }
 
+        
         function spawnEnemy(type, x, y) {
             let mesh;
-            if (type.shape === 'cube') {
-                let geo = new THREE.BoxGeometry(1, 1, 1);
-                let mat = new THREE.MeshLambertMaterial({ color: ENEMY_COLOR });
-                mesh = new THREE.Mesh(geo, mat);
-                
-            } else if (type.shape === 'tetra') {
-                let geo = new THREE.TetrahedronGeometry(0.7);
-                let mat = new THREE.MeshLambertMaterial({ color: ENEMY_COLOR });
-                mesh = new THREE.Mesh(geo, mat);                
+        
+            // ==================== [1. DEFINE VIDA POR TIPO DE NAVE] ====================
+            let health;
+            if (type.shape === 'cube') {  // Caças
+                health = 2 + Math.floor(wave * 0.5);  // Wave 1 = 2 → ajustado para mínimo 3 abaixo
+            } else if (type.shape === 'tetra') {  // Cruzadores
+                health = 3 + Math.floor(wave * 0.7);  // Wave 5 = 6
+            } else if (type.shape === 'octahedron') {  // Destroyers
+                health = 4 + Math.floor(wave * 1.0);  // Wave 7 = 11
             }
-            
+            health = Math.max(health, 3);  // Garante vida mínima = 3
+        
+            // ==================== [2. CRIA GEOMETRIA] ====================
+            if (type.shape === 'cube') {
+                mesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(1, 1, 1),
+                    new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
+                );
+            } else if (type.shape === 'tetra') {
+                mesh = new THREE.Mesh(
+                    new THREE.TetrahedronGeometry(0.7),
+                    new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
+                );
+            } else if (type.shape === 'octahedron') {
+                mesh = new THREE.Mesh(
+                    new THREE.OctahedronGeometry(0.8),
+                    new THREE.MeshLambertMaterial({ 
+                        color: ENEMY_COLOR,
+                        emissive: 0xff3300,
+                        emissiveIntensity: 0.3
+                    })
+                );
+            }
             mesh.position.set(x, y, 0);
-            //let health = 2 + wave;
-            let health = Math.max(3, 2 + Math.floor(wave * 0.7)); // Mínimo 3,
+        
+            // ==================== [3. ESTRUTURA DE DANO/EXIBIÇÃO] ====================
             let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
             healthBar.position.set(0, -0.77, 0);
-            //healthBar.position.set(0, -0.9, 0); // Ajusta a barra de vida para baixo
             mesh.add(healthBar);
-            
+        
             let ab = type.ab;
-            let A = ab ? Math.round(Math.random()) : null;
-            let B = ab ? Math.round(Math.random()) : null;
-            let ev, evText, expr = type.expr;
-            
-            if (!expr) {
-                ev = typeof type.ev === 'function' ? type.ev() : type.ev;
-                evText = ev.toString();
-            } else {
-                let showExpr = expr.replace('&', '.').replace('|', '+').replace('^', '⊕');
-                evText = showExpr;
-                if (expr === 'A.B') ev = A & B;
-                if (expr === 'A+B') ev = A | B;
-                if (expr === 'A⊕B') ev = A ^ B;
-            }
-            
-            let evMesh = createEVSprite(evText, A, B, expr);
-            evMesh.position.set(0, 0.8, 0);            
+            let A = ab ? (type.A ? type.A() : Math.round(Math.random())) : null;
+            let B = ab ? (type.B ? type.B() : Math.round(Math.random())) : null;
+            let ev = type.ev ? type.ev() : (A !== null && B !== null ? eval(type.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
+            let evText = type.expr || ev?.toString();
+        
+            let evMesh = createEVSprite(evText, A, B, type.expr);
+            evMesh.position.set(0, 0.8, 0);
             mesh.add(evMesh);
             scene.add(mesh);
-            
+        
             return {
-                mesh, health, maxHealth: health, healthBar, ev, evMesh, ab, A, B, expr, alive: true, type
+                mesh, health, maxHealth: health, healthBar, ev, evMesh, ab, A, B, expr: type.expr, alive: true, type
             };
         }
 
+        function updateDynamicEnemies(dt) {
+            for (let e of enemies) {
+                if (!e.alive || !e.type.isDynamic) continue;
+                
+                e.changeTimer = (e.changeTimer || 0) + dt;
+                if (e.changeTimer >= e.type.changeInterval) {
+                    e.changeTimer = 0;
+                    
+                    // Atualiza A e B (se existirem)
+                    if (e.type.A) e.A = e.type.A();
+                    if (e.type.B) e.B = e.type.B(playerPSB); // Passa playerPSB para níveis como o 6
+                    
+                    // Recalcula ev (usando a expressão ou função ev)
+                    e.ev = e.type.ev ? e.type.ev() : 
+                          (e.A !== null && e.B !== null ? eval(e.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
+                    
+                    // Atualiza o sprite da expressão
+                    updateEnemyEVSprite(e);
+                }
+            }
+        }
+
+        function updateEnemyEVSprite(enemy) {
+            // Remove o sprite antigo
+            enemy.mesh.remove(enemy.evMesh);
+            
+            // Cria um novo sprite com os valores atualizados
+            let evText = enemy.expr || enemy.ev?.toString();
+            enemy.evMesh = createEVSprite(evText, enemy.A, enemy.B, enemy.expr);
+            enemy.evMesh.position.set(0, 0.8, 0);
+            enemy.mesh.add(enemy.evMesh);
+        }
+        
         function createEVSprite(text, A, B, expr) {
             const canvas = document.createElement('canvas');
             canvas.width = 256;
@@ -502,41 +624,68 @@
         }
 
         function getEnemyType(wave, index) {
-            // Grupos organizados por dificuldade
-            const difficultyGroups = [
-                [0],                     // Wave 1: apenas tipo básico
-                [1, 2],                  // Wave 2: tipos com 1 variável
-                [3, 4, 5],               // Wave 3: expressões simples (AND/OR/XOR)
-                [6, 7, 8],               // Wave 4: leis de De Morgan
-                [2, 5, 6, 7, 8]          // Waves 5+: mistura de tipos avançados
-    
-                //[0],                          // Wave 1
-                //[0, 1],                       // Wave 2 (mais fácil)
-                //[1, 2, 3],                    // Wave 3
-                //[4, 5, 6],                    // Wave 4
-                //[3, 4, 5, 6, 7, 8]            // Waves 5+ (todos os tipos)
-            ];
             
-            const groupIndex = Math.min(wave - 1, difficultyGroups.length - 1);
-            const availableTypes = difficultyGroups[groupIndex];
-            return ENEMY_TYPES[availableTypes[index % availableTypes.length]];
+            // Waves 1-3: Níveis 1-3 puros
+            if (wave === 1) return ENEMY_TYPES[0]; // Caças (nível 1)
+            if (wave === 2) return ENEMY_TYPES[1]; // Caças dinâmicos (nível 2)
+            if (wave === 3) return ENEMY_TYPES[2]; // Caças PSB (nível 3)
+        
+            // Wave 4: Mistura de níveis 1-3 (4:2:3)
+            if (wave === 4) {
+                const types = [0, 0, 0, 0, 1, 1, 2, 2, 2]; // Proporção 4:2:3
+                return ENEMY_TYPES[types[index % types.length]];
+            }
+        
+            // Wave 5: Cruzadores básicos (nível 4)
+            if (wave === 5) return ENEMY_TYPES[3 + (index % 3)]; // AND, OR, XOR
+        
+            // Wave 6: Cruzadores dinâmicos (nível 5)
+            if (wave === 6) return ENEMY_TYPES[6 + (index % 3)]; // AND, OR, XOR dinâmicos
+        
+            // Wave 7: Cruzadores A fixo + B = PSB (nível 6)
+            if (wave === 7) return ENEMY_TYPES[9 + (index % 3)]; // AND, OR, XOR com B dinâmico
+        
+            // Wave 8: Mistura de níveis 1, 5, 7 (4:4:4)
+            if (wave === 8) {
+                const types = [0, 6, 9, 0, 7, 10, 0, 6, 9, 0, 7, 10]; // Proporção 4:4:4
+                return ENEMY_TYPES[types[index % types.length]];
+            }
+        
+            // Wave 9: Mistura de níveis 2, 3, 6, 8 (3:3:4:3)
+            if (wave === 9) {
+                const types = [1, 2, 9, 1, 2, 12, 1, 2, 9, 1, 2, 12, 9, 12]; // Proporção 3:3:4:3
+                return ENEMY_TYPES[types[index % types.length]];
+            }
+        
+            // Wave 10: Nave-mãe + escoltas (será implementada separadamente)
+            return ENEMY_TYPES[0]; // Padrão (não deve ocorrer)
         }
-
         
         function startWave(n) {
-
-            let nEnemies = (n === 3) ? 5 : Math.min(4 + n, 7); // Wave 3 = 5 naves, outras waves seguem lógica original
-            //let nEnemies = Math.min(4 + n, 7);  // Calcula o número de inimigos (mínimo de 4, máximo de 7)
-            waveEnemies = nEnemies;
+            // Wave 10: Nave-mãe + escoltas
+            if (n === 10) {
+                spawnMothership(); // Implemente essa função separadamente
+                waveEnemies = 1; // Conta apenas a nave-mãe (escoltas são extras)
+                return;
+            }
+        
+            // Waves 1-9: Inimigos normais
+            let nEnemies;
+            if (n === 3) {
+                nEnemies = 5; // Wave 3 tem 5 inimigos
+            } else if (n >= 8) {
+                nEnemies = 10; // Waves 8-9 têm mais inimigos
+            } else {
+                nEnemies = Math.min(4 + n, 7); // Waves 1-2,4-7: 4 a 7 inimigos
+            }
             
+            waveEnemies = nEnemies;
+        
             for (let i = 0; i < nEnemies; i++) {
-                
-                let type = getEnemyType(n, i);  // Define o tipo de nave
-                console.log(`Wave ${n}, Inimigo ${i}:`, type.expr); // Mostra a expressão no console 
+                let type = getEnemyType(n, i);
                 let x = -PLAY_AREA.x / 2 + 1.5 + (i % nEnemies) * (PLAY_AREA.x - 3) / (nEnemies - 1);
                 let y = PLAY_AREA.y / 2 - 1.5 - Math.random() * 1.4;
-                let enemy = spawnEnemy(type, x, y);
-                enemies.push(enemy);
+                enemies.push(spawnEnemy(type, x, y));
             }
         }
 
