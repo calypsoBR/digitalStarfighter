@@ -58,16 +58,23 @@
                 document.getElementById('unmute').style.display = 'none';
             });
       // ===== [FIM DA SEÇÃO DE SONS] ===== //
-     
+             
         
+        // ===== [DEFINIÇÃO DOS ESTADOS DO JOGO] ===== //
         const GAME_STATE = {
-            START: 0,
-            PLAYING: 1,
-            PAUSED: 2,
-            GAME_OVER: 3,
-            WIN: 4
+            START: 0,      // Estado inicial (tela de título)
+            PLAYING: 1,    // Jogo em andamento
+            PAUSED: 2,     // Jogo pausado
+            GAME_OVER: 3,  // Derrota (exibindo tela de game over)
+            WIN: 4         // Vitória (inimigos derrotados)
         };
 
+        // ===== [CONTROLE DE WAVES/FASES] ===== //
+        let wave = 1,       // Fase atual (começa na wave 1)
+            maxWaves = 10,  // Número total de waves (última é a nave-mãe com escolta)
+            waveEnemies = 0; // Contador de inimigos restantes na wave atual
+
+        // ===== [ TIPOS DE "BOMBAS" (OPERADORES LÓGICOS)  ] ===== //         
         const OPERATORS = [
             { key: 'AND', fn: (a, b) => a & b },
             { key: 'OR', fn: (a, b) => a | b },
@@ -77,8 +84,7 @@
             { key: 'XNOR', fn: (a, b) => 1 - (a ^ b) }
         ];
 
-        let wave = 1, maxWaves = 10, waveEnemies = 0;  // número de ondas (fases)
-        
+        // ===== [ TIPOS DE INIMIGOS (NAVES E SUAS CARACTERÍSTICAS) ] ===== //
         const ENEMY_TYPES = [
             
         // --- NÍVEL 1 (caças, com valor lógico constante, gearado aleatoriamente)
@@ -241,33 +247,72 @@
             }
         ];
 
-      
-        const PLAYER_COLOR = 0x0077ff;
-        const ENEMY_COLOR = 0xff3300;
-        const PROJECTILE_COLOR = 0xffffff;
-        const ENEMY_PROJECTILE_COLOR = 0xff2200;
-        const STAR_COLOR = 0xffffff;
-        const POWERUP_COLOR = 0x00ff00;
-        const BG_COLOR = 0x0a0e2a;
-        const PLAY_AREA = { x: 16, y: 10 };
-
-        let renderer, scene, camera;
-        let width = window.innerWidth, height = window.innerHeight;
-        let gameState = GAME_STATE.START;
-        let player, playerPSB = 1, playerHealth = 5, playerMaxHealth = 5, playerScore = 0;
-        let playerShip, playerThruster, playerPSBMesh, playerHealthBar;
-        let enemies = [], projectiles = [], enemyProjectiles = [], explosions = [], powerUps = [];
-        let operatorIndex = 0;        
-        const INITIAL_BOMB_COUNT = 15;
-        let bombCounts = {};
-        let bombReplenishedAtScore = {};
-        let keys = {};
-        let stars = [];
-        let hud = {};
-        let pauseOverlay, startOverlay, gameOverOverlay, winOverlay;
-        let lastFire = 0, fireDelay = 0.25;  // atraso no tiro (segundos)
-        let lastEnemyFire = 0, enemyFireDelay = 1.5;        
-        let lastUpdate = performance.now();
+        // ===== [ CONSTANTES DE CORES E CONFIGURAÇÕES VISUAIS ] ===== //
+        const PLAYER_COLOR = 0x0077ff;          // Cor azul do jogador (hexadecimal)
+        const ENEMY_COLOR = 0xff3300;           // Cor vermelha dos inimigos
+        const PROJECTILE_COLOR = 0xffffff;      // Cor branca dos projéteis do jogador
+        const ENEMY_PROJECTILE_COLOR = 0xff2200;// Cor vermelha dos projéteis inimigos
+        const STAR_COLOR = 0xffffff;            // Cor branca das estrelas de fundo
+        const POWERUP_COLOR = 0x00ff00;         // Cor verde dos power-ups
+        const BG_COLOR = 0x0a0e2a;              // Cor de fundo do espaço (azul escuro)
+        const PLAY_AREA = { x: 16, y: 10 };     // Dimensões da área jogável (unidades 3D)
+        
+        // ===== [ VARIÁVEIS DE RENDERIZAÇÃO ] ===== //
+        let renderer, scene, camera;            // Objetos principais do Three.js
+        let width = window.innerWidth,          // Largura da janela
+            height = window.innerHeight;        // Altura da janela
+        
+        // ===== [ ESTADO DO JOGO ] ===== //
+        let gameState = GAME_STATE.START;       // Controla o estado atual (início/jogando/game over)
+        
+        // ===== [ VARIÁVEIS DO JOGADOR ] ===== //
+        let player,                             // Objeto com posição/speed do jogador
+            playerPSB = 1,                      // Valor lógico atual do jogador (0 ou 1)
+            playerHealth = 5,                   // Vida atual
+            playerMaxHealth = 5,                // Vida máxima
+            playerScore = 0;                    // Pontuação
+        
+        // ===== [ OBJETOS 3D DO JOGADOR ] ===== //
+        let playerShip,                         // Malha 3D da nave
+            playerThruster,                     // Efeito de propulsão
+            playerPSBMesh,                      // Sprite do valor lógico (PSB)
+            playerHealthBar;                     // Barra de vida flutuante
+        
+        // ===== [ ARRAYS DE ENTIDADES ] ===== //
+        let enemies = [],                       // Lista de inimigos ativos
+            projectiles = [],                   // Projéteis do jogador
+            enemyProjectiles = [],              // Projéteis inimigos
+            explosions = [],                    // Efeitos de explosão
+            powerUps = [];                      // Power-ups coletáveis
+        
+        // ===== [ CONTROLES E OPERADORES ] ===== //
+        let operatorIndex = 0;                  // Índice do operador lógico selecionado
+        
+        // ===== [ SISTEMA DE BOMBAS ] ===== //
+        const INITIAL_BOMB_COUNT = 15;          // Quantidade inicial de bombas (não usado diretamente)
+        let bombCounts = {};                    // Contagem de bombas por operador (ex: { AND: 10 })
+        let bombReplenishedAtScore = {};        // Pontuações que já deram recarga de bombas
+        
+        // ===== [ INPUT ] ===== //
+        let keys = {};                          // Rastreia teclas pressionadas ({ KeyA: true/false })
+        
+        // ===== [ ELEMENTOS VISUAIS ] ===== //
+        let stars = [];                         // Partículas de estrelas de fundo
+        let hud = {};                           // Elementos de UI (health, score, etc)
+        
+        // ===== [ OVERLAYS DE TELA ] ===== //
+        let pauseOverlay,                       // Tela de pausa
+            startOverlay,                       // Tela inicial
+            gameOverOverlay,                    // Tela de game over
+            winOverlay;                         // Tela de vitória
+        
+        // ===== [ TIMERS ] ===== //
+        let lastFire = 0,                       // Último momento que o jogador atirou
+            fireDelay = 0.25;                   // Delay entre tiros (segundos)
+        let lastEnemyFire = 0,                  // Último tiro inimigo
+            enemyFireDelay = 1.5;               // Delay entre tiros inimigos
+        let lastUpdate = performance.now();     // Timestamp da última atualização (para cálculo de deltaTime)
+        
 
         // Inicializa os contadores de bombas
         function initBombCounts() {
