@@ -225,14 +225,21 @@
               ab: true, expr: '(!A.B)+(A.!B)', // Exibição visual
               isDynamic: true, changeInterval: 5     // muda os valores de A e B a cada 5 segundos
             }
-        
+
+        // --- NAVE-MÃE ---
+            { shape: 'octahedron', size: 3.0,
+              ev: function() {
+                  const A = this.generators[0].value;
+                  const B = this.generators[1].value;
+                  return (A ^ B) & playerPSB;
+              },
+              expr: '(A⊕B).C',
+              isBoss: true,
+              health: 12 + wave
+            }
         ];
 
-        const MINI_BOSS = {
-            shape: 'boss',
-            expr: 'A⊕B'
-        };
-
+      
         const PLAYER_COLOR = 0x0077ff;
         const ENEMY_COLOR = 0xff3300;
         const PROJECTILE_COLOR = 0xffffff;
@@ -258,11 +265,7 @@
         let hud = {};
         let pauseOverlay, startOverlay, gameOverOverlay, winOverlay;
         let lastFire = 0, fireDelay = 0.25;
-        let lastEnemyFire = 0, enemyFireDelay = 1.5;
-        let miniBoss = null;
-        let bossGenerators = [];
-        let bossB = 0;
-        let bossHealth = 10, bossMaxHealth = 10;
+        let lastEnemyFire = 0, enemyFireDelay = 1.5;        
         let lastUpdate = performance.now();
 
         // Inicializa os contadores de bombas
@@ -500,6 +503,36 @@
             enemy.mesh.add(enemy.evMesh);
         }
         
+        function spawnMothership() {
+            const type = ENEMY_TYPES.find(t => t.isBoss);
+            const mothership = spawnEnemy(type, 0, PLAY_AREA.y/2.5);
+            
+            // Expansão
+            mothership.mesh.scale.set(1.5, 1.5, 1.5);
+            
+            // Adiciona geradores
+            mothership.generators = [
+                { label: 'A', value: Math.round(Math.random()) },
+                { label: 'B', value: Math.round(Math.random()) }
+            ];
+            
+            return mothership;
+        }
+                
+        function updateMothership(dt) {
+            if (!mothership || !mothership.alive) return;
+        
+            // Atualiza geradores A/B a cada 5 segundos
+            mothership.changeTimer = (mothership.changeTimer || 0) + dt;
+            if (mothership.changeTimer >= 5) {
+                mothership.changeTimer = 0;
+                mothership.generators[0].value = Math.round(Math.random()); // A
+                mothership.generators[1].value = Math.round(Math.random()); // B
+                mothership.ev = mothership.type.ev(); // Recalcula (A⊕B).C
+                updateEnemyEVSprite(mothership); // Atualiza HUD
+            }
+        }
+        
         function createEVSprite(text, A, B, expr) {
             const canvas = document.createElement('canvas');
             canvas.width = 256;
@@ -604,10 +637,10 @@
             enemyProjectiles = [];
             explosions = [];
             powerUps = [];
-            miniBoss = null;
-            bossGenerators = [];
-            bossHealth = 10;
-            bossB = 0;
+            mothership = null;
+            //bossGenerators = [];
+            //bossHealth = 10;
+            //bossB = 0;
             createStars();
             createPlayer();
             playerHealth = playerMaxHealth;
@@ -662,6 +695,7 @@
         }
         
         function startWave(n) {
+            n = 10;
             // Wave 10: Nave-mãe + escoltas
             if (n === 10) {
                 spawnMothership(); // Implemente essa função separadamente
@@ -688,77 +722,7 @@
                 enemies.push(spawnEnemy(type, x, y));
             }
         }
-
-        function startMiniBoss() {
-            let geo = new THREE.BoxGeometry(2.7, 1.1, 1.1);
-            let mat = new THREE.MeshLambertMaterial({ color: ENEMY_COLOR });
-            let mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(0, PLAY_AREA.y / 2.5, 0);
-            let healthBar = createBar(2.2, 0.18, 0xff4444, 0.23);
-            healthBar.position.set(0, -0.95, 0);
-            mesh.add(healthBar);
-            let exprText = 'A⊕B';
-            let evMesh = createEVSprite(exprText, null, null, null);
-            evMesh.position.set(0, 1.1, 0);
-            mesh.add(evMesh);
-            scene.add(mesh);
-            bossGenerators = [];
-            let genA = createBossGen('A');
-            let genB = createBossGen('B');
-            genA.angle = 0;
-            genB.angle = Math.PI;
-            genA.value = Math.round(Math.random());
-            genB.value = Math.round(Math.random());
-            genA.mesh.position.set(mesh.position.x + Math.cos(genA.angle) * 1.8, mesh.position.y + Math.sin(genA.angle) * 1.05, 0.1);
-            genB.mesh.position.set(mesh.position.x + Math.cos(genB.angle) * 1.8, mesh.position.y + Math.sin(genB.angle) * 1.05, 0.1);
-            bossGenerators.push(genA, genB);
-            bossHealth = bossMaxHealth;
-            miniBoss = {
-                mesh, health: bossHealth, maxHealth: bossMaxHealth, healthBar, evMesh, alive: true, expr: 'A^B'
-            };
-        }
-
-        function createBossGen(label) {
-            let geo = new THREE.SphereGeometry(0.32, 10, 10);
-            let mat = new THREE.MeshBasicMaterial({ color: 0xffbb33 });
-            let mesh = new THREE.Mesh(geo, mat);
-            let spr = createEVSprite(label + ':0', null, null, null);
-            spr.position.set(0, 0.55, 0);
-            mesh.add(spr);
-            scene.add(mesh);
-            return { mesh, label, value: 0, sprite: spr, angle: 0 };
-        }
-
-        function updateBossGenerators(dt) {
-            if (!miniBoss) return;
-            let r = 1.8, cy = miniBoss.mesh.position.y, cx = miniBoss.mesh.position.x;
-            for (let i = 0; i < bossGenerators.length; i++) {
-                let g = bossGenerators[i];
-                g.angle += dt * 0.7 * (i === 0 ? 1 : -1);
-                g.mesh.position.set(cx + Math.cos(g.angle) * r, cy + Math.sin(g.angle) * 1.05, 0.1);
-            }
-        }
-
-        function updateBossGenValues() {
-            for (let g of bossGenerators) {
-                g.value = Math.round(Math.random());
-                let canvas = document.createElement('canvas');
-                canvas.width = 96;
-                canvas.height = 48;
-                let ctx = canvas.getContext('2d');
-                ctx.font = 'bold 30px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.clearRect(0, 0, 96, 48);
-                ctx.shadowColor = '#ffbb33';
-                ctx.shadowBlur = 8;
-                ctx.fillStyle = '#ffbb33';
-                ctx.fillText(g.label + ':' + g.value, 48, 24);
-                g.sprite.material.map.image = canvas;
-                g.sprite.material.map.needsUpdate = true;
-            }
-        }
-
+        
         function updateHUD() {
             if (!hud.health) {
                 hud.health = document.createElement('div');
@@ -807,9 +771,7 @@
                 hud.op.style.textShadow = '0 0 8px #fff';
                 document.body.appendChild(hud.op);
             }
-            const currentOperatorKey = OPERATORS[operatorIndex].key;
-            //hud.op.innerHTML = 'Operator: <span style="color:#fff;background:#222;padding:2px 10px;border-radius:7px;">' + currentOperatorKey + '</span>' +
-            //                   ' <span style="color:#00ff88;font-size:22px;">(' + bombCounts[currentOperatorKey] + ')</span>';
+            const currentOperatorKey = OPERATORS[operatorIndex].key;          
             hud.op.innerHTML = 'Operador: <span style="color:#fff;background:#222;padding:2px 10px;border-radius:7px;">' + 
                    OPERATORS[operatorIndex].key + '</span>' +
                    ' <span style="color:#00ff88;font-size:22px;">(' + bombCounts[OPERATORS[operatorIndex].key] + ')</span>';
@@ -825,12 +787,30 @@
                 hud.wave.style.textShadow = '0 0 7px #0077ff';
                 document.body.appendChild(hud.wave);
             }
-            if (gameState === GAME_STATE.PLAYING && !miniBoss)
+            if (gameState === GAME_STATE.PLAYING && !mothership)
                 hud.wave.innerHTML = 'Wave ' + wave + ' of ' + maxWaves;
-            else if (miniBoss && gameState === GAME_STATE.PLAYING)
-                hud.wave.innerHTML = 'Mini-Boss';
+            else if (mothership && gameState === GAME_STATE.PLAYING)
+                hud.wave.innerHTML = 'Nave-Mãe';
             else
                 hud.wave.innerHTML = '';
+
+          // Exibe geradores da nave-mãe (se estiver ativa)
+            if (mothership && mothership.alive) {
+                if (!hud.bossGens) {
+                    hud.bossGens = document.createElement('div');
+                    hud.bossGens.style.position = 'fixed';
+                    hud.bossGens.style.top = '50px';
+                    hud.bossGens.style.left = '50%';
+                    hud.bossGens.style.transform = 'translateX(-50%)';
+                    hud.bossGens.style.color = '#ff5555';
+                    hud.bossGens.style.font = 'bold 18px monospace';
+                    hud.bossGens.style.textShadow = '0 0 5px #000';
+                    document.body.appendChild(hud.bossGens);
+                }
+                hud.bossGens.innerHTML = `Geradores: A=${mothership.generators[0].value} | B=${mothership.generators[1].value}`;
+            } else if (hud.bossGens) {
+                hud.bossGens.innerHTML = '';
+            }
         }
 
         function clearHUD() {
@@ -962,13 +942,13 @@
                     target = e;
                 }
             }
-            if (miniBoss && miniBoss.alive) {
-                let dx = miniBoss.mesh.position.x - player.x;
-                let dy = miniBoss.mesh.position.y - player.y;
+            if (mothership && mothership.alive) {
+                let dx = mothership.mesh.position.x - player.x;
+                let dy = mothership.mesh.position.y - player.y;
                 let d = dx * dx + dy * dy;
                 if (d < minDist) {
                     minDist = d;
-                    target = miniBoss;
+                    target = mothership;
                 }
             }
             if (!target) return;
@@ -993,13 +973,13 @@
                     if (Math.random() < 0.7)
                         spawnEnemyProjectile(e.mesh.position.x, e.mesh.position.y, dx * 7, dy * 7);
                 }
-                if (miniBoss && miniBoss.alive && Math.random() < 0.8) {
-                    let dx = player.x - miniBoss.mesh.position.x;
-                    let dy = player.y - miniBoss.mesh.position.y;
+                if (mothership && mothership.alive && Math.random() < 0.8) {
+                    let dx = player.x - mothership.mesh.position.x;
+                    let dy = player.y - mothership.mesh.position.y;
                     let mag = Math.sqrt(dx * dx + dy * dy);
                     if (mag === 0) mag = 1;
                     dx /= mag; dy /= mag;
-                    spawnEnemyProjectile(miniBoss.mesh.position.x, miniBoss.mesh.position.y - 0.6, dx * 8, dy * 8);
+                    spawnEnemyProjectile(mothership.mesh.position.x, mothership.mesh.position.y - 0.6, dx * 8, dy * 8);
                 }
                 lastEnemyFire = now;
             }
@@ -1046,31 +1026,34 @@
                         break;
                     }
                 }
-                if (miniBoss && miniBoss.alive) {
-                    let ex = miniBoss.mesh.position.x, ey = miniBoss.mesh.position.y;
-                    let px = p.mesh.position.x, py = p.mesh.position.y;
-                    let dist = Math.sqrt((ex - px) ** 2 + (ey - py) ** 2);
-                    if (dist < 1.5) {
-                        let op = OPERATORS[p.operator];
-                        let psb = playerPSB;
-                        let B = bossGenerators[1].value;
-                        let result = op.fn(psb, B);
-                        let expected = psb ^ B;
-                        if (result === 1 && expected === 1) {
-                            bossHealth--;
-                            setBarValue(miniBoss.healthBar, bossHealth / bossMaxHealth);
-                            if (bossHealth <= 0) {
-                                miniBoss.alive = false;
-                                scene.remove(miniBoss.mesh);
-                                spawnExplosion(ex, ey);
-                                playerScore += 900;
-                            }
-                        }
-                        scene.remove(p.mesh);
-                        p.alive = false;
-                        break;
-                    }
-                }
+                if (mothership && mothership.alive) {  
+                    let ex = mothership.mesh.position.x, ey = mothership.mesh.position.y;  
+                    let px = p.mesh.position.x, py = p.mesh.position.y;  
+                    let dist = Math.sqrt((ex - px) ** 2 + (ey - py) ** 2);  
+                    
+                    if (dist < 1.5) {  
+                        let op = OPERATORS[p.operator];  
+                        let A = mothership.generators[0].value;  
+                        let B = mothership.generators[1].value;  
+                        let C = playerPSB;  
+                        let expected = (A ^ B) & C; // (A⊕B).C  
+                        let result = op.fn(C, (A ^ B)); // Aplica operador do jogador  
+                        
+                        if (result === expected && result === 1) {  
+                            mothership.health--;  
+                            setBarValue(mothership.healthBar, mothership.health / mothership.maxHealth);  
+                            if (mothership.health <= 0) {  
+                                mothership.alive = false;  
+                                scene.remove(mothership.mesh);  
+                                spawnExplosion(ex, ey);  
+                                playerScore += 1000; // Pontuação maior para a nave-mãe  
+                            }  
+                        }  
+                        scene.remove(p.mesh);  
+                        p.alive = false;  
+                    }  
+                }  
+                
             }
             projectiles = projectiles.filter(p => p.alive);
         }
@@ -1206,29 +1189,31 @@
                 updateExplosions(dt);
                 updatePowerUps(dt);
                 enemyFireLogic(dt);
+                updateMothership(dt); // Adicionada esta linha para atualizar a nave-mãe
+                
                 for (let e of enemies) {
                     if (!e.alive) continue;
                     let t = Math.sin(now / 800 + e.mesh.position.x * 0.7) * 0.7;
                     e.mesh.position.y += Math.sin(now / 1300 + e.mesh.position.x * 0.5) * 0.3 * dt;
                     e.mesh.position.x += t * dt * 0.25;
                 }
-                if (miniBoss && miniBoss.alive) {
-                    updateBossGenerators(dt);
-                    if (now % 1500 < 40) updateBossGenValues();
-                }
-                if (waveEnemies === 0 && !miniBoss && wave <= maxWaves) {
+                
+                if (waveEnemies === 0 && !mothership && wave <= maxWaves) {
                     if (wave === maxWaves) {
-                        startMiniBoss();
+                        spawnMothership(); // Substitui startMiniBoss()
+                        waveEnemies = 1;
                     } else {
                         wave++;
                         startWave(wave);
                     }
                 }
-                if (miniBoss && !miniBoss.alive && gameState === GAME_STATE.PLAYING) {
+                
+                if (mothership && !mothership.alive && gameState === GAME_STATE.PLAYING) {
                     gameState = GAME_STATE.WIN;
                     playSound('victory');                    
                     winOverlay = showOverlay('win', 'VITÓRIA! VOCÊ ANIQUILOU A ARMADA KODAN!', 'Pontuação: ' + playerScore + '<br><br>Tecle ESPAÇO para reiniciar');
                 }
+                
                 checkScoreForBombReplenish();
                 updateHUD();
             }
