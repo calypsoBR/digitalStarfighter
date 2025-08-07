@@ -97,7 +97,7 @@
             
             {   shape: 'cube', ev: (psb) => Math.random() > 0.5 ? psb : 1 - psb, // define nave, gera valor com 50% de chance de ser psb ou !psb
                 isDynamic: true, changeInterval: 4   // muda o valor a cada 4 segundos
-            }
+            },
 
             
         // --- NÍVEL 4 (cruzadores, com expressão básicas, com valor de A e B constante, gerados aleatoriamente)
@@ -178,7 +178,7 @@
                 ev: function() { return this.A() ^ this.B(playerPSB); }, // Cálculo A⊕B
                 ab: true, expr: 'A⊕B', // Exibição visual
                 isDynamic: true, changeInterval: 4    // muda os valores de A e B a cada 4 segundos
-            }
+            },
         
         // --- NÍVEL 7 (destroyers, com expressão complexas, com valor de A e B gerado aleatoriamente, que fica constante)
         
@@ -201,7 +201,7 @@
               ev: function() { return ((1 - this.A()) & this.B()) | (this.A() & (1 - this.B())); },  // cálculo real
               ab: true, expr: '(!A.B)+(A.!B)', // Exibição visual
               isDynamic: false  // valores de A e B não mudam após serem gerados
-            }        
+            },       
 
         // --- NÍVEL 8 (destroyers, com expressão complexas, com valor de A e B gerado aleatoriamente, mudando de tempos em tempos)
         
@@ -224,7 +224,7 @@
               ev: function() { return ((1 - this.A()) & this.B()) | (this.A() & (1 - this.B())); },  // cálculo real
               ab: true, expr: '(!A.B)+(A.!B)', // Exibição visual
               isDynamic: true, changeInterval: 5     // muda os valores de A e B a cada 5 segundos
-            }
+            },
 
         // --- NAVE-MÃE ---
             { shape: 'octahedron', size: 3.0,
