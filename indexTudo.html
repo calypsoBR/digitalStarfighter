@@ -235,8 +235,11 @@
             },
 
         // --- NAVE-MÃE ---
-            { shape: 'octahedron', size: 3.0,
+            {
+              shape: 'octahedron', size: 3.0,
+              generators: [], // Inicializa vazio (será preenchido em spawnMothership())
               ev: function() {
+                  if (this.generators.length === 0) return 0; // Segurança
                   const A = this.generators[0].value;
                   const B = this.generators[1].value;
                   return (A ^ B) & playerPSB;
@@ -245,6 +248,7 @@
               isBoss: true,
               health: 12 + maxWaves
             }
+            
         ];
 
         // ===== [ CONSTANTES DE CORES E CONFIGURAÇÕES VISUAIS ] ===== //
@@ -551,13 +555,11 @@
         
         function spawnMothership() {
             const type = ENEMY_TYPES.find(t => t.isBoss);
-            const mothership = spawnEnemy(type, 0, PLAY_AREA.y/2.5);
-            
-            // Expansão
-            mothership.mesh.scale.set(1.5, 1.5, 1.5);
+            const mothership = spawnEnemy(type, 0, PLAY_AREA.y/2.5);                        
+            mothership.mesh.scale.set(1.5, 1.5, 1.5);  // Expansão
             
             // Adiciona geradores
-            mothership.generators = [
+            mothership.generators = [ // Preenche os geradores aqui
                 { label: 'A', value: Math.round(Math.random()) },
                 { label: 'B', value: Math.round(Math.random()) }
             ];
