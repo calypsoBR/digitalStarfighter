@@ -619,44 +619,24 @@
             playSound('shoot');             
             let geo = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 10);
             let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR, emissive: PROJECTILE_COLOR });
+            //let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR }); // Removido emissive
             let mesh = new THREE.Mesh(geo, mat);
             mesh.rotation.x = Math.PI / 2;
             mesh.position.set(x, y + 0.8, 0.05);
             scene.add(mesh);
-            projectiles.push({
-                mesh, dx, dy, operator, alive: true
-            });
+            projectiles.push({ mesh, dx, dy, operator, alive: true });
         }
 
-        //function spawnEnemyProjectile(x, y, dx, dy) {
-          //  let geo = new THREE.CylinderGeometry(0.14, 0.14, 0.5, 8);
-        //    let mat = new THREE.MeshBasicMaterial({ color: ENEMY_PROJECTILE_COLOR });
-         //   let mesh = new THREE.Mesh(geo, mat);
-         //   mesh.rotation.x = Math.PI / 2;
-         //   mesh.position.set(x, y - 1.0, 0.05);
-         //   scene.add(mesh);
-         //   enemyProjectiles.push({
-         //       mesh, dx, dy, alive: true
-         //   });
-       // }
-
-        function spawnProjectile(x, y, dx, dy, operator) {  
-            console.log("[DEBUG] spawnProjectile chamado"); // Verifique se a função é chamada  
-            try {  
-                playSound('shoot');  
-                let geo = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 10);  
-                let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR });  
-                let mesh = new THREE.Mesh(geo, mat);  
-                mesh.rotation.x = Math.PI / 2;  
-                mesh.position.set(x, y + 0.8, 0.05);  
-                scene.add(mesh);  
-                console.log("[DEBUG] Projétil adicionado à cena:", mesh); // Confirme se está na cena  
-                projectiles.push({ mesh, dx, dy, operator, alive: true });  
-            } catch (e) {  
-                console.error("Erro ao criar projétil:", e);  
-            }  
-        }  
-
+        function spawnEnemyProjectile(x, y, dx, dy) {
+            let geo = new THREE.CylinderGeometry(0.14, 0.14, 0.5, 8);
+            let mat = new THREE.MeshBasicMaterial({ color: ENEMY_PROJECTILE_COLOR });
+            let mesh = new THREE.Mesh(geo, mat);
+            mesh.rotation.x = Math.PI / 2;
+            mesh.position.set(x, y - 1.0, 0.05);
+            scene.add(mesh);
+            enemyProjectiles.push({ mesh, dx, dy, alive: true });
+        }
+        
         function spawnExplosion(x, y) {
             playSound('explosion');
             let group = [];
