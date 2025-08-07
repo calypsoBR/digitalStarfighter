@@ -239,7 +239,7 @@
               shape: 'octahedron', size: 3.0,
               generators: [], // Inicializa vazio (será preenchido em spawnMothership())
               ev: function() {
-                  if (this.generators.length === 0) return 0; // Segurança
+                  //if (this.generators.length === 0) return 0; // Segurança
                   const A = this.generators[0].value;
                   const B = this.generators[1].value;
                   return (A ^ B) & playerPSB;
@@ -682,10 +682,7 @@
             enemyProjectiles = [];
             explosions = [];
             powerUps = [];
-            mothership = null;
-            //bossGenerators = [];
-            //bossHealth = 10;
-            //bossB = 0;
+            mothership = null;            
             createStars();
             createPlayer();
             playerHealth = playerMaxHealth;
@@ -779,7 +776,7 @@
                 hud.health.style.textShadow = '0 0 5px #003';
                 document.body.appendChild(hud.health);
             }
-            hud.health.innerHTML = 'Health: ' + playerHealth;
+            hud.health.innerHTML = 'Vida: ' + playerHealth;
             
             if (!hud.score) {
                 hud.score = document.createElement('div');
