@@ -704,7 +704,7 @@
             powerUps.push({
                 mesh,        // Referência ao objeto 3D
                 alive: true, // Flag para controle (se ainda está ativo)
-                ttl: 10.0,   // Time-To-Live (tempo de vida em segundos)
+                ttl: 9.0,   // Time-To-Live (tempo de vida em segundos)
                 dy: -2       // Velocidade vertical (movimento para baixo)
             });
         }
@@ -948,23 +948,32 @@
                 updatePSBMesh(playerPSB);
                 return; // Evita conflito com outras ações
             }
-            
+
+           // Inicio do jogo  
             if (gameState === GAME_STATE.START && e.code === 'Space') {
                 removeOverlay(startOverlay);
                 resetGame();
                 gameState = GAME_STATE.PLAYING;
                 startWave(wave);
-            } else if (gameState === GAME_STATE.GAME_OVER && e.code === 'Space') {
+
+           // Reinicio do jogo após game over  
+            } else if (gameState === GAME_STATE.GAME_OVER && e.code === 'KeyR') {
                 removeOverlay(gameOverOverlay);
                 clearHUD();
                 gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Tecle ESPAÇO para iniciar</span>');
-            } else if (gameState === GAME_STATE.WIN && e.code === 'Space') {
+                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Tecle "R" para reiniciar</span>');
+
+           // Reinicio do jogo após vitória
+            } else if (gameState === GAME_STATE.WIN && e.code === 'KeyR') {
                 removeOverlay(winOverlay);
                 clearHUD();
                 gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Tecle ESPAÇO para iniciar</span>');
+                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Tecle "R" para reiniciar</span>');
+
+            // Alterações com o jogo em andamento  
             } else if (gameState === GAME_STATE.PLAYING) {
+
+                // Pausar ou retomar o jogo
                 if (e.code === 'KeyP') {
                     if (pauseOverlay) {
                         removeOverlay(pauseOverlay);
@@ -975,26 +984,25 @@
                         gameState = GAME_STATE.PAUSED;
                     }
                 }
+                
+                // Alternar tipo de bomba
                 if (e.code === 'Tab') {
                     operatorIndex = (operatorIndex + 1) % OPERATORS.length;
                     e.preventDefault();
                 }
-                if (e.code === 'Space') {
-                    //if (OPERATORS[operatorIndex].key === 'NOT') {
-                    //    playerPSB = 1 - playerPSB;
-                    //    updatePSBMesh(playerPSB);
-                    //} else 
-                    //{
-                    
+
+                //
+                if (e.code === 'Space') {                    
                         let now = performance.now() / 1000;
                         const currentOperatorKey = OPERATORS[operatorIndex].key;
                         if (bombCounts[currentOperatorKey] > 0 && now - lastFire > fireDelay) {
                             fireProjectile();
                             bombCounts[currentOperatorKey]--;
                             lastFire = now;
-                        }
-                    //}
+                        }                    
                 }
+
+            // Alterar jogo pausado
             } else if (gameState === GAME_STATE.PAUSED) {
                 if (e.code === 'KeyP') {
                     removeOverlay(pauseOverlay);
@@ -1189,7 +1197,8 @@
                 // Condição de destruição: 
                 // 1. Tempo esgotado -OU- 
                 // 2. Saiu da área visível (baseado em PLAY_AREA.y atual)
-                const isBelowScreen = pu.mesh.position.y < -PLAY_AREA.y * 0.9; // Ajuste o 0.6 para controlar quando desaparece
+                const isBelowScreen = pu.mesh.position.y < -PLAY_AREA.y * 0.8; // Ajuste para controlar quando desaparece. Quanto maior, 
+                                                                               // mais próximo do final da tela.
                 if (pu.ttl < 0 || isBelowScreen) {
                     scene.remove(pu.mesh);
                     pu.alive = false;
