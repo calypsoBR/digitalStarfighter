@@ -18,7 +18,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
     <script>    
 
-         // ===== [SISTEMA DE SONS SIMPLIFICADO] ===== //
+         // ===== [SEÇÃO DE SONS DO JOGO] ===== //
             let audioEnabled = false;
             const sounds = {
                 shoot: new Audio('./sounds/shoot.mp3'),
@@ -29,9 +29,7 @@
                 powerupCollect: new Audio('./sounds/powerup_collect.mp3')
             };
             
-            Object.values(sounds).forEach(audio => {
-                audio.volume = 0.3;
-            });
+            Object.values(sounds).forEach(audio => { audio.volume = 0.3; });
             
             function enableAudio() {
                 audioEnabled = true;
@@ -57,7 +55,7 @@
                 enableAudio();
                 document.getElementById('unmute').style.display = 'none';
             });
-      // ===== [FIM DA SEÇÃO DE SONS] ===== //
+         // ===== [FIM DA SEÇÃO DE SONS] ===== //
              
         
         // ===== [DEFINIÇÃO DOS ESTADOS DO JOGO] ===== //
@@ -312,9 +310,9 @@
         
         // ===== [ TIMERS ] ===== //
         let lastFire = 0,                       // Último momento que o jogador atirou
-            fireDelay = 0.25;                   // Delay entre tiros (segundos)
+            fireDelay = 0.25;                   // Atraso entre tiros (segundos)
         let lastEnemyFire = 0,                  // Último tiro inimigo
-            enemyFireDelay = 1.5;               // Delay entre tiros inimigos
+            enemyFireDelay = 1.5;               // Atraso entre tiros inimigos
         let lastUpdate = performance.now();     // Timestamp da última atualização (para cálculo de deltaTime)
         
 
@@ -618,8 +616,8 @@
         function spawnProjectile(x, y, dx, dy, operator) {            
             playSound('shoot');             
             let geo = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 10);
-            //let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR, emissive: PROJECTILE_COLOR });
-            let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR }); // Removido emissive
+            let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR, emissive: PROJECTILE_COLOR });
+            //let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR }); // Removido emissive
             let mesh = new THREE.Mesh(geo, mat);
             mesh.rotation.x = Math.PI / 2;
             mesh.position.set(x, y + 0.8, 0.05);
