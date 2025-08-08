@@ -672,22 +672,7 @@
                 spawnPowerUp(x, y);
             }
         }
-
-        function spawnPowerUp(x, y) {
-            playSound('powerup')
-            let geo = new THREE.SphereGeometry(0.3, 16, 16);
-            let mat = new THREE.MeshBasicMaterial({ color: POWERUP_COLOR, emissive: POWERUP_COLOR });
-            let mesh = new THREE.Mesh(geo, mat);
-            mesh.position.set(x, y, 0.1);
-            scene.add(mesh);
-            powerUps.push({
-                mesh,
-                alive: true,
-                ttl: 8.0,
-                dy: -1.0  // ???
-            });
-        }
-        
+                
         function spawnPowerUp(x, y) {
             // Toca o som de power-up aparecendo (usando o sistema de áudio definido anteriormente)
             playSound('powerup');
@@ -719,8 +704,8 @@
             powerUps.push({
                 mesh,        // Referência ao objeto 3D
                 alive: true, // Flag para controle (se ainda está ativo)
-                ttl: 8.0,    // Time-To-Live (tempo de vida em segundos)
-                dy: -1.5     // Velocidade vertical (movimento para baixo)
+                ttl: 10.0,   // Time-To-Live (tempo de vida em segundos)
+                dy: -2       // Velocidade vertical (movimento para baixo)
             });
         }
 
@@ -1204,7 +1189,7 @@
                 // Condição de destruição: 
                 // 1. Tempo esgotado -OU- 
                 // 2. Saiu da área visível (baseado em PLAY_AREA.y atual)
-                const isBelowScreen = pu.mesh.position.y < -PLAY_AREA.y * 0.8; // Ajuste o 0.6 para controlar quando desaparece
+                const isBelowScreen = pu.mesh.position.y < -PLAY_AREA.y * 0.9; // Ajuste o 0.6 para controlar quando desaparece
                 if (pu.ttl < 0 || isBelowScreen) {
                     scene.remove(pu.mesh);
                     pu.alive = false;
