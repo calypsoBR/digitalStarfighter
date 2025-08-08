@@ -687,7 +687,44 @@
                 dy: -1.0  // ???
             });
         }
+        
+        function spawnPowerUp(x, y) {
+            // Toca o som de power-up aparecendo (usando o sistema de áudio definido anteriormente)
+            playSound('powerup');
+        
+            // Cria a geometria de uma esfera para o power-up:
+            // - Raio: 0.3 unidades
+            // - Segmentos horizontais/verticais: 16 (suavidade da esfera)
+            let geo = new THREE.SphereGeometry(0.3, 16, 16);
+        
+            // Define o material do power-up:
+            // - Cor base: POWERUP_COLOR (verde, definido nas constantes)
+            // - Emissivo: mesma cor (faz o power-up "brilhar" levemente)
+            let mat = new THREE.MeshBasicMaterial({ 
+                color: POWERUP_COLOR, 
+                emissive: POWERUP_COLOR 
+            });
+        
+            // Cria a malha 3D combinando geometria + material
+            let mesh = new THREE.Mesh(geo, mat);
+        
+            // Posiciona o power-up nas coordenadas (x, y) recebidas como parâmetro,
+            // com um pequeno offset no eixo Z (0.1) para evitar conflito de renderização
+            mesh.position.set(x, y, 0.1);
+        
+            // Adiciona o power-up à cena principal
+            scene.add(mesh);
+        
+            // Armazena o power-up no array global `powerUps` com suas propriedades:
+            powerUps.push({
+                mesh,        // Referência ao objeto 3D
+                alive: true, // Flag para controle (se ainda está ativo)
+                ttl: 8.0,    // Time-To-Live (tempo de vida em segundos)
+                dy: -1.5     // Velocidade vertical (movimento para baixo)
+            });
+        }
 
+        
         function resetGame() {
             while (scene.children.length) scene.remove(scene.children[0]);
             stars = [];
