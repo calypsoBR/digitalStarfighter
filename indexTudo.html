@@ -858,7 +858,7 @@
                 // Efeito visual piscante
                 hud.health.style.color = (Math.floor(Date.now() / 200) % 2 === 0 
                     ? '#ff0000' 
-                    : '#00ff88';
+                    : '#00ff88'
                 hud.health.style.textShadow = '0 0 10px #ff0000';
             } else {
                 // Remove alertas quando vida > 20%
@@ -962,7 +962,6 @@
             }
         }
        
-
         function clearHUD() {
             for (let k in hud) {
                 if (hud[k] && hud[k].parentNode) hud[k].parentNode.removeChild(hud[k]);
