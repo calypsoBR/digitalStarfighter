@@ -26,7 +26,8 @@
                 powerup: new Audio('./sounds/powerup.mp3'),
                 gameOver: new Audio('./sounds/game_over.mp3'),
                 victory: new Audio('./sounds/victory.mp3'),
-                powerupCollect: new Audio('./sounds/powerup_collect.mp3')
+                powerupCollect: new Audio('./sounds/powerup_collect.mp3'),
+                lowHealth: new Audio('./sounds/low_health1.mp3')
             };
             
             Object.values(sounds).forEach(audio => { audio.volume = 0.3; });
@@ -825,8 +826,12 @@
                 enemies.push(spawnEnemy(type, x, y));
             }
         }
-        
+
+
         function updateHUD() {
+            // =============================================
+            // ELEMENTO DE VIDA (COM ALERTA CONTÍNUO)
+            // =============================================
             if (!hud.health) {
                 hud.health = document.createElement('div');
                 hud.health.style.position = 'fixed';
@@ -837,8 +842,38 @@
                 hud.health.style.textShadow = '0 0 5px #003';
                 document.body.appendChild(hud.health);
             }
-            hud.health.innerHTML = 'Vida: ' + playerHealth;
             
+            const isLowHealth = playerHealth <= playerMaxHealth * 0.2;
+            
+            // Efeitos de vida baixa (agora contínuos)
+            if (isLowHealth) {
+                // Efeito sonoro (toca repetidamente a cada 2 segundos)
+                if (!hud.lowHealthSoundInterval) {
+                    playSound('lowHealth'); // Toca imediatamente
+                    hud.lowHealthSoundInterval = setInterval(() => {
+                        playSound('lowHealth');
+                    }, 2000); // Repete a cada 2 segundos
+                }
+            
+                // Efeito visual piscante
+                hud.health.style.color = (Math.floor(Date.now() / 200) % 2 === 0 
+                    ? '#ff0000' 
+                    : '#00ff88';
+                hud.health.style.textShadow = '0 0 10px #ff0000';
+            } else {
+                // Remove alertas quando vida > 20%
+                if (hud.lowHealthSoundInterval) {
+                    clearInterval(hud.lowHealthSoundInterval);
+                    hud.lowHealthSoundInterval = null;
+                }
+                hud.health.style.color = '#00ff88';
+                hud.health.style.textShadow = '0 0 5px #003';
+            }
+            hud.health.innerHTML = 'Vida: ' + playerHealth;
+        
+            // =============================================
+            // ELEMENTO DE PONTUAÇÃO (SEM ALTERAÇÕES)
+            // =============================================
             if (!hud.score) {
                 hud.score = document.createElement('div');
                 hud.score.style.position = 'fixed';
@@ -850,7 +885,10 @@
                 document.body.appendChild(hud.score);
             }
             hud.score.innerHTML = 'Pontuação: ' + playerScore;
-            
+        
+            // =============================================
+            // ELEMENTO PSB (SEM ALTERAÇÕES)
+            // =============================================
             if (!hud.psb) {
                 hud.psb = document.createElement('div');
                 hud.psb.style.position = 'fixed';
@@ -862,7 +900,10 @@
                 document.body.appendChild(hud.psb);
             }
             hud.psb.innerHTML = 'PSB: <span style="color:' + (playerPSB ? '#0090ff' : '#ff2222') + '">' + playerPSB + '</span>';
-            
+        
+            // =============================================
+            // ELEMENTO DE OPERADOR (SEM ALTERAÇÕES)
+            // =============================================
             if (!hud.op) {
                 hud.op = document.createElement('div');
                 hud.op.style.position = 'fixed';
@@ -878,7 +919,10 @@
             hud.op.innerHTML = 'Operador: <span style="color:#fff;background:#222;padding:2px 10px;border-radius:7px;">' + 
                    OPERATORS[operatorIndex].key + '</span>' +
                    ' <span style="color:#00ff88;font-size:22px;">(' + bombCounts[OPERATORS[operatorIndex].key] + ')</span>';
-            
+        
+            // =============================================
+            // ELEMENTO DE WAVE (SEM ALTERAÇÕES)
+            // =============================================
             if (!hud.wave) {
                 hud.wave = document.createElement('div');
                 hud.wave.style.position = 'fixed';
@@ -896,8 +940,10 @@
                 hud.wave.innerHTML = 'Nave-Mãe';
             else
                 hud.wave.innerHTML = '';
-
-          // Exibe geradores da nave-mãe (se estiver ativa)
+        
+            // =============================================
+            // GERADORES DA NAVE-MÃE (SEM ALTERAÇÕES)
+            // =============================================
             if (mothership && mothership.alive) {
                 if (!hud.bossGens) {
                     hud.bossGens = document.createElement('div');
@@ -915,6 +961,7 @@
                 hud.bossGens.innerHTML = '';
             }
         }
+       
 
         function clearHUD() {
             for (let k in hud) {
