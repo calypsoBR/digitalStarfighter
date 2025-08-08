@@ -642,13 +642,38 @@
         }
 
         function spawnEnemyProjectile(x, y, dx, dy) {
+            // Cria a geometria de um cilindro para o projétil:
+            // - Raio superior/inferior: 0.14 (tamanho da base)
+            // - Altura: 0.5 (comprimento do projétil)
+            // - Segmentos: 8 (suavidade do cilindro)
             let geo = new THREE.CylinderGeometry(0.14, 0.14, 0.5, 8);
+        
+            // Define o material do projétil:
+            // - Cor: ENEMY_PROJECTILE_COLOR (vermelho, definido nas constantes)
+            // - Não emite luz (MeshBasicMaterial)
             let mat = new THREE.MeshBasicMaterial({ color: ENEMY_PROJECTILE_COLOR });
+        
+            // Combina geometria + material em um objeto 3D (malha)
             let mesh = new THREE.Mesh(geo, mat);
-            mesh.rotation.x = Math.PI / 2;
+        
+            // Rotaciona o projétil 90 graus no eixo X (para ficar "deitado")
+            mesh.rotation.x = Math.PI / 2; // π/2 radianos = 90°
+        
+            // Posiciona o projétil:
+            // - x, y: Posição da nave inimiga (passada como parâmetro)
+            // - y - 1.0: Ajuste para sair abaixo da nave
+            // - z: 0.05 (ligeiramente à frente para evitar sobreposição visual)
             mesh.position.set(x, y - 1.0, 0.05);
+        
+            // Adiciona o projétil à cena principal
             scene.add(mesh);
-            enemyProjectiles.push({ mesh, dx, dy, alive: true });
+        
+            // Armazena o projétil no array global `enemyProjectiles`:
+            enemyProjectiles.push({
+                mesh,      // Objeto 3D
+                dx, dy,    // Direção (normalizada e multiplicada pela velocidade)
+                alive: true // Flag para controle
+            });
         }
         
         function spawnExplosion(x, y) {
@@ -1018,59 +1043,120 @@
         }
 
         function fireProjectile() {
+            // Inicializa variáveis para encontrar o alvo mais próximo:
+            // - `target`: armazenará o inimigo mais próximo
+            // - `minDist`: distância mínima inicializada com um valor alto (1000)
             let target = null, minDist = 1000;
+        
+            // Percorre todos os inimigos ativos no array `enemies`
             for (let e of enemies) {
+                // Ignora inimigos mortos
                 if (!e.alive) continue;
+        
+                // Calcula a distância entre o jogador e o inimigo atual (e)
+                // Usa diferença de coordenadas (dx e dy) e distância quadrática (d = dx² + dy²)
+                // (Distância quadrática é mais eficiente que Math.sqrt)
                 let dx = e.mesh.position.x - player.x;
                 let dy = e.mesh.position.y - player.y;
                 let d = dx * dx + dy * dy;
+        
+                // Se o inimigo atual estiver mais próximo que o registrado:
                 if (d < minDist) {
-                    minDist = d;
-                    target = e;
+                    minDist = d;       // Atualiza a distância mínima
+                    target = e;        // Define este inimigo como alvo atual
                 }
             }
+        
+            // Verifica se a nave-mãe existe e está viva
             if (mothership && mothership.alive) {
+                // Calcula a distância entre jogador e nave-mãe
                 let dx = mothership.mesh.position.x - player.x;
                 let dy = mothership.mesh.position.y - player.y;
                 let d = dx * dx + dy * dy;
+        
+                // Se a nave-mãe estiver mais próxima que outros inimigos:
                 if (d < minDist) {
                     minDist = d;
-                    target = mothership;
+                    target = mothership; // Prioriza a nave-mãe como alvo
                 }
             }
+        
+            // Se nenhum alvo foi encontrado, encerra a função
             if (!target) return;
+        
+            // Calcula o vetor direção do jogador para o alvo (target)
             let dx = target.mesh.position.x - player.x;
             let dy = target.mesh.position.y - player.y;
+        
+            // Calcula a magnitude (distância real) usando Math.sqrt
             let mag = Math.sqrt(dx * dx + dy * dy);
+        
+            // Evita divisão por zero (caso raro de distância = 0)
             if (mag === 0) mag = 1;
-            dx /= mag; dy /= mag;
+        
+            // Normaliza o vetor (transforma em vetor unitário: comprimento = 1)
+            dx /= mag;
+            dy /= mag;
+        
+            // Dispara o projétil:
+            // - Posição: (player.x, player.y)
+            // - Direção: (dx * 13, dy * 13) (13 = velocidade do projétil)
+            // - operatorIndex: tipo de operador lógico selecionado
             spawnProjectile(player.x, player.y, dx * 13, dy * 13, operatorIndex);
         }
 
+        
         function enemyFireLogic(dt) {
+            // Obtém o tempo atual em segundos (para cálculos de intervalo de disparo)
             let now = performance.now() / 1000;
+        
+            // Verifica se o tempo desde o último disparo inimigo é maior que o intervalo permitido
             if (now - lastEnemyFire > enemyFireDelay) {
+        
+                // Itera sobre todos os inimigos ativos
                 for (let e of enemies) {
+                    // Pula inimigos mortos
                     if (!e.alive) continue;
+        
+                    // Calcula a direção do jogador em relação ao inimigo (vetor X e Y)
                     let dx = player.x - e.mesh.position.x;
                     let dy = player.y - e.mesh.position.y;
+        
+                    // Calcula a magnitude (distância) entre inimigo e jogador
                     let mag = Math.sqrt(dx * dx + dy * dy);
+        
+                    // Evita divisão por zero (caso raro de distância zero)
                     if (mag === 0) mag = 1;
-                    dx /= mag; dy /= mag;
+        
+                    // Normaliza o vetor de direção (transforma em vetor unitário)
+                    dx /= mag;
+                    dy /= mag;
+        
+                    // 70% de chance de disparar (Math.random() < 0.7)
                     if (Math.random() < 0.7)
-                        spawnEnemyProjectile(e.mesh.position.x, e.mesh.position.y, dx * 7, dy * 7);
+                        // Cria um projétil na posição do inimigo, com direção ao jogador e velocidade 8
+                        spawnEnemyProjectile(e.mesh.position.x, e.mesh.position.y, dx * 8, dy * 8);
                 }
+        
+                // Lógica similar para a nave-mãe (se existir e estiver viva)
                 if (mothership && mothership.alive && Math.random() < 0.8) {
                     let dx = player.x - mothership.mesh.position.x;
                     let dy = player.y - mothership.mesh.position.y;
                     let mag = Math.sqrt(dx * dx + dy * dy);
                     if (mag === 0) mag = 1;
-                    dx /= mag; dy /= mag;
-                    spawnEnemyProjectile(mothership.mesh.position.x, mothership.mesh.position.y - 0.6, dx * 8, dy * 8);
+                    dx /= mag;
+                    dy /= mag;
+        
+                    // Dispara com velocidade 9 (ligeiramente mais rápido que inimigos normais)
+                    // O -0.6 no Y posiciona o tiro abaixo da nave-mãe
+                    spawnEnemyProjectile(mothership.mesh.position.x, mothership.mesh.position.y - 0.6, dx * 9, dy * 9);
                 }
+        
+                // Atualiza o tempo do último disparo
                 lastEnemyFire = now;
             }
         }
+        
 
         function updateProjectiles(dt) {
             for (let p of projectiles) {
