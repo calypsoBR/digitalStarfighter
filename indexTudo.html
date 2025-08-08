@@ -863,7 +863,7 @@
                     playSound('lowHealth'); // Toca imediatamente
                     hud.lowHealthSoundInterval = setInterval(() => {
                         playSound('lowHealth');
-                    }, 2000); // Repete a cada 2 segundos
+                    }, 3000); // Repete a cada 3 segundos
                 }
             
                 // Efeito visual piscante
@@ -883,7 +883,7 @@
             hud.health.innerHTML = 'Vida: ' + playerHealth;
         
             // =============================================
-            // ELEMENTO DE PONTUAÇÃO (SEM ALTERAÇÕES)
+            // ELEMENTO DE PONTUAÇÃO 
             // =============================================
             if (!hud.score) {
                 hud.score = document.createElement('div');
@@ -898,7 +898,7 @@
             hud.score.innerHTML = 'Pontuação: ' + playerScore;
         
             // =============================================
-            // ELEMENTO PSB (SEM ALTERAÇÕES)
+            // ELEMENTO PSB 
             // =============================================
             if (!hud.psb) {
                 hud.psb = document.createElement('div');
@@ -913,7 +913,7 @@
             hud.psb.innerHTML = 'PSB: <span style="color:' + (playerPSB ? '#0090ff' : '#ff2222') + '">' + playerPSB + '</span>';
         
             // =============================================
-            // ELEMENTO DE OPERADOR (SEM ALTERAÇÕES)
+            // ELEMENTO DE OPERADOR
             // =============================================
             if (!hud.op) {
                 hud.op = document.createElement('div');
