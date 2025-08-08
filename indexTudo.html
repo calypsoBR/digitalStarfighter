@@ -315,19 +315,18 @@
         
         // ===== [ ELEMENTOS VISUAIS ] ===== //
         let stars = [];                         // Partículas de estrelas de fundo
-        let hud = {                             // Elementos do HUD (criados dinamicamente). 
-            // Elementos de UI (health, score, etc)            
-            health: null,           // Display de vida do jogador
-            score: null,            // Display de pontuação
-            psb: null,              // Display do valor PSB (0/1)
-            op: null,               // Display do operador lógico
-            wave: null,             // Display da fase atual
-            bossGens: null,         // Display dos geradores da nave-mãe
+        let hud = {};                           // Elementos de UI (health, score, etc) criados dinamicamente            
+          //  health: null,           // Display de vida do jogador
+          //  score: null,            // Display de pontuação
+          //  psb: null,              // Display do valor PSB (0/1)
+          //  op: null,               // Display do operador lógico
+          //  wave: null,             // Display da fase atual
+          //  bossGens: null,         // Display dos geradores da nave-mãe
         
             // Controle do alerta de vida baixa
-            lowHealthSoundInterval: null,  // Armazena o intervalo do som
-            lastLowHealthSound: 0          // Timestamp do último som tocado (evita spam)
-        };
+         //   lowHealthSoundInterval: null,  // Armazena o intervalo do som
+          //  lastLowHealthSound: 0          // Timestamp do último som tocado (evita spam)
+        //};
         
         // ===== [ OVERLAYS DE TELA ] ===== //
         let pauseOverlay,                       // Tela de pausa
@@ -870,7 +869,7 @@
                 // Efeito visual piscante
                 hud.health.style.color = (Math.floor(Date.now() / 200) % 2 === 0 
                     ? '#ff0000' 
-                    : '#00ff88'
+                    : '#00ff88' );
                 hud.health.style.textShadow = '0 0 10px #ff0000';
             } else {
                 // Remove alertas quando vida > 20%
