@@ -159,7 +159,7 @@
             // 1) Operação AND            
             {   shape: 'tetra', 
                 A: () => Math.round(Math.random()), // gerado aleatoriamente
-                B: () => Math.random() > 0.5 ? playerPSB : 1 - playerPSB, // usa playerPSB para definição
+                //B: () => Math.random() > 0.5 ? playerPSB : 1 - playerPSB, // usa playerPSB para definição
                 B: function() { return Math.random() > 0.5 ? playerPSB : 1 - playerPSB; },  // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
                 ev: function() { return this.A() & this.B(); }, // Cálculo A.B
                 ab: true, expr: 'A.B',   // Exibição visual
