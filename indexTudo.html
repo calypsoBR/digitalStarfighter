@@ -315,7 +315,19 @@
         
         // ===== [ ELEMENTOS VISUAIS ] ===== //
         let stars = [];                         // Partículas de estrelas de fundo
-        let hud = {};                           // Elementos de UI (health, score, etc)
+        let hud = {                             // Elementos do HUD (criados dinamicamente). 
+            // Elementos de UI (health, score, etc)            
+            health: null,           // Display de vida do jogador
+            score: null,            // Display de pontuação
+            psb: null,              // Display do valor PSB (0/1)
+            op: null,               // Display do operador lógico
+            wave: null,             // Display da fase atual
+            bossGens: null,         // Display dos geradores da nave-mãe
+        
+            // Controle do alerta de vida baixa
+            lowHealthSoundInterval: null,  // Armazena o intervalo do som
+            lastLowHealthSound: 0          // Timestamp do último som tocado (evita spam)
+        };
         
         // ===== [ OVERLAYS DE TELA ] ===== //
         let pauseOverlay,                       // Tela de pausa
