@@ -1052,19 +1052,19 @@
                 gameState = GAME_STATE.PLAYING;
                 startWave(wave);
 
-           // Reinicio do jogo após game over  
+           // Se o jogo acabou e em seguida apertou-se a tecla R...  
             } else if (gameState === GAME_STATE.GAME_OVER && e.code === 'KeyR') {
                 removeOverlay(gameOverOverlay);
                 clearHUD();
                 gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Tecle "R" para reiniciar</span>');
+                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Tecle ESPAÇO para reiniciar</span>');
 
-           // Reinicio do jogo após vitória
+           // se o jogo foi zerado e em seguida apertou-se a tecla R...Reinicio do jogo após vitória
             } else if (gameState === GAME_STATE.WIN && e.code === 'KeyR') {
                 removeOverlay(winOverlay);
                 clearHUD();
                 gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Tecle "R" para reiniciar</span>');
+                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Tecle ESPAÇO para reiniciar</span>');
 
             // Alterações com o jogo em andamento  
             } else if (gameState === GAME_STATE.PLAYING) {
