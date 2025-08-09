@@ -70,6 +70,17 @@
                 enableAudio();
                 document.getElementById('unmute').style.display = 'none';
             });
+
+            // --- FUNÇÃO AUXILIAR PARA PARAR O SOM DE VIDA BAIXA --- //
+            function stopLowHealthSound() {
+                if (hud.lowHealthSoundInterval) {
+                    clearInterval(hud.lowHealthSoundInterval);
+                    hud.lowHealthSoundInterval = null;
+                }
+                sounds.lowHealth.pause();
+                sounds.lowHealth.currentTime = 0;
+            }
+        
          // ===== [FIM DA SEÇÃO DE SONS] ===== //
              
         
@@ -785,12 +796,8 @@
             bombReplenishedAtScore = {}; // Limpa registro de recargas
         
             // Interrompe o som de vida baixa se estiver ativo
-            if (hud.lowHealthSoundInterval) {
-                clearInterval(hud.lowHealthSoundInterval);
-                hud.lowHealthSoundInterval = null;
-                sounds.lowHealth.pause();         // Pausa o som
-                sounds.lowHealth.currentTime = 0; // Reinicia o áudio
-            }
+            stopLowHealthSound(); 
+            
         }
 
         function getEnemyType(wave, index) {
@@ -1378,13 +1385,8 @@
                     // Verifica morte do jogador
                     if (playerHealth <= 0) {
                         // Interrompe o som de vida baixa se estiver tocando
-                        if (hud.lowHealthSoundInterval) {
-                            clearInterval(hud.lowHealthSoundInterval);
-                            hud.lowHealthSoundInterval = null;
-                            sounds.lowHealth.pause();
-                            sounds.lowHealth.currentTime = 0;
-                        }
-        
+                        stopLowHealthSound(); 
+                        
                         // Ativa estado de Game Over
                         gameState = GAME_STATE.GAME_OVER;
                         playSound('gameOver'); // Toca som de derrota
@@ -1556,12 +1558,7 @@
                 // Verifica vitória (destruição da nave-mãe)
                 if (mothership && !mothership.alive && gameState === GAME_STATE.PLAYING) {
                     // Interrompe o som de vida baixa se estiver tocando
-                    if (hud.lowHealthSoundInterval) {
-                        clearInterval(hud.lowHealthSoundInterval);
-                        hud.lowHealthSoundInterval = null;
-                        sounds.lowHealth.pause();
-                        sounds.lowHealth.currentTime = 0;
-                    }
+                    stopLowHealthSound();                    
                     
                     // Ativa estado de vitória
                     gameState = GAME_STATE.WIN;
