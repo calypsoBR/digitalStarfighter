@@ -21,13 +21,27 @@
          // ===== [SEÇÃO DE SONS DO JOGO] ===== //
             let audioEnabled = false;
             const sounds = {
+               // do jogador
                 shoot: new Audio('./sounds/shoot.mp3'),
+                lowHealth: new Audio('./sounds/low_health2.mp3'),
+                booleanShield: new Audio('./sounds/boolean_shield.mp3'),
+                lifeBonus: new Audio('./sounds/life_bonus.mp3'),
+                playerHit: new Audio('./sounds/player_hit.mp3'),
+                powerupCollect: new Audio('./sounds/powerup_collect.mp3'),
+                
+               // dos inimigos                 
                 explosion: new Audio('./sounds/explosion.mp3'),
                 powerup: new Audio('./sounds/powerup.mp3'),
-                gameOver: new Audio('./sounds/game_over.mp3'),
-                victory: new Audio('./sounds/victory.mp3'),
-                powerupCollect: new Audio('./sounds/powerup_collect.mp3'),
-                lowHealth: new Audio('./sounds/low_health2.mp3')
+
+               // Canhão Quine
+                quineCannon: new Audio('./sounds/quine_cannon.mp3'),
+
+               // Nave mãe
+                
+               // do jogo  
+                gameOver: new Audio('./sounds/game_over2.mp3'),
+                victory: new Audio('./sounds/victory.mp3')                
+                
             };
             
             Object.values(sounds).forEach(audio => { audio.volume = 0.3; });
