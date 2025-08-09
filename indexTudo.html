@@ -1000,9 +1000,8 @@
             overlay.style.left = '0';
             overlay.style.top = '0';
             overlay.style.width = '100vw';
-            overlay.style.height = '100vh';
-            //overlay.style.background = 'rgba(10,14,42,0.93)';
-            overlay.style.background = `rgba(10,14,42,0.6)`; // Usa o parâmetro de opacidade? 60%
+            overlay.style.height = '100vh';            
+            overlay.style.background = `rgba(10,14,42,0.4)`; // Usa o parâmetro de opacidade? 40%
             overlay.style.display = 'flex';
             overlay.style.flexDirection = 'column';
             overlay.style.alignItems = 'center';
@@ -1085,7 +1084,7 @@
                         pauseOverlay.style.top = '0';
                         pauseOverlay.style.width = '100vw';
                         pauseOverlay.style.height = '100vh';
-                        pauseOverlay.style.background = 'rgba(10,14,42,0.6)'; // 60% de opacidade, ultimo parâmetro.
+                        pauseOverlay.style.background = 'rgba(10,14,42,0.7)'; // 70% de opacidade, ultimo parâmetro.
                         pauseOverlay.style.display = 'flex';
                         pauseOverlay.style.flexDirection = 'column';
                         pauseOverlay.style.alignItems = 'center';
@@ -1355,7 +1354,7 @@
                     if (playerHealth <= 0) {
                         gameState = GAME_STATE.GAME_OVER;
                         playSound('gameOver');                        
-                        gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Pontuação: ' + playerScore + '<br><br>Tecle ESPAÇO para reiniciar');
+                        gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar');
                     }
                 }
             }
@@ -1495,7 +1494,7 @@
                 if (mothership && !mothership.alive && gameState === GAME_STATE.PLAYING) {
                     gameState = GAME_STATE.WIN;
                     playSound('victory');                    
-                    winOverlay = showOverlay('win', 'VITÓRIA! VOCÊ ANIQUILOU A ARMADA KODAN!', 'Pontuação: ' + playerScore + '<br><br>Tecle ESPAÇO para reiniciar');
+                    winOverlay = showOverlay('win', 'VITÓRIA! VOCÊ ANIQUILOU A ARMADA KODAN!', 'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar');
                 }
                 
                 checkScoreForBombReplenish();
