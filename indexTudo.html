@@ -44,7 +44,7 @@
                 
             };
             
-            Object.values(sounds).forEach(audio => { audio.volume = 0.25; });  // volume dos sons: 25% do total 
+            Object.values(sounds).forEach(audio => { audio.volume = 0.2; });  // volume dos sons: 20% do total 
             
             function enableAudio() {
                 audioEnabled = true;
@@ -750,27 +750,47 @@
 
         
         function resetGame() {
+            
+            // Remove todos os objetos 3D da cena (limpeza total)
             while (scene.children.length) scene.remove(scene.children[0]);
-            stars = [];
-            enemies = [];
-            projectiles = [];
-            enemyProjectiles = [];
-            explosions = [];
-            powerUps = [];
-            mothership = null;            
-            createStars();
-            createPlayer();
-            playerHealth = playerMaxHealth;
-            playerScore = 0;
-            wave = 1;
-            operatorIndex = 0;
-            playerPSB = 1;
-            updatePSBMesh(playerPSB);
-            lastFire = 0;
-            lastEnemyFire = 0;
-            waveEnemies = 0;
-            initBombCounts();
-            bombReplenishedAtScore = {};
+        
+            // Reseta arrays de entidades do jogo
+            stars = [];            // Partículas de fundo
+            enemies = [];          // Inimigos ativos
+            projectiles = [];      // Projéteis do jogador
+            enemyProjectiles = []; // Projéteis inimigos
+            explosions = [];       // Efeitos de explosão
+            powerUps = [];         // Power-ups coletáveis
+            mothership = null;     // Remove referência à nave-mãe
+        
+            // Recria elementos essenciais
+            createStars();       // Gera novas estrelas de fundo
+            createPlayer();      // Recria a nave do jogador
+        
+            // Reseta status do jogador
+            playerHealth = playerMaxHealth;  // Vida máxima
+            playerScore = 0;                 // Pontuação zerada
+            wave = 1;                        // Volta para a fase 1
+            operatorIndex = 0;               // Operador lógico padrão (AND)
+            playerPSB = 1;                   // Valor lógico inicial (1)
+            updatePSBMesh(playerPSB);        // Atualiza visualização do PSB
+        
+            // Reseta timers de disparo
+            lastFire = 0;        // Tempo do último tiro do jogador
+            lastEnemyFire = 0;   // Tempo do último tiro inimigo
+            waveEnemies = 0;     // Contador de inimigos na wave
+        
+            // Reinicia sistema de bombas
+            initBombCounts();            // Recarrega contagem de bombas
+            bombReplenishedAtScore = {}; // Limpa registro de recargas
+        
+            // Interrompe o som de vida baixa se estiver ativo
+            if (hud.lowHealthSoundInterval) {
+                clearInterval(hud.lowHealthSoundInterval);
+                hud.lowHealthSoundInterval = null;
+                sounds.lowHealth.pause();         // Pausa o som
+                sounds.lowHealth.currentTime = 0; // Reinicia o áudio
+            }
         }
 
         function getEnemyType(wave, index) {
@@ -1322,34 +1342,68 @@
             projectiles = projectiles.filter(p => p.alive);
         }
 
+        
         function updateEnemyProjectiles(dt) {
+            // Itera sobre todos os projéteis inimigos ativos
             for (let p of enemyProjectiles) {
-                if (!p.alive) continue;
+                if (!p.alive) continue; // Ignora projéteis marcados como inativos
+        
+                // Atualiza posição do projétil com base na velocidade (dx, dy) e delta time
                 p.mesh.position.x += p.dx * dt;
                 p.mesh.position.y += p.dy * dt;
-                if (Math.abs(p.mesh.position.x) > PLAY_AREA.x / 2 + 2 || Math.abs(p.mesh.position.y) > PLAY_AREA.y / 2 + 2) {
-                    scene.remove(p.mesh);
-                    p.alive = false;
+        
+                // Verifica se o projétil saiu dos limites da área de jogo
+                if (Math.abs(p.mesh.position.x) > PLAY_AREA.x / 2 + 2 || 
+                    Math.abs(p.mesh.position.y) > PLAY_AREA.y / 2 + 2) {
+                    scene.remove(p.mesh); // Remove visualmente
+                    p.alive = false;      // Marca como inativo
                     continue;
                 }
+        
+                // Calcula distância entre o projétil e o jogador
                 let px = p.mesh.position.x, py = p.mesh.position.y;
                 let dist = Math.sqrt((player.x - px) ** 2 + (player.y - py) ** 2);
+        
+                // Verifica colisão com o jogador (raio de 0.7 unidades)
                 if (dist < 0.7) {
+                    // Remove o projétil da cena
                     scene.remove(p.mesh);
                     p.alive = false;
+        
+                    // Aplica dano ao jogador
                     playerHealth--;
-                    setBarValue(playerHealthBar, playerHealth / playerMaxHealth);
-                    playSound('playerHit');
+                    setBarValue(playerHealthBar, playerHealth / playerMaxHealth); // Atualiza HUD
+                    playSound('playerHit'); // Toca som de impacto
+        
+                    // Verifica morte do jogador
                     if (playerHealth <= 0) {
+                        // Interrompe o som de vida baixa se estiver tocando
+                        if (hud.lowHealthSoundInterval) {
+                            clearInterval(hud.lowHealthSoundInterval);
+                            hud.lowHealthSoundInterval = null;
+                            sounds.lowHealth.pause();
+                            sounds.lowHealth.currentTime = 0;
+                        }
+        
+                        // Ativa estado de Game Over
                         gameState = GAME_STATE.GAME_OVER;
-                        playSound('gameOver');                        
-                        gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar');
+                        playSound('gameOver'); // Toca som de derrota
+                        
+                        // Exibe overlay de Game Over
+                        gameOverOverlay = showOverlay(
+                            'gameover', 
+                            'GAME OVER', 
+                            'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar'
+                        );
                     }
                 }
             }
+        
+            // Filtra apenas projéteis ativos (remove os marcados como !alive)
             enemyProjectiles = enemyProjectiles.filter(p => p.alive);
         }
 
+        
         function updateExplosions(dt) {
             for (let e of explosions) {
                 for (let m of e.group) {
@@ -1451,48 +1505,88 @@
         }
 
         function gameLoop() {
+            
+            // Obtém o tempo atual em milissegundos
             let now = performance.now();
+            
+            // Calcula o delta time (tempo desde o último frame), limitando a 45ms para evitar bugs
             let dt = Math.min((now - lastUpdate) / 1000, 0.045);
-            lastUpdate = now;
+            lastUpdate = now; // Atualiza o último registro de tempo
+        
+            // Lógica executada apenas durante o estado de jogo (PLAYING)
             if (gameState === GAME_STATE.PLAYING) {
+                // Atualiza a posição do jogador
                 updatePlayer(dt);
+                
+                // Atualiza projéteis do jogador e inimigos
                 updateProjectiles(dt);
                 updateEnemyProjectiles(dt);
+                
+                // Atualiza efeitos de explosão e power-ups
                 updateExplosions(dt);
                 updatePowerUps(dt);
-                enemyFireLogic(dt);
-                updateMothership(dt); // Adicionada esta linha para atualizar a nave-mãe
                 
+                // Lógica de disparo dos inimigos
+                enemyFireLogic(dt);
+                
+                // Atualiza comportamentos específicos da nave-mãe (se existir)
+                updateMothership(dt);
+        
+                // Movimentação oscilatória dos inimigos (efeito "flutuante")
                 for (let e of enemies) {
                     if (!e.alive) continue;
                     let t = Math.sin(now / 800 + e.mesh.position.x * 0.7) * 0.7;
                     e.mesh.position.y += Math.sin(now / 1300 + e.mesh.position.x * 0.5) * 0.3 * dt;
                     e.mesh.position.x += t * dt * 0.25;
                 }
-                
+        
+                // Verifica se a wave atual foi concluída
                 if (waveEnemies === 0 && !mothership && wave <= maxWaves) {
                     if (wave === maxWaves) {
+                        // Wave 10: spawna a nave-mãe
                         spawnMothership();
                         waveEnemies = 1;
                     } else {
+                        // Avança para a próxima wave
                         wave++;
                         startWave(wave);
                     }
                 }
-                
+        
+                // Verifica vitória (destruição da nave-mãe)
                 if (mothership && !mothership.alive && gameState === GAME_STATE.PLAYING) {
+                    // Interrompe o som de vida baixa se estiver tocando
+                    if (hud.lowHealthSoundInterval) {
+                        clearInterval(hud.lowHealthSoundInterval);
+                        hud.lowHealthSoundInterval = null;
+                        sounds.lowHealth.pause();
+                        sounds.lowHealth.currentTime = 0;
+                    }
+                    
+                    // Ativa estado de vitória
                     gameState = GAME_STATE.WIN;
-                    playSound('victory');                    
-                    winOverlay = showOverlay('win', 'VITÓRIA! VOCÊ ANIQUILOU A ARMADA KODAN!', 'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar');
+                    playSound('victory');
+                    
+                    // Mostra overlay de vitória
+                    winOverlay = showOverlay(
+                        'win', 
+                        'VITÓRIA! VOCÊ ANIQUILOU A ARMADA KODAN!', 
+                        'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar'
+                    );
                 }
-                
+        
+                // Verifica recarga de bombas por pontuação
                 checkScoreForBombReplenish();
+                
+                // Atualiza a interface do jogador (HUD)
                 updateHUD();
             }
+        
+            // Renderiza a cena e chama o próximo frame
             renderer.render(scene, camera);
             requestAnimationFrame(gameLoop);
-        }
-
+        }  
+        
         // Inicialização do jogo
         window.addEventListener('resize', () => {
             width = window.innerWidth;
