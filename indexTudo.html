@@ -73,6 +73,7 @@
 
             // --- FUNÇÃO AUXILIAR PARA PARAR O SOM DE VIDA BAIXA --- //
             function stopLowHealthSound() {
+                console.log("Parando som de vida baixa...");  // Debug
                 if (hud.lowHealthSoundInterval) {
                     clearInterval(hud.lowHealthSoundInterval);
                     hud.lowHealthSoundInterval = null;
