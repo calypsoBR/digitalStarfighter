@@ -1038,105 +1038,76 @@
             if (e.repeat) return;
             keys[e.code] = true;
         
-            // Tecla C - Alternar PSB (NOT) - Funciona em qualquer estado
-            if (e.code === 'KeyC') {
+            // Adicionar Tecla C para Alternar PSB (NOT) 
+            if (e.code === 'KeyC') { // Tecla C inverte o PSB
                 playerPSB = 1 - playerPSB;
-                window.playerPSB = playerPSB;
+                window.playerPSB = playerPSB; // sincroniza o global
                 updatePSBMesh(playerPSB);
-                return;
+                return; // Evita conflito com outras ações
             }
         
-            switch (gameState) {
-                case GAME_STATE.START:
-                    if (e.code === 'Space') {
-                        removeOverlay(startOverlay);
-                        resetGame();
-                        gameState = GAME_STATE.PLAYING;
-                        startWave(wave);
-                    }
-                    break;
+            // Inicio do jogo  
+            if (gameState === GAME_STATE.START && e.code === 'Space') {
+                removeOverlay(startOverlay);
+                resetGame();
+                gameState = GAME_STATE.PLAYING;
+                startWave(wave);
         
-                case GAME_STATE.GAME_OVER:
-                    if (e.code === 'KeyR') {
-                        removeOverlay(gameOverOverlay);
-                        clearHUD();
-                        resetGame();
-                        gameState = GAME_STATE.PLAYING;
-                        startWave(wave);
-                    }
-                    break;
+            // Reinicio direto após game over (sem voltar para tela inicial)
+            } else if (gameState === GAME_STATE.GAME_OVER && e.code === 'KeyR') {
+                removeOverlay(gameOverOverlay);
+                clearHUD();
+                resetGame(); // Adicionado para reiniciar direto
+                gameState = GAME_STATE.PLAYING; // Vai direto para playing
+                startWave(wave);
         
-                case GAME_STATE.WIN:
-                    if (e.code === 'KeyR') {
-                        removeOverlay(winOverlay);
-                        clearHUD();
-                        resetGame();
-                        gameState = GAME_STATE.PLAYING;
-                        startWave(wave);
-                    }
-                    break;
+            // Reinicio direto após vitória (sem voltar para tela inicial)
+            } else if (gameState === GAME_STATE.WIN && e.code === 'KeyR') {
+                removeOverlay(winOverlay);
+                clearHUD();
+                resetGame(); // Adicionado para reiniciar direto
+                gameState = GAME_STATE.PLAYING; // Vai direto para playing
+                startWave(wave);
         
-                case GAME_STATE.PLAYING:
-                    if (e.code === 'KeyP') {
-                        // Cria overlay de pause com transparência
-                        pauseOverlay = document.createElement('div');
-                        pauseOverlay.style.position = 'fixed';
-                        pauseOverlay.style.left = '0';
-                        pauseOverlay.style.top = '0';
-                        pauseOverlay.style.width = '100vw';
-                        pauseOverlay.style.height = '100vh';
-                        pauseOverlay.style.background = 'rgba(10,14,42,0.6)'; // 60% de opacidade
-                        pauseOverlay.style.display = 'flex';
-                        pauseOverlay.style.flexDirection = 'column';
-                        pauseOverlay.style.alignItems = 'center';
-                        pauseOverlay.style.justifyContent = 'center';
-                        pauseOverlay.style.zIndex = '1000';
-                        pauseOverlay.style.fontFamily = 'monospace';
-                        
-                        let title = document.createElement('div');
-                        title.style.fontSize = '58px';
-                        title.style.color = '#fff';
-                        title.style.textShadow = '0 0 24px #0077ff, 0 0 12px #fff';
-                        title.style.fontWeight = 'bold';
-                        title.style.letterSpacing = '2px';
-                        title.innerHTML = 'Jogo Pausado';
-                        pauseOverlay.appendChild(title);
-                        
-                        let subtext = document.createElement('div');
-                        subtext.style.fontSize = '28px';
-                        subtext.style.color = '#fff';
-                        subtext.style.marginTop = '28px';
-                        subtext.style.textShadow = '0 0 8px #0077ff';
-                        subtext.innerHTML = '<span style="font-size:22px;">Tecle P para continuar</span>';
-                        pauseOverlay.appendChild(subtext);
-                        
-                        document.body.appendChild(pauseOverlay);
+            // Alterações com o jogo em andamento  
+            } else if (gameState === GAME_STATE.PLAYING) {
+        
+                // Pausar ou retomar o jogo
+                if (e.code === 'KeyP') {
+                    if (pauseOverlay) {
+                        removeOverlay(pauseOverlay);
+                        pauseOverlay = null;
+                        gameState = GAME_STATE.PLAYING;
+                    } else {
+                        pauseOverlay = showOverlay('pause', 'Paused', '<span style="font-size:22px;">Tecle P para retomar</span>');
                         gameState = GAME_STATE.PAUSED;
                     }
+                }
+                
+                // Alternar tipo de bomba
+                if (e.code === 'Tab') {
+                    operatorIndex = (operatorIndex + 1) % OPERATORS.length;
+                    e.preventDefault();
+                }
         
-                    if (e.code === 'Tab') {
-                        operatorIndex = (operatorIndex + 1) % OPERATORS.length;
-                        e.preventDefault();
-                    }
-        
-                    if (e.code === 'Space') {
+                // Disparar projétil
+                if (e.code === 'Space') {                    
                         let now = performance.now() / 1000;
                         const currentOperatorKey = OPERATORS[operatorIndex].key;
                         if (bombCounts[currentOperatorKey] > 0 && now - lastFire > fireDelay) {
                             fireProjectile();
                             bombCounts[currentOperatorKey]--;
                             lastFire = now;
-                        }
-                    }
-                    break;
+                        }                    
+                }
         
-                case GAME_STATE.PAUSED:
-                    if (e.code === 'KeyP') {
-                        removeOverlay(pauseOverlay);
-                        pauseOverlay = null;
-                        gameState = GAME_STATE.PLAYING;
-                    }
-                    break;
+            // Alterar jogo pausado
+            } else if (gameState === GAME_STATE.PAUSED) {
+                if (e.code === 'KeyP') {
+                    removeOverlay(pauseOverlay);
+                    pauseOverlay = null;
+                    gameState = GAME_STATE.PLAYING;
+                }
             }
         }
         
