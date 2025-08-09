@@ -44,7 +44,7 @@
                 
             };
             
-            Object.values(sounds).forEach(audio => { audio.volume = 0.3; });
+            Object.values(sounds).forEach(audio => { audio.volume = 0.25; });  // volume dos sons: 25% do total 
             
             function enableAudio() {
                 audioEnabled = true;
@@ -330,17 +330,7 @@
         // ===== [ ELEMENTOS VISUAIS ] ===== //
         let stars = [];                         // Partículas de estrelas de fundo
         let hud = {};                           // Elementos de UI (health, score, etc) criados dinamicamente            
-          //  health: null,           // Display de vida do jogador
-          //  score: null,            // Display de pontuação
-          //  psb: null,              // Display do valor PSB (0/1)
-          //  op: null,               // Display do operador lógico
-          //  wave: null,             // Display da fase atual
-          //  bossGens: null,         // Display dos geradores da nave-mãe
-        
-            // Controle do alerta de vida baixa
-         //   lowHealthSoundInterval: null,  // Armazena o intervalo do som
-          //  lastLowHealthSound: 0          // Timestamp do último som tocado (evita spam)
-        //};
+          
         
         // ===== [ OVERLAYS DE TELA ] ===== //
         let pauseOverlay,                       // Tela de pausa
@@ -358,9 +348,7 @@
 
         // Inicializa os contadores de bombas
         function initBombCounts() {
-            OPERATORS.forEach(op => {
-                //bombCounts[op.key] = INITIAL_BOMB_COUNT;
-                //bombReplenishedAtScore[op.key] = {};
+            OPERATORS.forEach(op => {          
                 bombCounts = {
                     'AND': 10,
                     'OR': 8,
@@ -643,7 +631,7 @@
                 ctx.fillRect(50, 90, 156, 40);
                 
                 // Variáveis (verde)
-                ctx.font = 'bold 32px Arial';
+                ctx.font = 'bold 35px Arial';
                 ctx.fillStyle = "#55ff55";
                 ctx.shadowBlur = 0;
                 ctx.fillText(`A = ${A}  B = ${B}`, 128, 100);
@@ -1351,6 +1339,7 @@
                     p.alive = false;
                     playerHealth--;
                     setBarValue(playerHealthBar, playerHealth / playerMaxHealth);
+                    playSound('playerHit');
                     if (playerHealth <= 0) {
                         gameState = GAME_STATE.GAME_OVER;
                         playSound('gameOver');                        
