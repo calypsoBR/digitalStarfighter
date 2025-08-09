@@ -946,7 +946,7 @@
                    ' <span style="color:#00ff88;font-size:22px;">(' + bombCounts[OPERATORS[operatorIndex].key] + ')</span>';
         
             // =============================================
-            // ELEMENTO DE WAVE (SEM ALTERAÇÕES)
+            // ELEMENTO DE Fases (WAVE)
             // =============================================
             if (!hud.wave) {
                 hud.wave = document.createElement('div');
@@ -967,7 +967,7 @@
                 hud.wave.innerHTML = '';
         
             // =============================================
-            // GERADORES DA NAVE-MÃE (SEM ALTERAÇÕES)
+            // GERADORES DA NAVE-MÃE 
             // =============================================
             if (mothership && mothership.alive) {
                 if (!hud.bossGens) {
@@ -1001,7 +1001,8 @@
             overlay.style.top = '0';
             overlay.style.width = '100vw';
             overlay.style.height = '100vh';
-            overlay.style.background = 'rgba(10,14,42,0.93)';
+            //overlay.style.background = 'rgba(10,14,42,0.93)';
+            overlay.style.background = `rgba(10,14,42,${opacity})`; // Usa o parâmetro de opacidade
             overlay.style.display = 'flex';
             overlay.style.flexDirection = 'column';
             overlay.style.alignItems = 'center';
@@ -1036,84 +1037,116 @@
         function keyDown(e) {
             if (e.repeat) return;
             keys[e.code] = true;
-
-          // Adicionar Tecla C para Alternar PSB (NOT) 
-            if (e.code === 'KeyC') { // Tecla C inverte o PSB
+        
+            // Tecla C - Alternar PSB (NOT) - Funciona em qualquer estado
+            if (e.code === 'KeyC') {
                 playerPSB = 1 - playerPSB;
-                window.playerPSB = playerPSB; // sincroniza o global
+                window.playerPSB = playerPSB;
                 updatePSBMesh(playerPSB);
-                return; // Evita conflito com outras ações
+                return;
             }
-
-           // Inicio do jogo  
-            if (gameState === GAME_STATE.START && e.code === 'Space') {
-                removeOverlay(startOverlay);
-                resetGame();
-                gameState = GAME_STATE.PLAYING;
-                startWave(wave);
-
-           // Se o jogo acabou e em seguida apertou-se a tecla R...  
-            } else if (gameState === GAME_STATE.GAME_OVER && e.code === 'KeyR') {
-                removeOverlay(gameOverOverlay);
-                clearHUD();
-                gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Tecle ESPAÇO para reiniciar</span>');
-
-           // se o jogo foi zerado e em seguida apertou-se a tecla R...Reinicio do jogo após vitória
-            } else if (gameState === GAME_STATE.WIN && e.code === 'KeyR') {
-                removeOverlay(winOverlay);
-                clearHUD();
-                gameState = GAME_STATE.START;
-                startOverlay = showOverlay('start', 'O Último Guerreiro Digital das Estrelas', '<span style="font-size:22px;">Tecle ESPAÇO para reiniciar</span>');
-
-            // Alterações com o jogo em andamento  
-            } else if (gameState === GAME_STATE.PLAYING) {
-
-                // Pausar ou retomar o jogo
-                if (e.code === 'KeyP') {
-                    if (pauseOverlay) {
-                        removeOverlay(pauseOverlay);
-                        pauseOverlay = null;
+        
+            switch (gameState) {
+                case GAME_STATE.START:
+                    if (e.code === 'Space') {
+                        removeOverlay(startOverlay);
+                        resetGame();
                         gameState = GAME_STATE.PLAYING;
-                    } else {
-                        pauseOverlay = showOverlay('pause', 'Paused', '<span style="font-size:22px;">Tecle P para retomar</span>');
+                        startWave(wave);
+                    }
+                    break;
+        
+                case GAME_STATE.GAME_OVER:
+                    if (e.code === 'KeyR') {
+                        removeOverlay(gameOverOverlay);
+                        clearHUD();
+                        resetGame();
+                        gameState = GAME_STATE.PLAYING;
+                        startWave(wave);
+                    }
+                    break;
+        
+                case GAME_STATE.WIN:
+                    if (e.code === 'KeyR') {
+                        removeOverlay(winOverlay);
+                        clearHUD();
+                        resetGame();
+                        gameState = GAME_STATE.PLAYING;
+                        startWave(wave);
+                    }
+                    break;
+        
+                case GAME_STATE.PLAYING:
+                    if (e.code === 'KeyP') {
+                        // Cria overlay de pause com transparência
+                        pauseOverlay = document.createElement('div');
+                        pauseOverlay.style.position = 'fixed';
+                        pauseOverlay.style.left = '0';
+                        pauseOverlay.style.top = '0';
+                        pauseOverlay.style.width = '100vw';
+                        pauseOverlay.style.height = '100vh';
+                        pauseOverlay.style.background = 'rgba(10,14,42,0.6)'; // 60% de opacidade
+                        pauseOverlay.style.display = 'flex';
+                        pauseOverlay.style.flexDirection = 'column';
+                        pauseOverlay.style.alignItems = 'center';
+                        pauseOverlay.style.justifyContent = 'center';
+                        pauseOverlay.style.zIndex = '1000';
+                        pauseOverlay.style.fontFamily = 'monospace';
+                        
+                        let title = document.createElement('div');
+                        title.style.fontSize = '58px';
+                        title.style.color = '#fff';
+                        title.style.textShadow = '0 0 24px #0077ff, 0 0 12px #fff';
+                        title.style.fontWeight = 'bold';
+                        title.style.letterSpacing = '2px';
+                        title.innerHTML = 'Jogo Pausado';
+                        pauseOverlay.appendChild(title);
+                        
+                        let subtext = document.createElement('div');
+                        subtext.style.fontSize = '28px';
+                        subtext.style.color = '#fff';
+                        subtext.style.marginTop = '28px';
+                        subtext.style.textShadow = '0 0 8px #0077ff';
+                        subtext.innerHTML = '<span style="font-size:22px;">Tecle P para continuar</span>';
+                        pauseOverlay.appendChild(subtext);
+                        
+                        document.body.appendChild(pauseOverlay);
                         gameState = GAME_STATE.PAUSED;
                     }
-                }
-                
-                // Alternar tipo de bomba
-                if (e.code === 'Tab') {
-                    operatorIndex = (operatorIndex + 1) % OPERATORS.length;
-                    e.preventDefault();
-                }
-
-                //
-                if (e.code === 'Space') {                    
+        
+                    if (e.code === 'Tab') {
+                        operatorIndex = (operatorIndex + 1) % OPERATORS.length;
+                        e.preventDefault();
+                    }
+        
+                    if (e.code === 'Space') {
                         let now = performance.now() / 1000;
                         const currentOperatorKey = OPERATORS[operatorIndex].key;
                         if (bombCounts[currentOperatorKey] > 0 && now - lastFire > fireDelay) {
                             fireProjectile();
                             bombCounts[currentOperatorKey]--;
                             lastFire = now;
-                        }                    
-                }
-
-            // Alterar jogo pausado
-            } else if (gameState === GAME_STATE.PAUSED) {
-                if (e.code === 'KeyP') {
-                    removeOverlay(pauseOverlay);
-                    pauseOverlay = null;
-                    gameState = GAME_STATE.PLAYING;
-                }
+                        }
+                    }
+                    break;
+        
+                case GAME_STATE.PAUSED:
+                    if (e.code === 'KeyP') {
+                        removeOverlay(pauseOverlay);
+                        pauseOverlay = null;
+                        gameState = GAME_STATE.PLAYING;
+                    }
+                    break;
             }
-
         }
-
+        
+        
         function keyUp(e) {
             keys[e.code] = false;
         }
 
         function fireProjectile() {
+            
             // Inicializa variáveis para encontrar o alvo mais próximo:
             // - `target`: armazenará o inimigo mais próximo
             // - `minDist`: distância mínima inicializada com um valor alto (1000)
