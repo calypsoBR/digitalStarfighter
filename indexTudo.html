@@ -69,18 +69,7 @@
             document.getElementById('unmute').addEventListener('click', () => {
                 enableAudio();
                 document.getElementById('unmute').style.display = 'none';
-            });
-
-            // --- FUNÇÃO AUXILIAR PARA PARAR O SOM DE VIDA BAIXA --- //
-            function stopLowHealthSound() {
-                console.log("Parando som de vida baixa...");  // Debug
-                if (hud.lowHealthSoundInterval) {
-                    clearInterval(hud.lowHealthSoundInterval);
-                    hud.lowHealthSoundInterval = null;
-                }
-                sounds.lowHealth.pause();
-                sounds.lowHealth.currentTime = 0;
-            }
+            });            
         
          // ===== [FIM DA SEÇÃO DE SONS] ===== //
              
@@ -795,10 +784,7 @@
             // Reinicia sistema de bombas
             initBombCounts();            // Recarrega contagem de bombas
             bombReplenishedAtScore = {}; // Limpa registro de recargas
-        
-            // Interrompe o som de vida baixa se estiver ativo
-            stopLowHealthSound(); 
-            
+                    
         }
 
         function getEnemyType(wave, index) {
@@ -887,29 +873,34 @@
             const isLowHealth = playerHealth <= playerMaxHealth * 0.2;
             
             // Efeitos de vida baixa (agora contínuos)
-            if (isLowHealth) {
+            if (isLowHealth && gameState === GAME_STATE.PLAYING) {  // ← Adicione esta verificação
                 // Efeito sonoro (toca repetidamente a cada 2 segundos)
                 if (!hud.lowHealthSoundInterval) {
                     playSound('lowHealth'); // Toca imediatamente
                     hud.lowHealthSoundInterval = setInterval(() => {
-                        playSound('lowHealth');
-                    }, 3000); // Repete a cada 3 segundos
+                        if (gameState === GAME_STATE.PLAYING) {  // ← Verificação extra
+                            playSound('lowHealth');
+                        }
+                    }, 2000); // Repete a cada 2 segundos
                 }
-            
+                
                 // Efeito visual piscante
                 hud.health.style.color = (Math.floor(Date.now() / 200) % 2 === 0 
                     ? '#ff0000' 
-                    : '#00ff88' );
+                    : '#00ff88');
                 hud.health.style.textShadow = '0 0 10px #ff0000';
             } else {
-                // Remove alertas quando vida > 20%
+                // Remove alertas quando vida > 20% ou jogo não está em PLAYING
                 if (hud.lowHealthSoundInterval) {
                     clearInterval(hud.lowHealthSoundInterval);
                     hud.lowHealthSoundInterval = null;
+                    sounds.lowHealth.pause();  // ← Pausa o som imediatamente
+                    sounds.lowHealth.currentTime = 0;  // ← Reinicia o áudio
                 }
                 hud.health.style.color = '#00ff88';
                 hud.health.style.textShadow = '0 0 5px #003';
             }
+            
             hud.health.innerHTML = 'Vida: ' + playerHealth;
         
             // =============================================
@@ -1385,8 +1376,6 @@
         
                     // Verifica morte do jogador
                     if (playerHealth <= 0) {
-                        // Interrompe o som de vida baixa se estiver tocando
-                        stopLowHealthSound(); 
                         
                         // Ativa estado de Game Over
                         gameState = GAME_STATE.GAME_OVER;
@@ -1558,9 +1547,6 @@
         
                 // Verifica vitória (destruição da nave-mãe)
                 if (mothership && !mothership.alive && gameState === GAME_STATE.PLAYING) {
-                    // Interrompe o som de vida baixa se estiver tocando
-                    stopLowHealthSound();                    
-                    
                     // Ativa estado de vitória
                     gameState = GAME_STATE.WIN;
                     playSound('victory');
