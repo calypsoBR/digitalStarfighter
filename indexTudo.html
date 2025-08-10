@@ -180,9 +180,8 @@
             // 1) Operação AND            
             {   shape: 'tetra', 
                 A: () => Math.round(Math.random()), // gerado aleatoriamente                
-                //B: function() { return Math.random() > 0.5 ? playerPSB : 1 - playerPSB; },  // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
                 B: function() { 
-                    return Math.random() > 0.5 ? getSafePSB() : 1 - getSafePSB(); // <-- Função segura
+                    return Math.random() > 0.5 ? getSafePSB() : 1 - getSafePSB(); // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
                 },
                 ev: function() { return this.A() & this.B(); }, // Cálculo A.B
                 ab: true, expr: 'A.B',   // Exibição visual
@@ -193,9 +192,8 @@
             {   
                 shape: 'tetra',
                 A: () => Math.round(Math.random()), 
-                //B: function() { return Math.random() > 0.5 ? playerPSB : 1 - playerPSB; },  // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
                 B: function() { 
-                    return Math.random() > 0.5 ? getSafePSB() : 1 - getSafePSB(); // <-- Função segura
+                    return Math.random() > 0.5 ? getSafePSB() : 1 - getSafePSB(); // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
                 },
                 ev: function() { return this.A() | this.B(); }, // Cálculo A+B
                 ab: true, expr: 'A+B', // Exibição visual
@@ -205,10 +203,9 @@
             // 3) Operação XOR
             {   
                 shape: 'tetra',
-                A: () => Math.round(Math.random()), 
-                // B: function() { return Math.random() > 0.5 ? playerPSB : 1 - playerPSB; },  // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
+                A: () => Math.round(Math.random()),                
                 B: function() { 
-                    return Math.random() > 0.5 ? getSafePSB() : 1 - getSafePSB(); // <-- Função segura
+                    return Math.random() > 0.5 ? getSafePSB() : 1 - getSafePSB(); // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
                 },
                 ev: function() { return this.A() ^ this.B(playerPSB); }, // Cálculo A⊕B
                 ab: true, expr: 'A⊕B', // Exibição visual
@@ -881,7 +878,7 @@
                         if (gameState === GAME_STATE.PLAYING && !pauseOverlay)  {  // ← Verificação extra
                             playSound('lowHealth');
                         }
-                    }, 1000); // ... a cada 300 milisegundos.
+                    }, 1000); // ... a cada 1000 milisegundos.
                 }
                 
                 // Efeito visual piscante
