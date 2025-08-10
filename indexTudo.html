@@ -280,11 +280,21 @@
         const ENEMY_COLOR = 0xff3300;           // Cor vermelha dos inimigos
         const PROJECTILE_COLOR = 0xffffff;      // Cor branca dos projéteis do jogador
         const ENEMY_PROJECTILE_COLOR = 0xff2200;// Cor vermelha dos projéteis inimigos
-        const STAR_COLOR = 0xffffff;            // Cor branca das estrelas de fundo
         const POWERUP_COLOR = 0x00ff00;         // Cor verde dos power-ups
-        const BG_COLOR = 0x0a0e2a;              // Cor de fundo do espaço (azul escuro)
-        const PLAY_AREA = { x: 34, y: 20 };     // Dimensões da área jogável (unidades 3D)  o dobro do original = x: 16, y: 10        
-                
+        
+        // ===== [ CONSTANTES DA AREA DO JOGO E SEU PLANO DE FUNDO ] ===== //
+        const PLAY_AREA = { x: 34, y: 20 };     // Dimensões da área jogável (unidades 3D)  o dobro do original = x: 16, y: 10
+
+        // ===== [ CONSTANTES DO PLANO DE FUNDO ] ===== //
+        //const BG_COLOR = 0x0a0e2a;              // Cor de fundo do espaço (azul escuro)
+        //const STAR_COLOR = 0xffffff;            // Cor branca das estrelas de fundo         
+        const bgCamera = new THREE.OrthographicCamera( // OrthographicCamera para o fundo (2D)
+            -width / 2, width / 2, // left, right
+            height / 2, -height / 2, // top, bottom
+            -100, 100 // near, far
+        );
+
+        
         // ===== [ VARIÁVEIS DE RENDERIZAÇÃO ] ===== //
         let renderer, scene, camera;            // Objetos principais do Three.js
         let width = window.innerWidth,          // Largura da janela
@@ -361,20 +371,19 @@
         
         function createRenderer() {
             renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setClearColor(BG_COLOR);
+            //renderer.setClearColor(BG_COLOR);
             renderer.setSize(width, height);
-            document.body.appendChild(renderer.domElement);
+            document.body.appendChild(renderer.domElement);            
         }
 
         function createCamera() {
             camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
             camera.position.set(0, 0, 22);  // x,y,z
             //camera.position.set(0, -25, 12);  // x (movimento radial) ,y (movimento de elevação), z (movimento em inclinação)
-            //camera.lookAt(0, 0, 0); // Foco no centro da cena
-            
-            
+            //camera.lookAt(0, 0, 0); // Foco no centro da cena            
         }
 
+       
         function createScene() {
             scene = new THREE.Scene();
             let ambient = new THREE.AmbientLight(0xffffff, 0.7);
@@ -383,20 +392,28 @@
             scene.add(ambient, dir);
         }
 
-        function createStars() {
-            for (let i = 0; i < 80; i++) {
-                let geo = new THREE.SphereGeometry(Math.random() * 0.05 + 0.02, 6, 6);
-                let mat = new THREE.MeshBasicMaterial({ color: STAR_COLOR });
-                let mesh = new THREE.Mesh(geo, mat);
-                mesh.position.set(
-                    (Math.random() - 0.5) * PLAY_AREA.x * 1.2,
-                    (Math.random() - 0.5) * PLAY_AREA.y * 1.2,
-                    -3 - Math.random() * 3
-                );
-                scene.add(mesh);
-                stars.push(mesh);
-            }
-        }
+        //function createStars() {
+        //    for (let i = 0; i < 80; i++) {
+        //        let geo = new THREE.SphereGeometry(Math.random() * 0.05 + 0.02, 6, 6);
+        //        let mat = new THREE.MeshBasicMaterial({ color: STAR_COLOR });
+        //        let mesh = new THREE.Mesh(geo, mat);
+        //        mesh.position.set(
+        //            (Math.random() - 0.5) * PLAY_AREA.x * 1.2,
+        //            (Math.random() - 0.5) * PLAY_AREA.y * 1.2,
+        //            -3 - Math.random() * 3
+        //        );
+        //        scene.add(mesh);
+        //         stars.push(mesh);
+        //    }
+        //}
+
+        // carregada imagem de fundo
+        const bgTexture = new THREE.TextureLoader().load('space_background_vertical.jpg');
+        const bgGeometry = new THREE.PlaneGeometry(width, height);
+        const bgMaterial = new THREE.MeshBasicMaterial({ map: bgTexture });
+        const background = new THREE.Mesh(bgGeometry, bgMaterial);
+        background.position.z = -50; // Coloca atrás de tudo
+        scene.add(background);
         
         function createPlayer() {
             // Primeiro, cria o objeto 'player' com as posições iniciais
@@ -771,7 +788,7 @@
             mothership = null;     // Remove referência à nave-mãe
         
             // Recria elementos essenciais
-            createStars();       // Gera novas estrelas de fundo
+           // createStars();       // Gera novas estrelas de fundo
             createPlayer();      // Recria a nave do jogador        
             
             // Reseta status do jogador
@@ -1573,17 +1590,41 @@
             }
         
             // Renderiza a cena e chama o próximo frame
-            renderer.render(scene, camera);
+            renderer.clear();
+            renderer.render(scene, bgCamera); // Renderiza fundo (2D)
+            renderer.render(scene, camera); // Renderiza cena 3D (naves, projéteis, etc.)
             requestAnimationFrame(gameLoop);
+            
         }  
         
         // Inicialização do jogo
+        //window.addEventListener('resize', () => {
+        //    width = window.innerWidth;
+        //    height = window.innerHeight;
+        //    renderer.setSize(width, height);
+        //    camera.aspect = width / height;
+        //    camera.updateProjectionMatrix();
+        //});
+
+        // Inicialização do jogo    
         window.addEventListener('resize', () => {
             width = window.innerWidth;
             height = window.innerHeight;
-            renderer.setSize(width, height);
+            
+            // Atualiza câmera 2D (fundo)
+            bgCamera.left = -width / 2;
+            bgCamera.right = width / 2;
+            bgCamera.top = height / 2;
+            bgCamera.bottom = -height / 2;
+            bgCamera.updateProjectionMatrix();
+            
+            // Atualiza câmera 3D (naves)
             camera.aspect = width / height;
             camera.updateProjectionMatrix();
+            
+            // Redimensiona a imagem de fundo
+            background.scale.set(width, height, 1);
+            renderer.setSize(width, height);
         });
 
         window.addEventListener('keydown', keyDown);
