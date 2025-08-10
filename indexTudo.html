@@ -878,10 +878,10 @@
                 if (!hud.lowHealthSoundInterval) {
                     playSound('lowHealth'); // Toca imediatamente
                     hud.lowHealthSoundInterval = setInterval(() => {
-                        if (gameState === GAME_STATE.PLAYING) {  // ← Verificação extra
+                        if (gameState === GAME_STATE.PLAYING && !pauseOverlay)  {  // ← Verificação extra
                             playSound('lowHealth');
                         }
-                    }, 2000); // ... a cada 2 segundos.
+                    }, 300); // ... a cada 300 milisegundos.
                 }
                 
                 // Efeito visual piscante
