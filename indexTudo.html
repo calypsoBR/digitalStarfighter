@@ -414,9 +414,10 @@
             playerShip.add(playerHealthBar);
 
             playerPSBMesh = createPSBMesh(playerPSB);
-            playerPSBMesh.position.set(0, 1.7, 0);
+            //playerPSBMesh.position.set(0, 1.7, 0);
+            playerPSBMesh.position.set(player.x, player.y + 1.7, 0); // ← POSICIONA O PSB JUNTO À NAVE
             scene.add(playerPSBMesh);
-
+              
             player = {
                 x: 0,
                 y: -PLAY_AREA.y / 2.2,
@@ -763,8 +764,8 @@
         
             // Recria elementos essenciais
             createStars();       // Gera novas estrelas de fundo
-            createPlayer();      // Recria a nave do jogador
-        
+            createPlayer();      // Recria a nave do jogador        
+            
             // Reseta status do jogador
             playerHealth = playerMaxHealth;  // Vida máxima
             playerScore = 0;                 // Pontuação zerada
