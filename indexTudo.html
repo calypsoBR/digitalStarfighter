@@ -368,8 +368,8 @@
 
         function createCamera() {
             camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
-            camera.position.set(10, 5, 15); // Experimente valores como (10, 5, 15) para ângulo de 45°
-            camera.lookAt(0, 0, 0); // Mantém o foco no centro da cena
+            camera.position.set(0, 5, 10); // x=0 (centro), y=5 (leve altura), z=10 (afastado)
+            camera.lookAt(0, 0, 0); // Foco no centro da cena
         }
 
         function createScene() {
