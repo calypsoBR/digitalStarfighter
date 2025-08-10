@@ -290,13 +290,7 @@
         let width = window.innerWidth,          // Largura da janela
             height = window.innerHeight;        // Altura da janela
 
-        // ===== [ CONSTANTES DO PLANO DE FUNDO ] ===== //             
-        const bgCamera = new THREE.OrthographicCamera( // OrthographicCamera para o fundo (2D)
-            -width / 2, width / 2, // left, right
-            height / 2, -height / 2, // top, bottom
-            -100, 100 // near, far
-        );
-        
+               
         // ===== [ ESTADO DO JOGO ] ===== //
         let gameState = GAME_STATE.START;       // Controla o estado atual (início/jogando/game over)
         
@@ -380,6 +374,12 @@
             //camera.lookAt(0, 0, 0); // Foco no centro da cena            
         }
 
+        // ===== [ CONSTANTES DO PLANO DE FUNDO ] ===== //             
+        const bgCamera = new THREE.OrthographicCamera( // OrthographicCamera para o fundo (2D)
+            -width / 2, width / 2, // left, right
+            height / 2, -height / 2, // top, bottom
+            -100, 100 // near, far
+        );
        
         function createScene() {
             scene = new THREE.Scene();
@@ -389,21 +389,6 @@
             scene.add(ambient, dir);
         }
 
-        //function createStars() {
-        //    for (let i = 0; i < 80; i++) {
-        //        let geo = new THREE.SphereGeometry(Math.random() * 0.05 + 0.02, 6, 6);
-        //        let mat = new THREE.MeshBasicMaterial({ color: STAR_COLOR });
-        //        let mesh = new THREE.Mesh(geo, mat);
-        //        mesh.position.set(
-        //            (Math.random() - 0.5) * PLAY_AREA.x * 1.2,
-        //            (Math.random() - 0.5) * PLAY_AREA.y * 1.2,
-        //            -3 - Math.random() * 3
-        //        );
-        //        scene.add(mesh);
-        //         stars.push(mesh);
-        //    }
-        //}
-
         // carregada imagem de fundo
         const bgTexture = new THREE.TextureLoader().load('./figs/space_background_horizontal.jpg');
         const bgGeometry = new THREE.PlaneGeometry(width, height);
@@ -411,6 +396,7 @@
         const background = new THREE.Mesh(bgGeometry, bgMaterial);
         background.position.z = -50; // Coloca atrás de tudo
         scene.add(background);
+
         
         function createPlayer() {
             // Primeiro, cria o objeto 'player' com as posições iniciais
@@ -1588,8 +1574,8 @@
         
             // Renderiza a cena e chama o próximo frame
             renderer.clear();
-            renderer.render(scene, bgCamera); // Renderiza fundo (2D)
-            renderer.render(scene, camera); // Renderiza cena 3D (naves, projéteis, etc.)
+            renderer.render(scene, bgCamera); // Renderiza o fundo (2D)
+            renderer.render(scene, camera);   // Renderiza o jogo (3D)
             requestAnimationFrame(gameLoop);
             
         }  
