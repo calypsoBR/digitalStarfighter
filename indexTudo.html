@@ -393,38 +393,42 @@
                 stars.push(mesh);
             }
         }
-
+        
         function createPlayer() {
+            // Primeiro, cria o objeto 'player' com as posições iniciais
+            player = {
+                x: 0,
+                y: -PLAY_AREA.y / 2.2,
+                speed: 7.5
+            };
+        
+            // Depois, cria a nave e o PSB usando player.x e player.y
             let geo = new THREE.ConeGeometry(0.6, 1.6, 5);
             let mat = new THREE.MeshLambertMaterial({ color: PLAYER_COLOR });
             playerShip = new THREE.Mesh(geo, mat);
             playerShip.rotation.z = Math.PI;
-            playerShip.position.set(0, -PLAY_AREA.y / 2.2, 0);
+            playerShip.position.set(player.x, player.y, 0); // Usa player.x e player.y
             scene.add(playerShip);
-
+        
+            // Thruster e health bar (mantido igual)
             let thrusterGeo = new THREE.CylinderGeometry(0.18, 0.01, 0.4, 8);
             let thrusterMat = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.7 });
             playerThruster = new THREE.Mesh(thrusterGeo, thrusterMat);
             playerThruster.position.set(0, -0.95, 0);
             playerThruster.rotation.x = Math.PI / 2;
             playerShip.add(playerThruster);
-
+        
             playerHealthBar = createBar(1.5, 0.12, 0x00ff55, 0.2);
             playerHealthBar.position.set(0, 1.2, 0);
             playerShip.add(playerHealthBar);
-
+        
+            // Agora o PSB pode usar player.x e player.y sem erro
             playerPSBMesh = createPSBMesh(playerPSB);
-            //playerPSBMesh.position.set(0, 1.7, 0);
-            playerPSBMesh.position.set(player.x, player.y + 1.7, 0); // ← POSICIONA O PSB JUNTO À NAVE
+            playerPSBMesh.position.set(player.x, player.y + 1.7, 0); // Posição correta desde o início
             scene.add(playerPSBMesh);
-              
-            player = {
-                x: 0,
-                y: -PLAY_AREA.y / 2.2,
-                speed: 7.5
-            };
         }
 
+        
         function createPSBMesh(val) {
             let canvas = document.createElement('canvas');
             canvas.width = 128;
