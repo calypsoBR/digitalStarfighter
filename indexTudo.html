@@ -873,15 +873,15 @@
             const isLowHealth = playerHealth <= playerMaxHealth * 0.2;
             
             // Efeitos de vida baixa (agora contínuos)
-            if (isLowHealth && gameState === GAME_STATE.PLAYING) {  // ← Adicione esta verificação
-                // Efeito sonoro (toca repetidamente a cada 2 segundos)
+            if (isLowHealth && gameState === GAME_STATE.PLAYING && gameState !== GAME_STATE.PAUSED) {
+                // Efeito sonoro: toca repetidamente ....
                 if (!hud.lowHealthSoundInterval) {
                     playSound('lowHealth'); // Toca imediatamente
                     hud.lowHealthSoundInterval = setInterval(() => {
                         if (gameState === GAME_STATE.PLAYING) {  // ← Verificação extra
                             playSound('lowHealth');
                         }
-                    }, 2000); // Repete a cada 2 segundos
+                    }, 2000); // ... a cada 2 segundos.
                 }
                 
                 // Efeito visual piscante
@@ -1140,7 +1140,7 @@
                     if (e.code === 'KeyP') {
                         removeOverlay(pauseOverlay);
                         pauseOverlay = null;
-                        gameState = GAME_STATE.PLAYING;
+                        gameState = GAME_STATE.PLAYING;                        
                     }
                     break;
             }
