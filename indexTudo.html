@@ -408,7 +408,7 @@
         //}
 
         // carregada imagem de fundo
-        const bgTexture = new THREE.TextureLoader().load('space_background_vertical.jpg');
+        const bgTexture = new THREE.TextureLoader().load('./figs/space_background_horizontal.jpg');
         const bgGeometry = new THREE.PlaneGeometry(width, height);
         const bgMaterial = new THREE.MeshBasicMaterial({ map: bgTexture });
         const background = new THREE.Mesh(bgGeometry, bgMaterial);
