@@ -282,23 +282,20 @@
         const ENEMY_PROJECTILE_COLOR = 0xff2200;// Cor vermelha dos projéteis inimigos
         const POWERUP_COLOR = 0x00ff00;         // Cor verde dos power-ups
         
-        // ===== [ CONSTANTES DA AREA DO JOGO E SEU PLANO DE FUNDO ] ===== //
+        // ===== [ CONSTANTES DA AREA DO JOGO ] ===== //
         const PLAY_AREA = { x: 34, y: 20 };     // Dimensões da área jogável (unidades 3D)  o dobro do original = x: 16, y: 10
 
-        // ===== [ CONSTANTES DO PLANO DE FUNDO ] ===== //
-        //const BG_COLOR = 0x0a0e2a;              // Cor de fundo do espaço (azul escuro)
-        //const STAR_COLOR = 0xffffff;            // Cor branca das estrelas de fundo         
+        // ===== [ VARIÁVEIS DE RENDERIZAÇÃO ] ===== //
+        let renderer, scene, camera;            // Objetos principais do Three.js
+        let width = window.innerWidth,          // Largura da janela
+            height = window.innerHeight;        // Altura da janela
+
+        // ===== [ CONSTANTES DO PLANO DE FUNDO ] ===== //             
         const bgCamera = new THREE.OrthographicCamera( // OrthographicCamera para o fundo (2D)
             -width / 2, width / 2, // left, right
             height / 2, -height / 2, // top, bottom
             -100, 100 // near, far
         );
-
-        
-        // ===== [ VARIÁVEIS DE RENDERIZAÇÃO ] ===== //
-        let renderer, scene, camera;            // Objetos principais do Three.js
-        let width = window.innerWidth,          // Largura da janela
-            height = window.innerHeight;        // Altura da janela
         
         // ===== [ ESTADO DO JOGO ] ===== //
         let gameState = GAME_STATE.START;       // Controla o estado atual (início/jogando/game over)
