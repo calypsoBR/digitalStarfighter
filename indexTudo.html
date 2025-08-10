@@ -389,14 +389,25 @@
             scene.add(ambient, dir);
         }
 
-        // carregada imagem de fundo
-        const bgTexture = new THREE.TextureLoader().load('./figs/space_background_horizontal.jpg');
-        const bgGeometry = new THREE.PlaneGeometry(width, height);
-        const bgMaterial = new THREE.MeshBasicMaterial({ map: bgTexture });
-        const background = new THREE.Mesh(bgGeometry, bgMaterial);
-        background.position.z = -50; // Coloca atrás de tudo
-        scene.add(background);
-
+        function createScene() {
+            scene = new THREE.Scene(); // Cria a cena primeiro!
+        
+            // Luzes (mantenha isso)
+            let ambient = new THREE.AmbientLight(0xffffff, 0.7);
+            let dir = new THREE.DirectionalLight(0xffffff, 0.8);
+            dir.position.set(0, 0, 10);
+            scene.add(ambient, dir);
+        
+            // ADICIONA O PLANO DE FUNDO
+            const bgTexture = new THREE.TextureLoader().load('./figs/space_background_horizontal.jpg', undefined, (error) => {
+                console.error("Erro ao carregar fundo:", error); // Debug
+            });
+            const bgGeometry = new THREE.PlaneGeometry(width, height);
+            const bgMaterial = new THREE.MeshBasicMaterial({map: bgTexture});
+            const background = new THREE.Mesh(bgGeometry, bgMaterial);
+            background.position.z = -50; // Posição atrás de tudo
+            scene.add(background); // ← AGORA scene DEFINITIVAMENTE existe!
+        }
         
         function createPlayer() {
             // Primeiro, cria o objeto 'player' com as posições iniciais
@@ -1580,15 +1591,6 @@
             
         }  
         
-        // Inicialização do jogo
-        //window.addEventListener('resize', () => {
-        //    width = window.innerWidth;
-        //    height = window.innerHeight;
-        //    renderer.setSize(width, height);
-        //    camera.aspect = width / height;
-        //    camera.updateProjectionMatrix();
-        //});
-
         // Inicialização do jogo    
         window.addEventListener('resize', () => {
             width = window.innerWidth;
@@ -1606,7 +1608,7 @@
             camera.updateProjectionMatrix();
             
             // Redimensiona a imagem de fundo
-            background.scale.set(width, height, 1);
+            if (background) background.scale.set(width, height, 1); // ← Verifica se background existe
             renderer.setSize(width, height);
         });
 
