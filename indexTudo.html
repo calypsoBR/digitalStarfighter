@@ -881,7 +881,7 @@
                         if (gameState === GAME_STATE.PLAYING && !pauseOverlay)  {  // ← Verificação extra
                             playSound('lowHealth');
                         }
-                    }, 1); // ... a cada 300 milisegundos.
+                    }, 1000); // ... a cada 300 milisegundos.
                 }
                 
                 // Efeito visual piscante
