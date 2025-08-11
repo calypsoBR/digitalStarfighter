@@ -262,8 +262,7 @@
             {
               shape: 'octahedron', size: 3.0,
               generators: [], // Inicializa vazio (será preenchido em spawnMothership())
-              ev: function() {
-                  //if (this.generators.length === 0) return 0; // Segurança
+              ev: function() {          
                   const A = this.generators[0].value;
                   const B = this.generators[1].value;
                   return (A ^ B) & playerPSB;
@@ -293,6 +292,7 @@
                
         // ===== [ ESTADO DO JOGO ] ===== //
         let gameState = GAME_STATE.START;       // Controla o estado atual (início/jogando/game over)
+
         
         // ===== [ VARIÁVEIS DO JOGADOR ] ===== //
         let player,                             // Objeto com posição/speed do jogador
@@ -306,7 +306,7 @@
         let playerShip,                         // Malha 3D da nave
             playerThruster,                     // Efeito de propulsão
             playerPSBMesh,                      // Sprite do valor lógico (PSB)
-            playerHealthBar;                     // Barra de vida flutuante
+            playerHealthBar;                    // Barra de vida flutuante
         
         // ===== [ ARRAYS DE ENTIDADES ] ===== //
         let enemies = [],                       // Lista de inimigos ativos
@@ -361,8 +361,7 @@
         }
         
         function createRenderer() {
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            //renderer.setClearColor(BG_COLOR);
+            renderer = new THREE.WebGLRenderer({ antialias: true });   
             renderer.setSize(width, height);
             document.body.appendChild(renderer.domElement);            
         }
@@ -373,13 +372,6 @@
             //camera.position.set(0, -25, 12);  // x (movimento radial) ,y (movimento de elevação), z (movimento em inclinação)
             //camera.lookAt(0, 0, 0); // Foco no centro da cena            
         }
-
-        // ===== [ CONSTANTES DO PLANO DE FUNDO ] ===== //             
-        const bgCamera = new THREE.OrthographicCamera( // OrthographicCamera para o fundo (2D)
-            -width / 2, width / 2, // left, right
-            height / 2, -height / 2, // top, bottom
-            -100, 100 // near, far
-        );
        
         function createScene() {
             scene = new THREE.Scene();
@@ -390,24 +382,29 @@
         }
 
         function createScene() {
-            scene = new THREE.Scene(); // Cria a cena primeiro!
+            scene = new THREE.Scene();   // Cria a cena primeiro!
         
-            // Luzes (mantenha isso)
+            // 1. Carrega a imagem de fundo (cobre toda a tela automaticamente)
+            new THREE.TextureLoader().load(
+                './figs/space_background_horizontal.jpg', 
+                (texture) => {
+                    scene.background = texture; // Fundo estático e fixo
+                    console.log("Fundo carregado!");
+                },
+                undefined, // Barra de progresso (opcional)
+                (error) => {
+                    console.error("Erro no fundo:", error);
+                    scene.background = new THREE.Color(0x0a0e2a); // Fallback se a imagem falhar
+                }
+            );
+        
+            // 2. Adicione as luzes (mantenha isso)
             let ambient = new THREE.AmbientLight(0xffffff, 0.7);
             let dir = new THREE.DirectionalLight(0xffffff, 0.8);
             dir.position.set(0, 0, 10);
             scene.add(ambient, dir);
-        
-            // ADICIONA O PLANO DE FUNDO
-            const bgTexture = new THREE.TextureLoader().load('./figs/space_background_horizontal.jpg', undefined, (error) => {
-                console.error("Erro ao carregar fundo:", error); // Debug
-            });
-            const bgGeometry = new THREE.PlaneGeometry(width, height);
-            const bgMaterial = new THREE.MeshBasicMaterial({map: bgTexture});
-            const background = new THREE.Mesh(bgGeometry, bgMaterial);
-            background.position.z = -50; // Posição atrás de tudo
-            scene.add(background); // ← AGORA scene DEFINITIVAMENTE existe!
         }
+
         
         function createPlayer() {
             // Primeiro, cria o objeto 'player' com as posições iniciais
@@ -1584,9 +1581,7 @@
             }
         
             // Renderiza a cena e chama o próximo frame
-            renderer.clear();
-            renderer.render(scene, bgCamera); // Renderiza o fundo (2D)
-            renderer.render(scene, camera);   // Renderiza o jogo (3D)
+            renderer.render(scene, camera); // Só isso! Nada de bgCamera ou clear()
             requestAnimationFrame(gameLoop);
             
         }  
@@ -1595,23 +1590,15 @@
         window.addEventListener('resize', () => {
             width = window.innerWidth;
             height = window.innerHeight;
-            
-            // Atualiza câmera 2D (fundo)
-            bgCamera.left = -width / 2;
-            bgCamera.right = width / 2;
-            bgCamera.top = height / 2;
-            bgCamera.bottom = -height / 2;
-            bgCamera.updateProjectionMatrix();
-            
+                            
             // Atualiza câmera 3D (naves)
             camera.aspect = width / height;
             camera.updateProjectionMatrix();
             
             // Redimensiona a imagem de fundo
-            if (background) background.scale.set(width, height, 1); // ← Verifica se background existe
             renderer.setSize(width, height);
         });
-
+        
         window.addEventListener('keydown', keyDown);
         window.addEventListener('keyup', keyUp);
 
