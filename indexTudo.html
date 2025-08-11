@@ -282,7 +282,7 @@
         const POWERUP_COLOR = 0x00ff00;         // Cor verde dos power-ups
         
         // ===== [ CONSTANTES DA AREA DO JOGO ] ===== //
-        const PLAY_AREA = { x: 34, y: 20 };     // Dimensões da área jogável (unidades 3D)  o dobro do original = x: 16, y: 10
+        const PLAY_AREA = { x: 30, y: 20 };     // Dimensões da área jogável (unidades 3D)  o dobro do original = x: 16, y: 10
 
         // ===== [ VARIÁVEIS DE RENDERIZAÇÃO ] ===== //
         let renderer, scene, camera;            // Objetos principais do Three.js
@@ -368,8 +368,8 @@
 
         function createCamera() {
             camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
-            camera.position.set(0, 0, 22);  // x,y,z
-            //camera.position.set(0, -25, 12);  // x (movimento radial) ,y (movimento de elevação), z (movimento em inclinação)
+            //camera.position.set(0, 0, 22);  // x,y,z
+            camera.position.set(0, -25, 12);  // x (movimento radial) ,y (movimento de elevação), z (movimento em inclinação)
             //camera.lookAt(0, 0, 0); // Foco no centro da cena            
         }
        
