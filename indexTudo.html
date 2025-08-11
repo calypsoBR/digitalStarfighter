@@ -370,7 +370,7 @@
             camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
             //camera.position.set(0, 0, 22);  // x,y,z
             camera.position.set(0, -25, 12);  // x (movimento radial) ,y (movimento de elevação), z (movimento em inclinação)
-            //camera.lookAt(0, 0, 0); // Foco no centro da cena            
+            camera.lookAt(0, 0, 0); // Foco no centro da cena            
         }
        
         function createScene() {
