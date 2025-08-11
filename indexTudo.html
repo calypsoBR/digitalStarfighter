@@ -436,7 +436,7 @@
         
             // Agora o PSB pode usar player.x e player.y sem erro
             playerPSBMesh = createPSBMesh(playerPSB);
-            playerPSBMesh.position.set(player.x, player.y + 1.7, 0); // Posição correta desde o início
+            playerPSBMesh.position.set(player.x, player.y + 1.7, 0.5); // Posição correta desde o início
             scene.add(playerPSBMesh);
         }
 
@@ -555,7 +555,7 @@
             let evText = type.expr || ev?.toString();
         
             let evMesh = createEVSprite(evText, A, B, type.expr);
-            evMesh.position.set(0, 0.8, 0);
+            evMesh.position.set(0, 0.8, 0.5);
             mesh.add(evMesh);
             scene.add(mesh);
         
@@ -627,12 +627,12 @@
         
         function createEVSprite(text, A, B, expr) {
             const canvas = document.createElement('canvas');
-            canvas.width = 256;
-            canvas.height = 164;
+            canvas.width = 512;
+            canvas.height = 256;
             const ctx = canvas.getContext('2d');
         
             // Expressão (amarelo)
-            ctx.font = 'bold 50px Arial';
+            ctx.font = 'bold 60px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = "#ffff55";
@@ -653,7 +653,7 @@
             }
         
             const tex = new THREE.CanvasTexture(canvas);
-            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
             const sprite = new THREE.Sprite(mat);
             sprite.scale.set(3.2, 2.0, 1);
             return sprite;
@@ -1579,6 +1579,12 @@
                 // Atualiza a interface do jogador (HUD)
                 updateHUD();
             }
+
+            // Garante que os sprites olhem para a câmera:
+            enemies.forEach(enemy => {
+                if (enemy.evMesh) enemy.evMesh.lookAt(camera.position);
+            });
+            if (playerPSBMesh) playerPSBMesh.lookAt(camera.position);
         
             // Renderiza a cena e chama o próximo frame
             renderer.render(scene, camera); // Só isso! Nada de bgCamera ou clear()
