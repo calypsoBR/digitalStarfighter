@@ -437,28 +437,61 @@
             // Agora o PSB pode usar player.x e player.y sem erro
             playerPSBMesh = createPSBMesh(playerPSB);
             playerPSBMesh.position.set(player.x, player.y + 1.7, 0.5); // Posição correta desde o início
-            scene.add(playerPSBMesh);
+            scene.add(playerPSBMesh); // ← Adiciona à cena, não à nave!            
+            
         }
 
         
+       // function createPSBMesh(val) {
+       //     let canvas = document.createElement('canvas');
+       //     canvas.width = 128;
+       //     canvas.height = 128;
+       //     let ctx = canvas.getContext('2d');
+       //     ctx.clearRect(0, 0, 128, 128);
+       //     ctx.font = 'bold 88px Arial';
+       //     ctx.textAlign = 'center';
+       //     ctx.textBaseline = 'middle';
+       //     ctx.shadowColor = val ? '#0090ff' : '#ff2222';
+       //     ctx.shadowBlur = 12;
+       //     ctx.fillStyle = val ? '#0090ff' : '#ff2222';
+       //     ctx.fillText(val ? '1' : '0', 64, 64);
+       //     let tex = new THREE.CanvasTexture(canvas);
+       //     let mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+       //     let sprite = new THREE.Sprite(mat);
+       //     sprite.scale.set(0.9, 0.9, 1);
+       //     sprite.psbValue = val;
+       //     return sprite;
+       // }
+
         function createPSBMesh(val) {
-            let canvas = document.createElement('canvas');
-            canvas.width = 128;
-            canvas.height = 128;
-            let ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 128, 128);
-            ctx.font = 'bold 88px Arial';
+            // 1. Cria um canvas para o texto
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;  // Aumente se precisar de mais resolução
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+        
+            // 2. Estiliza o texto (PSB do jogador)
+            ctx.clearRect(0, 0, 256, 256);
+            ctx.font = 'bold 100px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.shadowColor = val ? '#0090ff' : '#ff2222';
-            ctx.shadowBlur = 12;
+            ctx.shadowBlur = 15;
             ctx.fillStyle = val ? '#0090ff' : '#ff2222';
-            ctx.fillText(val ? '1' : '0', 64, 64);
-            let tex = new THREE.CanvasTexture(canvas);
-            let mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
-            let sprite = new THREE.Sprite(mat);
-            sprite.scale.set(0.9, 0.9, 1);
-            sprite.psbValue = val;
+            ctx.fillText(val ? '1' : '0', 128, 128);
+        
+            // 3. Cria um sprite com o texto
+            const tex = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.SpriteMaterial({
+                map: tex,
+                transparent: true,
+                depthTest: false,  // Ignora profundidade (fixo na tela)
+                depthWrite: false  // Não interfere no Z-buffer
+            });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(1.5, 1.5, 1);  // Tamanho ajustável
+            sprite.name = 'playerPSB';      // Identificador único
+            sprite.frustumCulled = false;   // Nunca desaparece
             return sprite;
         }
 
@@ -556,7 +589,8 @@
         
             let evMesh = createEVSprite(evText, A, B, type.expr);
             evMesh.position.set(0, 0.8, 0.5);
-            mesh.add(evMesh);
+            evMesh = createEVSprite(evText, A, B, type.expr);
+            scene.add(evMesh); // ← Adiciona diretamente à cena, não à nave!            
             scene.add(mesh);
         
             return {
@@ -637,8 +671,8 @@
             ctx.textBaseline = 'middle';
             ctx.fillStyle = "#ffff55";
             ctx.shadowColor = '#000';
-            ctx.shadowBlur = 8;
-            ctx.fillText(text, 128, 40);
+            ctx.shadowBlur = 8;  //
+            ctx.fillText(text, 128, 40); //256, 80
         
             // Fundo das variáveis (se existirem)
             if (A !== null && B !== null && expr) {
@@ -646,16 +680,24 @@
                 ctx.fillRect(50, 90, 156, 40);
                 
                 // Variáveis (verde)
-                ctx.font = 'bold 35px Arial';
+                ctx.font = 'bold 35px Arial'; // 40
                 ctx.fillStyle = "#55ff55";
                 ctx.shadowBlur = 0;
-                ctx.fillText(`A = ${A}  B = ${B}`, 128, 100);
+                ctx.fillText(`A = ${A}  B = ${B}`, 128, 100); //256, 150);
             }
         
             const tex = new THREE.CanvasTexture(canvas);
-            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+            const mat = new THREE.SpriteMaterial({
+                map: tex,
+                transparent: true,
+                depthTest: false,  // Ignora profundidade
+                depthWrite: false  // Não interfere no Z-buffer
+            });
+        
             const sprite = new THREE.Sprite(mat);
-            sprite.scale.set(3.2, 2.0, 1);
+            sprite.scale.set(4.0, 2.5, 1);
+            sprite.position.set(0, 1.5, 0); // Posição Y ajustada para "flutuar" acima
+            sprite.frustumCulled = false;   // Evita desaparecer fora da tela
             return sprite;
         }
         
@@ -1518,7 +1560,45 @@
             // Calcula o delta time (tempo desde o último frame), limitando a 45ms para evitar bugs
             let dt = Math.min((now - lastUpdate) / 1000, 0.045);
             lastUpdate = now; // Atualiza o último registro de tempo
+            
+            // Atualiza posição dos textos para seguir as naves (em espaço de tela)
+            enemies.forEach(enemy => {
+                if (!enemy.alive || !enemy.evMesh) return;
+                
+                // Calcula a posição 3D da nave + offset vertical
+                const worldPosition = enemy.mesh.position.clone();
+                worldPosition.y += 1.5; // Ajuste a altura conforme necessário
+                
+                // Converte para coordenadas de tela
+                const screenPosition = worldPosition.clone().project(camera);
+                enemy.evMesh.position.set(
+                    screenPosition.x * width / 2,
+                    screenPosition.y * height / 2,
+                    0
+                );
+            });
         
+            // Atualiza o PSB do jogador
+            if (playerPSBMesh) {
+                const playerScreenPos = new THREE.Vector3(
+                    player.x, 
+                    player.y + 1.5, // Offset Y
+                    playerShip.position.z
+                ).project(camera);
+                
+                playerPSBMesh.position.set(
+                    playerScreenPos.x * width / 2,
+                    playerScreenPos.y * height / 2,
+                    0
+                );
+            }
+        
+            renderer.render(scene, camera);
+            requestAnimationFrame(gameLoop);
+        }
+
+
+            
             // Lógica executada apenas durante o estado de jogo (PLAYING)
             if (gameState === GAME_STATE.PLAYING) {
                 // Atualiza a posição do jogador
