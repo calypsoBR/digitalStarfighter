@@ -372,15 +372,8 @@
             camera.position.set(0, -10, 12);  // x (movimento radial) ,y (movimento de elevação), z (movimento em inclinação)
             camera.lookAt(0, 0, 0); // Foco no centro da cena            
         }
-       
-        function createScene() {
-            scene = new THREE.Scene();
-            let ambient = new THREE.AmbientLight(0xffffff, 0.7);
-            let dir = new THREE.DirectionalLight(0xffffff, 0.8);
-            dir.position.set(0, 0, 10);
-            scene.add(ambient, dir);
-        }
 
+        
         function createScene() {
             scene = new THREE.Scene();   // Cria a cena primeiro!
         
