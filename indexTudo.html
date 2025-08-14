@@ -369,7 +369,7 @@
         function createCamera() {
             camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
             //camera.position.set(0, 0, 22);  // x,y,z
-            camera.position.set(0, -5, 22);  // x (movimento radial) ,y (movimento de elevação), z (movimento em inclinação)
+            camera.position.set(0, -4, 25);  // x (movimento radial) ,y (movimento de elevação), z (movimento em inclinação)
             camera.lookAt(0, 0, 0); // Foco no centro da cena            
         }
 
@@ -625,7 +625,7 @@
             const ctx = canvas.getContext('2d');
         
             // Expressão (amarelo)
-            ctx.font = 'bold 50px Arial';
+            ctx.font = 'bold 60px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = "#ffff55";
@@ -639,7 +639,7 @@
                 ctx.fillRect(50, 90, 156, 40);
                 
                 // Variáveis (verde)
-                ctx.font = 'bold 35px Arial';
+                ctx.font = 'bold 45px Arial';
                 ctx.fillStyle = "#55ff55";
                 ctx.shadowBlur = 0;
                 ctx.fillText(`A = ${A}  B = ${B}`, 128, 100);
