@@ -45,12 +45,12 @@
             };
 
             // Pré-carrega todos os sons SEM tocar
-            Object.values(sounds).forEach(audio => {
-                audio.volume = 0; // Silencia durante o pré-carregamento
-                audio.preload = "auto"; // Força o navegador a carregar                
-            });
+           // Object.values(sounds).forEach(audio => {
+           //     audio.volume = 0; // Silencia durante o pré-carregamento
+           //     audio.preload = "auto"; // Força o navegador a carregar                
+           // });
 
-            // reconfigura o volume dos sons: 20% do total 
+            // (re)configura o volume dos sons: 20% do total 
             Object.values(sounds).forEach(audio => { audio.volume = 0.2; });  
 
         
