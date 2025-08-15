@@ -44,31 +44,21 @@
                 
             };
 
-            // Pré-carrega todos os sons SEM tocar
-           // Object.values(sounds).forEach(audio => {
-           //     audio.volume = 0; // Silencia durante o pré-carregamento
-           //     audio.preload = "auto"; // Força o navegador a carregar                
-           // });
-
             // (re)configura o volume dos sons: 20% do total 
             Object.values(sounds).forEach(audio => { audio.volume = 0.2; });  
 
         
-            function enableAudio() {
-                // Ativa o flag global que permite tocar sons no jogo
-                audioEnabled = true;  
-                // Tenta reproduzir todos os sons (para desbloquear autoplay), mas ignora erros
-                Object.values(sounds).forEach(audio => {
-                    audio.play().catch(() => {}); // Silencia erros intencionais (ex: bloqueio de autoplay)
-                });
+            function enableAudio() {                
+                audioEnabled = true; // Ativa o flag global que permite tocar sons no jogo                
             }
-                    
+
+        
             function playSound(name) {                
                 // Se o áudio estiver desativado ou não existir, sai da função sem fazer nada
                 if (!audioEnabled || !sounds[name]) return;
                 // define variável para não ficar chamando sounds várias vezes
                 const audio = sounds[name]; 
-                // Reinicia apenas se necessário (opcional)
+                // Reinicia apenas se necessário (opcional), se já estiver tocando
                 audio.currentTime = 0; 
                 // Silencia erros de autoplay/intencionais
                 audio.play().catch(() => {}); 
@@ -280,8 +270,8 @@
               health: 12 + maxWaves
             }
             
-        ];
-
+        ];       
+        
         // ===== [ CONSTANTES DE CORES E CONFIGURAÇÕES VISUAIS ] ===== //
         const PLAYER_COLOR = 0x0077ff;          // Cor azul do jogador (hexadecimal)
         const ENEMY_COLOR = 0xff3300;           // Cor vermelha dos inimigos
@@ -627,34 +617,68 @@
         
         
         function createEVSprite(text, A, B, expr) {
+
+                    //      Visualização das áreas a serem criadas: 
+                         
+                    //                Canvas (256x164px)
+                    //            +---------------------------+
+                    //            |                           |
+                    //            |   Expressão (y=40)        |  ← Texto principal ("A.B", "A+B", etc.)
+                    //            |                           |
+                    //            |   +-------------------+   |  ← fillRect(20,75,216,70)
+                    //            |   |  A = 1  B = 0     |   |  ← Texto das variáveis (y=110)
+                    //            |   +-------------------+   |
+                    //            |                           |
+                    //            +---------------------------+
+            
             // Cria um canvas HTML para renderizar o texto
             const canvas = document.createElement('canvas');
             canvas.width = 256;  // Largura do canvas
             canvas.height = 164; // Altura do canvas
             const ctx = canvas.getContext('2d'); // Contexto 2D para desenho
-        
+                                        
             // Configuração da EXPRESSÃO PRINCIPAL (texto amarelo)
-            ctx.font = 'bold 70px Arial'; // Fonte grande e negrita
-            ctx.textAlign = 'center';     // Alinhamento centralizado
-            ctx.textBaseline = 'middle';  // Alinhamento vertical no meio
-            ctx.fillStyle = "#ffff55";    // Cor amarela
-            ctx.shadowColor = '#000';     // Sombra preta
-            ctx.shadowBlur = 8;           // Intensidade da sombra
-            ctx.fillText(text, 128, 40);  // Desenha o texto no centro (x=128, y=40)
-        
+            ctx.font = 'bold 70px Arial';      // Fonte grande e negrita
+            ctx.textAlign = 'center';          // Alinhamento centralizado
+            ctx.textBaseline = 'middle';       // Alinhamento vertical no meio
+            ctx.fillStyle = "#ffff55";         // Cor amarela
+            ctx.shadowColor = '#000';          // Sombra preta
+            ctx.shadowBlur = 8;                // Intensidade da sombra
+            const exprX = canvas.width/2;      // Posição horizontal no canvas; no meio da largura do canvas
+            const exprY = 40;                  // Posição vertital no canvas
+            ctx.fillText(text, exprX, exprY);  // Desenha o texto nas coordenadas
+
+            // Obs:
+            //   como temos "center", O texto é centralizado horizontalmente em torno do valor de exprX (desejável: x seja o meio da largura do canvas)
+            //   como temos "middle", Altura do das letras do texto são centralizadas verticalmente em torno do valor de exprY
+
+                     //           Centro Horizontal (x=128)
+                     //                     ↓
+                     //       +---------------------------+  ← Borda Superior (y=0)
+                     //       |                           | 
+                     //       |                           |
+                     //       |          [Texto]          | ← y=40 (altura média do texto aqui)
+                     //       |                           |
+                     //       |                           | 
+                     //       +---------------------------+ ← Borda Inferior (y=164)
+            
             // Se houver variáveis (A, B) e expressão (expr), desenha o fundo e os valores
             if (A !== null && B !== null && expr) {
                 // Fundo semi-transparente para as variáveis
                 ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-                //ctx.fillRect(50, 90, 156, 40); // Retângulo preto (x=50, y=90, largura=156, altura=40)
-                ctx.fillRect(30, 80, 196, 60); // ↑ Largura (196px) e altura (60px) maiores
+                
+               //parâmetros do retangulo: ctx.fillRect(x, y, largura, altura)
+                const rectWidth = 216;  // Largura em (px) do quadrado. Deve ser menor que a largura do canvas
+                const rectHeight = 70;  // Altura em (px) do quadrado.
+                const rectX = (canvas.width - rectWidth) / 2; // posição x: para ficar centralizado com a expressão.
+                const rectY = exprY + 40;  // para ficar 40 pontos abaixo da posição da expressão.                
+                ctx.fillRect(rectX, rectY, rectWidth, 70);                
                 
                 // Variáveis (A e B em verde)
                 ctx.font = 'bold 55px Arial';  // Fonte menor que a da expressão
                 ctx.fillStyle = "#55ff55";      // Cor verde
-                ctx.shadowBlur = 0;            // Remove sombra
-                //ctx.fillText(`A = ${A}  B = ${B}`, 128, 100); // Texto centralizado (x=128, y=100)
-                ctx.fillText(`A = ${A}  B = ${B}`, 128, 110); // Ajusta Y para 110 (centralizado no novo fundo)
+                ctx.shadowBlur = 0;            // Remove sombra                
+                ctx.fillText(`A = ${A}  B = ${B}`, 128, 115); // Ajusta Y para 110 (centralizado no novo fundo)
             }
         
             // Converte o canvas em uma textura para Three.js
