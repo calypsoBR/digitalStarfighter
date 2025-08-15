@@ -668,14 +668,14 @@
                 ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
                 
                //parâmetros do retangulo: ctx.fillRect(x, y, largura, altura)
-                const rectWidth = 230;  // Largura em (px) do quadrado. Deve ser menor que a largura do canvas
-                const rectHeight = 70;  // Altura em (px) do quadrado.
+                const rectWidth = 240;  // Largura em (px) do quadrado. Deve ser menor que a largura do canvas
+                const rectHeight = 80;  // Altura em (px) do quadrado.
                 const rectX = (canvas.width - rectWidth) / 2; // posição x: para ficar centralizado com a expressão.
                 const rectY = exprY + 40;  // para ficar 40 pontos abaixo da posição da expressão.                
                 ctx.fillRect(rectX, rectY, rectWidth, 70);                
                 
                 // Variáveis (A e B em verde)
-                ctx.font = 'bold 50px Arial';  // Fonte menor que a da expressão
+                ctx.font = 'bold 48px Arial';  // Fonte menor que a da expressão
                 ctx.fillStyle = "#55ff55";      // Cor verde
                 ctx.shadowBlur = 0;            // Remove sombra                
                 ctx.fillText(`A = ${A}  B = ${B}`, 128, 115); // Ajusta Y para 110 (centralizado no novo fundo)
