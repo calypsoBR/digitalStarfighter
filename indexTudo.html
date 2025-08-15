@@ -43,29 +43,36 @@
                 victory: new Audio('./sounds/victory.mp3')                
                 
             };
-            
-            Object.values(sounds).forEach(audio => { audio.volume = 0.2; });  // volume dos sons: 20% do total 
-            
+
+            // volume dos sons: 20% do total 
+            Object.values(sounds).forEach(audio => { audio.volume = 0.2; });  
+        
+            // Adiciona preload a todos os sons:
+            Object.values(sounds).forEach(audio => {
+                audio.preload = "auto"; // ✅ Garante carregamento antecipado
+            });
+
+        
             function enableAudio() {
-                audioEnabled = true;
+                // Ativa o flag global que permite tocar sons no jogo
+                audioEnabled = true;  
+                // Tenta reproduzir todos os sons (para desbloquear autoplay), mas ignora erros
                 Object.values(sounds).forEach(audio => {
-                    audio.play().then(() => {
-                        audio.pause();
-                        audio.currentTime = 0;
-                    }).catch(e => console.log("Pré-carregamento falhou:", e));
+                    audio.play().catch(() => {}); // Silencia erros intencionais (ex: bloqueio de autoplay)
                 });
             }
-            
-            function playSound(name) {
-                if (!audioEnabled) return;
-                try {
-                    sounds[name].currentTime = 0;
-                    sounds[name].play().catch(e => console.log(`Erro ao tocar ${name}:`, e));
-                } catch (e) {
-                    console.error("Erro fatal no sistema de áudio:", e);
-                }
+                    
+            function playSound(name) {                
+                // Se o áudio estiver desativado ou não existir, sai da função sem fazer nada
+                if (!audioEnabled || !sounds[name]) return;
+                // define variável para não ficar chamando sounds várias vezes
+                const audio = sounds[name]; 
+                // Reinicia apenas se necessário (opcional)
+                audio.currentTime = 0; 
+                // Silencia erros de autoplay/intencionais
+                audio.play().catch(() => {}); 
             }
-            
+        
             document.getElementById('unmute').addEventListener('click', () => {
                 enableAudio();
                 document.getElementById('unmute').style.display = 'none';
@@ -369,10 +376,9 @@
         function createCamera() {
             camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 100);
             //camera.position.set(0, 0, 22);  // x,y,z
-            camera.position.set(0, -4, 25);  // x (movimento radial) ,y (movimento de elevação), z (movimento em inclinação)
+            camera.position.set(0, 0, 25);  // x (movimento radial) ,y (movimento de elevação), z (movimento em inclinação)
             camera.lookAt(0, 0, 0); // Foco no centro da cena            
         }
-
         
         function createScene() {
             scene = new THREE.Scene();   // Cria a cena primeiro!
