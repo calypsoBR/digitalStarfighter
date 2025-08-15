@@ -538,7 +538,7 @@
         
             // ==================== [3. ESTRUTURA DE DANO/EXIBIÇÃO] ====================
             let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
-            healthBar.position.set(0, -0.77, 0);
+            healthBar.position.set(0, -0.8, 0);
             mesh.add(healthBar);
         
             let ab = type.ab;
@@ -548,7 +548,7 @@
             let evText = type.expr || ev?.toString();
         
             let evMesh = createEVSprite(evText, A, B, type.expr);
-            evMesh.position.set(0, 0.8, 0);
+            evMesh.position.set(0, 1.2, 0);
             mesh.add(evMesh);
             scene.add(mesh);
         
@@ -625,13 +625,13 @@
             const ctx = canvas.getContext('2d');
         
             // Expressão (amarelo)
-            ctx.font = 'bold 60px Arial';
+            ctx.font = 'bold 70px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillStyle = "#ffff55";
             ctx.shadowColor = '#000';
             ctx.shadowBlur = 8;
-            ctx.fillText(text, 128, 40);
+            ctx.fillText(text, 128, 40);      // 
         
             // Fundo das variáveis (se existirem)
             if (A !== null && B !== null && expr) {
@@ -639,7 +639,7 @@
                 ctx.fillRect(50, 90, 156, 40);
                 
                 // Variáveis (verde)
-                ctx.font = 'bold 45px Arial';
+                ctx.font = 'bold 55px Arial';
                 ctx.fillStyle = "#55ff55";
                 ctx.shadowBlur = 0;
                 ctx.fillText(`A = ${A}  B = ${B}`, 128, 100);
