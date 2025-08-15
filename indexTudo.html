@@ -658,18 +658,66 @@
             sprite.scale.set(3.2, 2.0, 1);
             return sprite;
         }
+
+        function createEVSprite(text, A, B, expr) {
+            // Cria um canvas HTML para renderizar o texto
+            const canvas = document.createElement('canvas');
+            canvas.width = 256;  // Largura do canvas
+            canvas.height = 164; // Altura do canvas
+            const ctx = canvas.getContext('2d'); // Contexto 2D para desenho
         
-        function spawnProjectile(x, y, dx, dy, operator) {            
-            playSound('shoot');             
-            let geo = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 10);
-            let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR, emissive: PROJECTILE_COLOR });            
-            let mesh = new THREE.Mesh(geo, mat);
-            mesh.rotation.x = Math.PI / 2;
-            mesh.position.set(x, y + 0.8, 0.05);
-            scene.add(mesh);
-            projectiles.push({ mesh, dx, dy, operator, alive: true });
+            // Configuração da EXPRESSÃO PRINCIPAL (texto amarelo)
+            ctx.font = 'bold 70px Arial'; // Fonte grande e negrita
+            ctx.textAlign = 'center';     // Alinhamento centralizado
+            ctx.textBaseline = 'middle';  // Alinhamento vertical no meio
+            ctx.fillStyle = "#ffff55";    // Cor amarela
+            ctx.shadowColor = '#000';     // Sombra preta
+            ctx.shadowBlur = 8;           // Intensidade da sombra
+            ctx.fillText(text, 128, 40);  // Desenha o texto no centro (x=128, y=40)
+        
+            // Se houver variáveis (A, B) e expressão (expr), desenha o fundo e os valores
+            if (A !== null && B !== null && expr) {
+                // Fundo semi-transparente para as variáveis
+                ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
+                //ctx.fillRect(50, 90, 156, 40); // Retângulo preto (x=50, y=90, largura=156, altura=40)
+                ctx.fillRect(30, 80, 196, 60); // ↑ Largura (196px) e altura (60px) maiores
+                
+                // Variáveis (A e B em verde)
+                ctx.font = 'bold 55px Arial';  // Fonte menor que a da expressão
+                ctx.fillStyle = "#55ff55";      // Cor verde
+                ctx.shadowBlur = 0;            // Remove sombra
+                //ctx.fillText(`A = ${A}  B = ${B}`, 128, 100); // Texto centralizado (x=128, y=100)
+                ctx.fillText(`A = ${A}  B = ${B}`, 128, 110); // Ajusta Y para 110 (centralizado no novo fundo)
+            }
+        
+            // Converte o canvas em uma textura para Three.js
+            const tex = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(3.2, 2.0, 1); // Escala do sprite (3.2 unidades de largura, 2.0 de altura)
+            return sprite;
         }
 
+        
+        function spawnProjectile(x, y, dx, dy, operator) {            
+            playSound('shoot'); // Toca o som do disparo
+                    
+            // Cria a geometria do projétil (cilindro fino)
+            let geo = new THREE.CylinderGeometry(0.15, 0.15, 0.7, 10);
+            
+            // Material branco e emissivo (para brilho)
+            let mat = new THREE.MeshBasicMaterial({ color: PROJECTILE_COLOR, emissive: PROJECTILE_COLOR });            
+            
+            // Cria a malha 3D e posiciona
+            let mesh = new THREE.Mesh(geo, mat);
+            mesh.rotation.x = Math.PI / 2; // Rotaciona para ficar horizontal
+            mesh.position.set(x, y + 0.8, 0.05); // Posição ligeiramente acima do jogador (y + 0.8)
+            
+            scene.add(mesh); // Adiciona à cena
+            projectiles.push({ mesh, dx, dy, operator, alive: true }); // Armazena no array
+        }
+
+        
         function spawnEnemyProjectile(x, y, dx, dy) {
             // Cria a geometria de um cilindro para o projétil:
             // - Raio superior/inferior: 0.14 (tamanho da base)
