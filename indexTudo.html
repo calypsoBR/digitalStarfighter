@@ -44,13 +44,14 @@
                 
             };
 
-            // volume dos sons: 20% do total 
-            Object.values(sounds).forEach(audio => { audio.volume = 0.2; });  
-        
-            // Adiciona preload a todos os sons:
+            // Pré-carrega todos os sons SEM tocar
             Object.values(sounds).forEach(audio => {
-                audio.preload = "auto"; // ✅ Garante carregamento antecipado
+                audio.preload = "auto"; // Força o navegador a carregar
+                audio.volume = 0; // Silencia durante o pré-carregamento
             });
+
+            // reconfigura o volume dos sons: 20% do total 
+            Object.values(sounds).forEach(audio => { audio.volume = 0.2; });  
 
         
             function enableAudio() {
