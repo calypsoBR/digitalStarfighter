@@ -46,8 +46,8 @@
 
             // Pré-carrega todos os sons SEM tocar
             Object.values(sounds).forEach(audio => {
-                audio.preload = "auto"; // Força o navegador a carregar
                 audio.volume = 0; // Silencia durante o pré-carregamento
+                audio.preload = "auto"; // Força o navegador a carregar                
             });
 
             // reconfigura o volume dos sons: 20% do total 
@@ -625,40 +625,7 @@
             }
         }
         
-        function createEVSprite(text, A, B, expr) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 256;
-            canvas.height = 164;
-            const ctx = canvas.getContext('2d');
         
-            // Expressão (amarelo)
-            ctx.font = 'bold 70px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillStyle = "#ffff55";
-            ctx.shadowColor = '#000';
-            ctx.shadowBlur = 8;
-            ctx.fillText(text, 128, 40);      // 
-        
-            // Fundo das variáveis (se existirem)
-            if (A !== null && B !== null && expr) {
-                ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-                ctx.fillRect(50, 90, 156, 40);
-                
-                // Variáveis (verde)
-                ctx.font = 'bold 55px Arial';
-                ctx.fillStyle = "#55ff55";
-                ctx.shadowBlur = 0;
-                ctx.fillText(`A = ${A}  B = ${B}`, 128, 100);
-            }
-        
-            const tex = new THREE.CanvasTexture(canvas);
-            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
-            const sprite = new THREE.Sprite(mat);
-            sprite.scale.set(3.2, 2.0, 1);
-            return sprite;
-        }
-
         function createEVSprite(text, A, B, expr) {
             // Cria um canvas HTML para renderizar o texto
             const canvas = document.createElement('canvas');
