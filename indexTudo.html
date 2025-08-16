@@ -648,22 +648,38 @@
             
             return mothership;
         }
-                
-        function updateMothership(dt) {
-            if (!mothership || !mothership.alive) return;
-        
-            // Atualiza geradores A/B a cada 5 segundos
-            mothership.changeTimer = (mothership.changeTimer || 0) + dt;
-            if (mothership.changeTimer >= 5) {
-                mothership.changeTimer = 0;
-                mothership.generators[0].value = Math.round(Math.random()); // A
-                mothership.generators[1].value = Math.round(Math.random()); // B
-                mothership.ev = mothership.type.ev(); // Recalcula (A⊕B).C
-                updateEnemyEVSprite(mothership); // Atualiza HUD
-            }
-        }
-        
-        
+
+		
+		function updateMothership(dt) {
+			
+		    // 1. Verifica se a nave-mãe existe e está viva. Se não, sai da função.
+		    if (!mothership || !mothership.alive) return;
+		
+		    // 2. Incrementa o timer de atualização com o tempo passado desde o último frame (dt).
+		    //    Se changeTimer for undefined (primeira execução), inicia com 0.
+		    mothership.changeTimer = (mothership.changeTimer || 0) + dt;
+		
+		    // 3. Verifica se passaram 5 segundos desde a última atualização:
+		    if (mothership.changeTimer >= 5) {
+		        // 4. Reseta o timer para a próxima contagem:
+		        mothership.changeTimer = 0;
+		
+		        // 5. Atualiza o gerador A com um valor aleatório (0 ou 1):
+		        mothership.generators[0].value = Math.round(Math.random());
+		
+		        // 6. Atualiza o gerador B com um valor aleatório (0 ou 1):
+		        mothership.generators[1].value = Math.round(Math.random());
+		
+		        // 7. Recalcula o valor lógico (ev) da nave-mãe usando a função definida em ENEMY_TYPES:
+		        //    - Acessa mothership.type.ev(), que calcula (A⊕B).C automaticamente, onde C = PSB do jogador
+		        mothership.ev = mothership.type.ev();
+		
+		        // 8. Atualiza o HUD visual da nave-mãe com os novos valores (A, B, ev):
+		        updateEnemyEVSprite(mothership);
+		    }
+		}
+
+		
         function createEVSprite(text, A, B, expr) {
 
             // Adicione no início da função:
@@ -1372,79 +1388,58 @@
         }
         
 
-        function updateProjectiles(dt) {
-            for (let p of projectiles) {
-                if (!p.alive) continue;
-                p.mesh.position.x += p.dx * dt;
-                p.mesh.position.y += p.dy * dt;
-                if (Math.abs(p.mesh.position.x) > PLAY_AREA.x / 2 + 2 || Math.abs(p.mesh.position.y) > PLAY_AREA.y / 2 + 2) {
-                    scene.remove(p.mesh);
-                    p.alive = false;
-                    continue;
-                }
-                for (let e of enemies) {
-                    if (!e.alive) continue;
-                    let ex = e.mesh.position.x, ey = e.mesh.position.y;
-                    let px = p.mesh.position.x, py = p.mesh.position.y;
-                    let dist = Math.sqrt((ex - px) ** 2 + (ey - py) ** 2);
-                    if (dist < 0.8) {
-                        let op = OPERATORS[p.operator];
-                        let psb = playerPSB;
-                        let ev = e.ev;
-                        if (e.expr) {
-                            if (e.expr === 'A&B') ev = e.A & e.B;
-                            if (e.expr === 'A|B') ev = e.A | e.B;
-                            if (e.expr === 'A^B') ev = e.A ^ B;
-                        }
-                        let result = op.fn(psb, ev);
-                        if (result === 1) {
-                            e.health--;
-                            setBarValue(e.healthBar, e.health / e.maxHealth);
-                            if (e.health <= 0) {
-                                e.alive = false;
-                                scene.remove(e.mesh);
-                                spawnExplosion(ex, ey);
-                                playerScore += 100;
-                                waveEnemies--;
-                            }
-                        }
-                        scene.remove(p.mesh);
-                        p.alive = false;
-                        break;
-                    }
-                }
-                if (mothership && mothership.alive) {  
-                    let ex = mothership.mesh.position.x, ey = mothership.mesh.position.y;  
-                    let px = p.mesh.position.x, py = p.mesh.position.y;  
-                    let dist = Math.sqrt((ex - px) ** 2 + (ey - py) ** 2);  
-                    
-                    if (dist < 1.5) {  
-                        let op = OPERATORS[p.operator];  
-                        let A = mothership.generators[0].value;  
-                        let B = mothership.generators[1].value;  
-                        let C = playerPSB;  
-                        let expected = (A ^ B) & C; // (A⊕B).C  
-                        let result = op.fn(C, (A ^ B)); // Aplica operador do jogador  
-                        
-                        if (result === expected && result === 1) {  
-                            mothership.health--;  
-                            setBarValue(mothership.healthBar, mothership.health / mothership.maxHealth);  
-                            if (mothership.health <= 0) {  
-                                mothership.alive = false;  
-                                scene.remove(mothership.mesh);  
-                                spawnExplosion(ex, ey);  
-                                playerScore += 1000; // Pontuação maior para a nave-mãe  
-                            }  
-                        }  
-                        scene.remove(p.mesh);  
-                        p.alive = false;  
-                    }  
-                }  
-                
-            }
-            projectiles = projectiles.filter(p => p.alive);
-        }
-
+		function updateProjectiles(dt) {
+			
+		    for (let p of projectiles) {if (!p.alive) continue;
+		
+		        // Movimento do projétil 
+		        p.mesh.position.x += p.dx * dt;
+		        p.mesh.position.y += p.dy * dt;
+		
+		        // Remove projéteis fora da tela 
+		        if (Math.abs(p.mesh.position.x) > PLAY_AREA.x / 2 + 2 || Math.abs(p.mesh.position.y) > PLAY_AREA.y / 2 + 2) {
+		            scene.remove(p.mesh);
+		            p.alive = false;
+		            continue;
+		        }
+		
+		        // Verifica colisão com TODAS as naves (inclusive nave-mãe)
+		        let targetShips = [...enemies];
+		        if (mothership && mothership.alive) targetShips.push(mothership);
+		
+		        for (let e of targetShips) {
+		            if (!e.alive) continue;
+		
+		            let dist = Math.sqrt((e.mesh.position.x - p.mesh.position.x) ** 2 + (e.mesh.position.y - p.mesh.position.y) ** 2);
+		            let hitRadius = e.isBoss ? 1.5 : 0.8; // Raio maior para nave-mãe
+		
+		            if (dist < hitRadius) {
+		                let op = OPERATORS[p.operator];
+		                let psb = playerPSB;
+		                let ev = e.ev; // Usa o valor PRÉ-CALCULADO da nave (seja simples ou complexo)
+		
+		                // Lógica universal de dano (igual para todas as naves)
+		                if (op.fn(psb, ev) === 1) {
+		                    e.health--;
+		                    setBarValue(e.healthBar, e.health / e.maxHealth);
+		
+		                    if (e.health <= 0) {
+		                        e.alive = false;
+		                        scene.remove(e.mesh);
+		                        spawnExplosion(e.mesh.position.x, e.mesh.position.y);
+		                        playerScore += e.isBoss ? 1000 : 100; // Pontuação maior para nave-mãe
+		                        if (!e.isBoss) waveEnemies--;
+		                    }
+		                }
+		
+		                scene.remove(p.mesh);
+		                p.alive = false;
+		                break;
+		            }
+		        }
+		    }
+		    projectiles = projectiles.filter(p => p.alive);
+		}
         
         function updateEnemyProjectiles(dt) {
             // Itera sobre todos os projéteis inimigos ativos
@@ -1617,7 +1612,7 @@
                 // Chama updateDynamicEnemies a cada frame
                  updateDynamicEnemies(dt);
 
-                // Se estiver na fase da nave-mãe atualizar os geradores dela.
+                // Se estiver na fase da nave-mãe e ela estiver viva, atualiza os geradores dela.
                 if (mothership && mothership.alive) updateMothership(dt); 
                 
                 // Atualiza a posição do jogador
