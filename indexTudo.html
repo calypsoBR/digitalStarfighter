@@ -510,97 +510,130 @@
             return window.playerPSB ?? 1; // Garante sempre 0 ou 1
         }
         
+        
         function spawnEnemy(type, x, y) {
-            let mesh;
-        
-            // ==================== [1. DEFINE VIDA POR TIPO DE NAVE] ====================
-            let health;
-            if (type.shape === 'cube') {  // Caças
-                health = 2 + Math.floor(wave * 0.5);  // Wave 1 = 2
-            } else if (type.shape === 'tetra') {  // Cruzadores
-                health = 3 + Math.floor(wave * 0.7);  // Wave 5 = 6
-            } else if (type.shape === 'octahedron') {  // Destroyers
-                health = 4 + Math.floor(wave * 1.0);  // Wave 7 = 11
+                let mesh;
+            
+                // ==================== [1. DEFINE VIDA POR TIPO DE NAVE] ====================
+                let health;
+                if (type.shape === 'cube') {  // Caças
+                    health = 2 + Math.floor(wave * 0.5);  // Wave 1 = 2
+                } else if (type.shape === 'tetra') {  // Cruzadores
+                    health = 3 + Math.floor(wave * 0.7);  // Wave 5 = 6
+                } else if (type.shape === 'octahedron') {  // Destroyers
+                    health = 4 + Math.floor(wave * 1.0);  // Wave 7 = 11
+                }
+                health = Math.max(health, 3);  // Garante vida mínima = 3
+            
+                // ==================== [2. CRIA GEOMETRIA] ====================
+                if (type.shape === 'cube') {
+                    mesh = new THREE.Mesh(
+                        new THREE.BoxGeometry(1, 1, 1),
+                        new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
+                    );
+                } else if (type.shape === 'tetra') {
+                    mesh = new THREE.Mesh(
+                        new THREE.TetrahedronGeometry(0.7),
+                        new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
+                    );
+                } else if (type.shape === 'octahedron') {
+                    mesh = new THREE.Mesh(
+                        new THREE.OctahedronGeometry(0.8),
+                        new THREE.MeshLambertMaterial({ 
+                            color: ENEMY_COLOR,
+                            emissive: 0xff3300,
+                            emissiveIntensity: 0.3
+                        })
+                    );
+                }
+                mesh.position.set(x, y, 0);
+            
+                // ==================== [3. ESTRUTURA DE DANO/EXIBIÇÃO] ====================
+                let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
+                healthBar.position.set(0, -0.8, 0);
+                mesh.add(healthBar);
+            
+                // ==================== [4. INICIALIZA VALORES LÓGICOS (À PROVA DE ERROS)] =========
+                let ab = type.ab;
+                let A, B, ev;
+            
+                if (ab) {
+                    // Naves com A/B (Cruzadores/Destroyers)
+                    if (typeof type.A !== 'function' || typeof type.B !== 'function') {
+                        console.error(`Tipo de nave "${type.shape}" não define funções A() ou B() corretamente.`);
+                        A = Math.round(Math.random()); // Fallback seguro para desenvolvimento
+                        B = Math.round(Math.random());
+                    } else {
+                        A = type.A();
+                        B = type.type.B === 'function' ? type.B(playerPSB) : type.B(); // Suporta B() com ou sem playerPSB
+                    }
+                    ev = type.ev ? type.ev() : eval(type.expr.replace('.', '&').replace('+', '|').replace('⊕', '^'));
+                } else {
+                    // Naves com ev direto (Caças)
+                    if (typeof type.ev !== 'function') {
+                        console.error(`Tipo de nave "${type.shape}" não define função ev().`);
+                        ev = Math.round(Math.random()); // Fallback seguro para desenvolvimento
+                    } else {
+                        ev = type.ev();
+                    }
+                    A = B = null;
+                }
+            
+                // ==================== [5. CRIA SPRITE DE EXPRESSÃO] ====================
+                let evMesh = createEVSprite(type.expr || String(ev), A, B, type.expr);
+                evMesh.position.set(0, 1.2, 0);
+                mesh.add(evMesh);
+                scene.add(mesh);
+                        
+                return {
+                    mesh,           // Objeto 3D da nave inimiga
+                    health,         // Vida atual do inimigo
+                    maxHealth: health, // Vida máxima (igual à inicial)
+                    healthBar,      // Barra de vida flutuante
+                    ev,             // Valor lógico atual (0 ou 1)
+                    evMesh,         // Sprite com a expressão lógica (ex: "A+B")
+                    ab,             // Flag que indica se tem variáveis A/B
+                    A,              // Valor da variável A (se existir)
+                    B,              // Valor da variável B (se existir)
+                    expr: type.expr, // Expressão textual (ex: "A+B")
+                    alive: true,    // Status do inimigo (vivo/morto)
+                    type,           // Referência ao tipo original (ENEMY_TYPES)
+                    changeTimer: 0, // Contador para mudanças dinâmicas
+                    isDynamic: type.isDynamic || false // Flag de comportamento dinâmico (herdado do tipo)
+                };
             }
-            health = Math.max(health, 3);  // Garante vida mínima = 3
-        
-            // ==================== [2. CRIA GEOMETRIA] ====================
-            if (type.shape === 'cube') {
-                mesh = new THREE.Mesh(
-                    new THREE.BoxGeometry(1, 1, 1),
-                    new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
-                );
-            } else if (type.shape === 'tetra') {
-                mesh = new THREE.Mesh(
-                    new THREE.TetrahedronGeometry(0.7),
-                    new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
-                );
-            } else if (type.shape === 'octahedron') {
-                mesh = new THREE.Mesh(
-                    new THREE.OctahedronGeometry(0.8),
-                    new THREE.MeshLambertMaterial({ 
-                        color: ENEMY_COLOR,
-                        emissive: 0xff3300,
-                        emissiveIntensity: 0.3
-                    })
-                );
-            }
-            mesh.position.set(x, y, 0);
-        
-            // ==================== [3. ESTRUTURA DE DANO/EXIBIÇÃO] ====================
-            let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
-            healthBar.position.set(0, -0.8, 0);
-            mesh.add(healthBar);
-        
-            let ab = type.ab;
-            let A = ab ? (type.A ? type.A() : Math.round(Math.random())) : null;
-            let B = ab ? (type.B ? type.B() : Math.round(Math.random())) : null;
-            let ev = type.ev ? type.ev() : (A !== null && B !== null ? eval(type.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
-            let evText = type.expr || ev?.toString();
-        
-            let evMesh = createEVSprite(evText, A, B, type.expr);
-            evMesh.position.set(0, 1.2, 0);
-            mesh.add(evMesh);
-            scene.add(mesh);
-                    
-            return {
-                mesh,           // Objeto 3D da nave inimiga
-                health,         // Vida atual do inimigo
-                maxHealth: health, // Vida máxima (igual à inicial)
-                healthBar,      // Barra de vida flutuante
-                ev,             // Valor lógico atual (0 ou 1)
-                evMesh,         // Sprite com a expressão lógica (ex: "A+B")
-                ab,             // Flag que indica se tem variáveis A/B
-                A,              // Valor da variável A (se existir)
-                B,              // Valor da variável B (se existir)
-                expr: type.expr, // Expressão textual (ex: "A+B")
-                alive: true,    // Status do inimigo (vivo/morto)
-                type,           // Referência ao tipo original (ENEMY_TYPES)
-                changeTimer: 0, // Contador para mudanças dinâmicas
-                isDynamic: type.isDynamic || false // Flag de comportamento dinâmico (herdado do tipo)
-            };
-        }
         
         function updateDynamicEnemies(dt) {
             for (let e of enemies) {
-                if (!e.alive || !e.isDynamic) continue; // Ignora inimigos mortos/não-dinâmicos
-        
+                if (!e.alive || !e.isDynamic) continue;   // Ignora inimigos mortos/não-dinâmicos
+                
                 // Atualiza o timer do inimigo
-                e.changeTimer = (e.changeTimer || 0) + dt;
-        
-                // Verifica se é hora de atualizar os valores
+                e.changeTimer += dt;
                 if (e.changeTimer >= e.type.changeInterval) {
-                    e.changeTimer = 0; // Reseta o timer
-        
-                    // Atualiza A e B (se existirem)
-                    if (e.type.A) e.A = e.type.A(); // Recálculo de A
-                    if (e.type.B) e.B = e.type.B(playerPSB); // Recálculo de B (pode depender do PSB)
-        
-                    // Recalcula o valor lógico (ev) usando a função definida no tipo
-                    e.ev = e.type.ev();
-        
-                    // Atualiza o sprite visual
-                    updateEnemyEVSprite(e);
+                    e.changeTimer = 0;  // Reseta o timer
+                    
+                    // Atualiza A/B apenas se as funções existirem
+                    if (e.type.A) e.A = e.type.A();  // Recálculo de A
+                    if (e.type.B) e.B = typeof e.type.B === 'function' ? e.type.B(playerPSB) : null;  // Recálculo de B (pode depender do PSB)
+                    
+                    // Garante que ev seja recalculado
+                    e.ev = typeof e.type.ev === 'function' ? e.type.ev() : e.ev;
+
+                               // Atualiza A/B/ev com validações explícitas
+                    if (e.type.A) {
+                        e.A = typeof e.type.A === 'function' ? e.type.A() : e.A;
+                    }
+                    if (e.type.B) {
+                        e.B = typeof e.type.B === 'function' ? e.type.B(playerPSB) : e.B;
+                    }
+                    if (e.type.ev) {
+                        e.ev = typeof e.type.ev === 'function' ? e.type.ev() : e.ev;
+                    } else if (e.expr && e.A !== null && e.B !== null) {
+                        // Recalcula ev manualmente para expressões (ex: "A+B")
+                        e.ev = eval(e.expr.replace('.', '&').replace('+', '|').replace('⊕', '^'));
+                    }
+                    
+                    updateEnemyEVSprite(e);   // Atualiza o HUD
                 }
             }
         }
@@ -653,6 +686,11 @@
         
         function createEVSprite(text, A, B, expr) {
 
+            // Adicione no início da função:
+            A = A !== undefined ? A : null;
+            B = B !== undefined ? B : null;
+            text = text || (A !== null && B !== null ? `${A} ${expr} ${B}` : '?');
+            
                     //      Visualização das áreas a serem criadas: 
                          
                     //                Canvas (256x164px)
