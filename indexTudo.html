@@ -97,6 +97,20 @@
         ];
 
         // ===== [ TIPOS DE INIMIGOS (NAVES E SUAS CARACTERÍSTICAS) ] ===== //
+
+      //  Nível	    Tipo de Nave	           Comportamento Esperado	             Intervalo
+      //  ---------------------------------------------------------------------------------------
+      //   1       Caças estáticos        Valor lógico não muda depois de gerado         X  
+      //   2	   Caças Dinâmicos	      Valor lógico muda aleatoriamente (0/1)	     3s
+      //   3	   Caças PSB	          Alterna entre PSB e !PSB do jogador            4s
+      //   4       Cruzadores estáticos   Valor lógico não muda depois de gerado         X  
+      //   5	   Cruzadores Dinâmicos	  Valores A e B mudam aleatoriamente	         5s
+      //   6	   Cruzadores PSB	      A fixo, B alterna entre PSB e !PSB	         4s
+      //   7       Destroyers estáticos   Valor lógico não muda depois de gerado         X  
+      //   8	   Destroyers Dinâmicos	  Expressões complexas com A e B dinâmicos	     5s
+      //   9       Nave-Mãe	              Geradores A e B mudam aleatoriamente	         5s
+      //  --------------------------------------------------------------------------------------
+            
         const ENEMY_TYPES = [
             
         // --- NÍVEL 1 (caças, com valor lógico constante, gearado aleatoriamente)
@@ -155,21 +169,21 @@
             {     shape: 'tetra', A: () => Math.round(Math.random()),  B: () => Math.round(Math.random()),
                   ev: function() { return this.A() & this.B(); }, // Cálculo real: A AND B
                   ab: true, expr: 'A.B', // Exibição visual
-                  isDynamic: true, changeInterval: 5 
+                  isDynamic: true, changeInterval: 5  // muda o valor a cada 5 segundos
             },
 
             // 2) Operação OR
             {     shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
                   ev: function() { return this.A() | this.B(); }, // Cálculo real: A OR B
                   ab: true, expr: 'A+B', // Exibição visual
-                  isDynamic: true,  changeInterval: 5
+                  isDynamic: true,  changeInterval: 5  // muda o valor a cada 3 segundos
             },
 
             // 3) Operação XOR
             {     shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
                   ev: function() { return this.A() ^ this.B(); }, // Cálculo real: A XOR B
                   ab: true, expr: 'A⊕B', // Exibição visual
-                  isDynamic: true,  changeInterval: 5 
+                  isDynamic: true,  changeInterval: 5  // muda o valor a cada 3 segundos 
             },
 
         
@@ -256,7 +270,7 @@
               isDynamic: true, changeInterval: 5     // muda os valores de A e B a cada 5 segundos
             },
 
-        // --- NAVE-MÃE ---
+        // --- Nível 9: NAVE-MÃE
             {
               shape: 'octahedron', size: 3.0,
               generators: [], // Inicializa vazio (será preenchido em spawnMothership())
@@ -502,7 +516,7 @@
             // ==================== [1. DEFINE VIDA POR TIPO DE NAVE] ====================
             let health;
             if (type.shape === 'cube') {  // Caças
-                health = 2 + Math.floor(wave * 0.5);  // Wave 1 = 2 → ajustado para mínimo 3 abaixo
+                health = 2 + Math.floor(wave * 0.5);  // Wave 1 = 2
             } else if (type.shape === 'tetra') {  // Cruzadores
                 health = 3 + Math.floor(wave * 0.7);  // Wave 5 = 6
             } else if (type.shape === 'octahedron') {  // Destroyers
@@ -548,29 +562,44 @@
             evMesh.position.set(0, 1.2, 0);
             mesh.add(evMesh);
             scene.add(mesh);
-        
+                    
             return {
-                mesh, health, maxHealth: health, healthBar, ev, evMesh, ab, A, B, expr: type.expr, alive: true, type
+                mesh,           // Objeto 3D da nave inimiga
+                health,         // Vida atual do inimigo
+                maxHealth: health, // Vida máxima (igual à inicial)
+                healthBar,      // Barra de vida flutuante
+                ev,             // Valor lógico atual (0 ou 1)
+                evMesh,         // Sprite com a expressão lógica (ex: "A+B")
+                ab,             // Flag que indica se tem variáveis A/B
+                A,              // Valor da variável A (se existir)
+                B,              // Valor da variável B (se existir)
+                expr: type.expr, // Expressão textual (ex: "A+B")
+                alive: true,    // Status do inimigo (vivo/morto)
+                type,           // Referência ao tipo original (ENEMY_TYPES)
+                changeTimer: 0, // Contador para mudanças dinâmicas
+                isDynamic: type.isDynamic || false // Flag de comportamento dinâmico (herdado do tipo)
             };
         }
-
+        
         function updateDynamicEnemies(dt) {
             for (let e of enemies) {
-                if (!e.alive || !e.type.isDynamic) continue;
-                
+                if (!e.alive || !e.isDynamic) continue; // Ignora inimigos mortos/não-dinâmicos
+        
+                // Atualiza o timer do inimigo
                 e.changeTimer = (e.changeTimer || 0) + dt;
+        
+                // Verifica se é hora de atualizar os valores
                 if (e.changeTimer >= e.type.changeInterval) {
-                    e.changeTimer = 0;
-                    
+                    e.changeTimer = 0; // Reseta o timer
+        
                     // Atualiza A e B (se existirem)
-                    if (e.type.A) e.A = e.type.A();
-                    if (e.type.B) e.B = e.type.B(playerPSB); // Passa playerPSB para níveis como o 6
-                    
-                    // Recalcula ev (usando a expressão ou função ev)
-                    e.ev = e.type.ev ? e.type.ev() : 
-                          (e.A !== null && e.B !== null ? eval(e.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
-                    
-                    // Atualiza o sprite da expressão
+                    if (e.type.A) e.A = e.type.A(); // Recálculo de A
+                    if (e.type.B) e.B = e.type.B(playerPSB); // Recálculo de B (pode depender do PSB)
+        
+                    // Recalcula o valor lógico (ev) usando a função definida no tipo
+                    e.ev = e.type.ev();
+        
+                    // Atualiza o sprite visual
                     updateEnemyEVSprite(e);
                 }
             }
@@ -579,11 +608,17 @@
         function updateEnemyEVSprite(enemy) {
             // Remove o sprite antigo
             enemy.mesh.remove(enemy.evMesh);
-            
+        
             // Cria um novo sprite com os valores atualizados
-            let evText = enemy.expr || enemy.ev?.toString();
-            enemy.evMesh = createEVSprite(evText, enemy.A, enemy.B, enemy.expr);
-            enemy.evMesh.position.set(0, 0.8, 0);
+            enemy.evMesh = createEVSprite(
+                enemy.expr,  // Expressão (ex: "A+B")
+                enemy.A,     // Valor atual de A (ou null)
+                enemy.B,     // Valor atual de B (ou null)
+                enemy.expr   // Texto da expressão
+            );
+        
+            // Posiciona o sprite acima da nave
+            enemy.evMesh.position.set(0, 1.2, 0);
             enemy.mesh.add(enemy.evMesh);
         }
         
@@ -668,8 +703,8 @@
                 ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
                 
                //parâmetros do retangulo: ctx.fillRect(x, y, largura, altura)
-                const rectWidth = 240;  // Largura em (px) do quadrado. Deve ser menor que a largura do canvas
-                const rectHeight = 80;  // Altura em (px) do quadrado.
+                const rectWidth = 245;  // Largura em (px) do quadrado. Deve ser menor que a largura do canvas
+                const rectHeight = 70;  // Altura em (px) do quadrado.
                 const rectX = (canvas.width - rectWidth) / 2; // posição x: para ficar centralizado com a expressão.
                 const rectY = exprY + 40;  // para ficar 40 pontos abaixo da posição da expressão.                
                 ctx.fillRect(rectX, rectY, rectWidth, 70);                
@@ -767,7 +802,7 @@
         }
                 
         function spawnPowerUp(x, y) {
-            // Toca o som de power-up aparecendo (usando o sistema de áudio definido anteriormente)
+            // Toca o som de power-up aparecendo
             playSound('powerup');
         
             // Cria a geometria de uma esfera para o power-up:
@@ -817,8 +852,7 @@
             powerUps = [];         // Power-ups coletáveis
             mothership = null;     // Remove referência à nave-mãe
         
-            // Recria elementos essenciais
-           // createStars();       // Gera novas estrelas de fundo
+            // Recria elementos essenciais           
             createPlayer();      // Recria a nave do jogador        
             
             // Reseta status do jogador
@@ -895,8 +929,7 @@
                 nEnemies = 10; // Waves 8-9 têm mais inimigos
             } else {
                 nEnemies = Math.min(4 + n, 7); // Waves 1-2,4-7: 4 a 7 inimigos
-            }
-            
+            }            
             waveEnemies = nEnemies;
         
             for (let i = 0; i < nEnemies; i++) {
@@ -925,7 +958,7 @@
             
             const isLowHealth = playerHealth <= playerMaxHealth * 0.2;
             
-            // Efeitos de vida baixa (agora contínuos)
+            // Efeitos de vida baixa
             if (isLowHealth && gameState === GAME_STATE.PLAYING && gameState !== GAME_STATE.PAUSED) {
                 // Efeito sonoro: toca repetidamente ....
                 if (!hud.lowHealthSoundInterval) {
@@ -1560,6 +1593,10 @@
         
             // Lógica executada apenas durante o estado de jogo (PLAYING)
             if (gameState === GAME_STATE.PLAYING) {
+                
+                // Chama updateDynamicEnemies a cada frame
+                 updateDynamicEnemies(dt); 
+                
                 // Atualiza a posição do jogador
                 updatePlayer(dt);
                 
@@ -1620,7 +1657,7 @@
             }
         
             // Renderiza a cena e chama o próximo frame
-            renderer.render(scene, camera); // Só isso! Nada de bgCamera ou clear()
+            renderer.render(scene, camera);
             requestAnimationFrame(gameLoop);
             
         }  
