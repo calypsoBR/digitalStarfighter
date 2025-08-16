@@ -552,35 +552,16 @@
                 let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
                 healthBar.position.set(0, -0.8, 0);
                 mesh.add(healthBar);
-            
+
                 // ==================== [4. INICIALIZA VALORES LÓGICOS (À PROVA DE ERROS)] =========
                 let ab = type.ab;
-                let A, B, ev;
-            
-                if (ab) {
-                    // Naves com A/B (Cruzadores/Destroyers)
-                    if (typeof type.A !== 'function' || typeof type.B !== 'function') {
-                        console.error(`Tipo de nave "${type.shape}" não define funções A() ou B() corretamente.`);
-                        A = Math.round(Math.random()); // Fallback seguro para desenvolvimento
-                        B = Math.round(Math.random());
-                    } else {
-                        A = type.A();
-                        B = type.type.B === 'function' ? type.B(playerPSB) : type.B(); // Suporta B() com ou sem playerPSB
-                    }
-                    ev = type.ev ? type.ev() : eval(type.expr.replace('.', '&').replace('+', '|').replace('⊕', '^'));
-                } else {
-                    // Naves com ev direto (Caças)
-                    if (typeof type.ev !== 'function') {
-                        console.error(`Tipo de nave "${type.shape}" não define função ev().`);
-                        ev = Math.round(Math.random()); // Fallback seguro para desenvolvimento
-                    } else {
-                        ev = type.ev();
-                    }
-                    A = B = null;
-                }
-            
-                // ==================== [5. CRIA SPRITE DE EXPRESSÃO] ====================
-                let evMesh = createEVSprite(type.expr || String(ev), A, B, type.expr);
+                let A = ab ? (type.A ? type.A() : Math.round(Math.random())) : null;
+                let B = ab ? (type.B ? type.B() : Math.round(Math.random())) : null;
+                let ev = type.ev ? type.ev() : (A !== null && B !== null ? eval(type.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
+                let evText = type.expr || ev?.toString();
+        
+	            // ==================== [5. CRIA SPRITE DE EXPRESSÃO] ====================
+                let evMesh = createEVSprite(evText, A, B, type.expr);
                 evMesh.position.set(0, 1.2, 0);
                 mesh.add(evMesh);
                 scene.add(mesh);
@@ -601,54 +582,53 @@
                     changeTimer: 0, // Contador para mudanças dinâmicas
                     isDynamic: type.isDynamic || false // Flag de comportamento dinâmico (herdado do tipo)
                 };
-            }
         
-        function updateDynamicEnemies(dt) {
-            for (let e of enemies) {
-                if (!e.alive || !e.isDynamic) continue;   // Ignora inimigos mortos/não-dinâmicos
-                
-                // Atualiza o timer do inimigo
-                e.changeTimer += dt;
-                if (e.changeTimer >= e.type.changeInterval) {
-                    e.changeTimer = 0;  // Reseta o timer
-                    
-                    // Atualiza A/B apenas se as funções existirem
-                    if (e.type.A) e.A = e.type.A();  // Recálculo de A
-                    if (e.type.B) e.B = typeof e.type.B === 'function' ? e.type.B(playerPSB) : null;  // Recálculo de B (pode depender do PSB)
-                    
-                    // Garante que ev seja recalculado
-                    e.ev = typeof e.type.ev === 'function' ? e.type.ev() : e.ev;
+        }
 
-                               // Atualiza A/B/ev com validações explícitas
-                    if (e.type.A) {
-                        e.A = typeof e.type.A === 'function' ? e.type.A() : e.A;
-                    }
-                    if (e.type.B) {
-                        e.B = typeof e.type.B === 'function' ? e.type.B(playerPSB) : e.B;
-                    }
-                    if (e.type.ev) {
-                        e.ev = typeof e.type.ev === 'function' ? e.type.ev() : e.ev;
-                    } else if (e.expr && e.A !== null && e.B !== null) {
-                        // Recalcula ev manualmente para expressões (ex: "A+B")
-                        e.ev = eval(e.expr.replace('.', '&').replace('+', '|').replace('⊕', '^'));
-                    }
+        function updateDynamicEnemies(dt) {
+                
+            for (let e of enemies) {
+                
+                // Garante que a nave é dinâmica e tem intervalo        
+                if (!e.alive || !e.isDynamic || !e.type.changeInterval) continue;
+
+                // Atualiza o timer do inimigo
+                e.changeTimer = (e.changeTimer || 0) + dt;
+
+                // Se o tempo atual for ao menos igual a tempo de mudança...
+                if (e.changeTimer >= e.type.changeInterval) {
+
+                    // Reseta o timer
+                    e.changeTimer = 0;
                     
-                    updateEnemyEVSprite(e);   // Atualiza o HUD
+                    // Atualiza A e B (se existirem)
+                    if (e.type.A) e.A = e.type.A();
+                    if (e.type.B) e.B = e.type.B(playerPSB); // Passa playerPSB se necessário
+                    
+                    // Recalcula ev (usando a expressão ou função ev)
+                    e.ev = e.type.ev ? e.type.ev() : 
+                          (e.A !== null && e.B !== null ? eval(e.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
+                    
+                    // Atualiza o sprite da expressão (HUD)
+                    updateEnemyEVSprite(e);
                 }
             }
         }
-
+        
         function updateEnemyEVSprite(enemy) {
             // Remove o sprite antigo
             enemy.mesh.remove(enemy.evMesh);
         
+            // Cria texto que ficará acima da nave: expressão se houver ou valor lógico da nave
+            let evText = enemy.expr || enemy.ev?.toString(); 
+            
             // Cria um novo sprite com os valores atualizados
             enemy.evMesh = createEVSprite(
-                enemy.expr,  // Expressão (ex: "A+B")
-                enemy.A,     // Valor atual de A (ou null)
-                enemy.B,     // Valor atual de B (ou null)
-                enemy.expr   // Texto da expressão
-            );
+        		evText,     // texto  que será exibido acima da nave inimiga(ex: "A+B" ou "1" ou "0")
+        		enemy.A,    // Valor atual de A (ou null)
+        		enemy.B,    // Valor atual de B (ou null)
+        		enemy.expr  // Texto da expressão
+        	);
         
             // Posiciona o sprite acima da nave
             enemy.evMesh.position.set(0, 1.2, 0);
@@ -1622,18 +1602,23 @@
 
         function gameLoop() {
             
-            // Obtém o tempo atual em milissegundos
+            // Obtém o tempo atual em milisegundos
             let now = performance.now();
             
             // Calcula o delta time (tempo desde o último frame), limitando a 45ms para evitar bugs
             let dt = Math.min((now - lastUpdate) / 1000, 0.045);
-            lastUpdate = now; // Atualiza o último registro de tempo
+            
+            // Atualiza o último registro de tempo
+            lastUpdate = now; 
         
             // Lógica executada apenas durante o estado de jogo (PLAYING)
             if (gameState === GAME_STATE.PLAYING) {
                 
                 // Chama updateDynamicEnemies a cada frame
-                 updateDynamicEnemies(dt); 
+                 updateDynamicEnemies(dt);
+
+                // Se estiver na fase da nave-mãe atualizar os geradores dela.
+                if (mothership && mothership.alive) updateMothership(dt); 
                 
                 // Atualiza a posição do jogador
                 updatePlayer(dt);
