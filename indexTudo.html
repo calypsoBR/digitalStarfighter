@@ -558,8 +558,10 @@
                 let A = ab ? (type.A ? type.A() : Math.round(Math.random())) : null;
                 let B = ab ? (type.B ? type.B() : Math.round(Math.random())) : null;
 			
-                let ev = type.ev ? type.ev() : (A !== null && B !== null ? eval(type.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
-                let evText = type.expr || ev?.toString();
+                //let ev = type.ev ? type.ev() : (A !== null && B !== null ? eval(type.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
+			    let ev = type.ev.call({ A: () => A, B: () => B }); // Usa A e B fixos ou dinâmicos
+                
+			    let evText = type.expr || ev?.toString();
 
 				// ==================== [4. INICIALIZA VALORES LÓGICOS] =========
 				let ab = type.ab;
@@ -1470,29 +1472,37 @@
 		
 		        for (let e of targetShips) {
 		            if (!e.alive) continue;
-		
+
+					// cálculo para saber se o projétil atingiu a nave número "e"
 		            let dist = Math.sqrt((e.mesh.position.x - p.mesh.position.x) ** 2 + (e.mesh.position.y - p.mesh.position.y) ** 2);
-		            let hitRadius = e.isBoss ? 1.5 : 0.8; // Raio maior para nave-mãe
-		
+		            let hitRadius = e.isBoss ? 1.5 : 0.8; // Raio de colisão da nave: 1,5 para a nave-mãe, 0,8 para as restantes
+
+					// Se o projétil está dentro do raio de colisão da nave número "e"... 
 		            if (dist < hitRadius) {
-		                let op = OPERATORS[p.operator];
-		                let psb = playerPSB;
-		                let ev = e.ev; // Usa o valor PRÉ-CALCULADO da nave (seja simples ou complexo)
+						// Coleta os operandos e a operação lógica a ser aplicada aos primeiros p/ verificar se 
+						// o projétil irá gerar dano a nave inimiga ou seu escudo booleano a protejerá
+		                let op = OPERATORS[p.operator];  // Bomba lógica (Operador) selecionada pelo jogador
+		                let psb = playerPSB;   // Valor lógico do jogador (0 ou 1)
+		                let ev = e.ev; // Valor lógico do inimigo (calculado em spawnEnemy() ou updateDynamicEnemies())
 		
-		                // Lógica universal de dano (igual para todas as naves)
-		                if (op.fn(psb, ev) === 1) {
-		                    e.health--;
-		                    setBarValue(e.healthBar, e.health / e.maxHealth);
-		
+		                // Cálculo universal de dano (igual para todas as naves):
+						// Se a operação da bomba lógica sobre o PSB e o valor lógico final da nave inimiga deve ser 1...
+		                if (op.fn(psb, ev) === 1) {   
+		                    e.health--;               // Causa dano: decrementa a vida da nave inimiga
+		                    setBarValue(e.healthBar, e.health / e.maxHealth);  // Causa dano: atualiza isso na barra de vida da nave
+
+							// Se último dano faz a nave "morrer"... 
 		                    if (e.health <= 0) {
-		                        e.alive = false;
-		                        scene.remove(e.mesh);
-		                        spawnExplosion(e.mesh.position.x, e.mesh.position.y);
-		                        playerScore += e.isBoss ? 1000 : 100; // Pontuação maior para nave-mãe
-		                        if (!e.isBoss) waveEnemies--;
+		                        e.alive = false;        // Atualizada status da nave: agora está morta
+		                        scene.remove(e.mesh);   // A remove da cena
+		                        spawnExplosion(e.mesh.position.x, e.mesh.position.y);  // Gera o som de explosão
+		                        playerScore += e.isBoss ? 1000 : 100; // Incrementa pontuação do jogador: 1000 para nave-mãe 100 para qualquer outra nave
+		                        if (!e.isBoss) waveEnemies--;  // Decrementa número de inimigos vivos na fase atual
 		                    }
 		                }
-		
+
+						console.log(`DANO: ${e.expr} | A=${e.A}, B=${e.B} | PSB=${psb}, OP=${op.key} | EV=${e.ev} | RESULT=${op.fn(psb, e.ev)}`);
+						
 		                scene.remove(p.mesh);
 		                p.alive = false;
 		                break;
