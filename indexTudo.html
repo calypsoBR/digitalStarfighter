@@ -9,40 +9,63 @@
 	    body { margin: 0; overflow: hidden; }
 	    canvas { display: block; }
 	
-	    /* === NOVO HUD LATERAL (APENAS DURANTE O JOGO) === */		
-		.game-hud {
+	    /* === NOVO HUD LATERAL (APENAS DURANTE O JOGO) === */
+		
+		/* PAINEL ESQUERDO */
+		#left-panel {
 		    position: fixed;
-		    width: 160px;
+		    left: 12px;
+		    top: 12px;
+		    width: 150px; /* Largura original */
 		    background: rgba(0, 0, 0, 0.7);
 		    border-radius: 5px;
-		    padding: 12px;
+		    padding: 10px;
 		    color: white;
 		    font-family: monospace;
 		    z-index: 100;
 		}
 		
-		/* Títulos (ex: "CAÇA", "PSB") */
+		/* PAINEL DIREITO */
+		#right-panel {
+		    position: fixed;
+		    right: 12px;
+		    top: 12px;
+		    width: 150px; /* Largura original */
+		    background: rgba(0, 0, 0, 0.7);
+		    border-radius: 5px;
+		    padding: 10px;
+		    color: white;
+		    font-family: monospace;
+		    z-index: 100;
+		}
+		
+		/* Títulos (ex: "FASE", "VIDA") */
 		.hud-title {
 		    font-weight: bold;
-		    font-size: 18px;
-		    margin-bottom: 8px; /* Espaço após o título */
+		    font-size: 18px; /* Tamanho acordado */
+		    margin-bottom: 8px; /* Espaço após título */
+		    color: #0077ff; /* Azul acordado */
 		}
 		
-		/* Valores (ex: "Alpha", "1") */
+		/* Valores (ex: "1/10", "■■■■□") */
 		.hud-value {
-		    font-size: 16px;
-		    margin-bottom: 24px; /* Espaço antes do próximo título */
+		    font-size: 16px; /* Tamanho acordado */
+		    margin-bottom: 24px; /* Espaço após valor */
 		}
 		
-		/* Lista de bombas */
+		/* Bombas (Painel Esquerdo) */
+		#bomb-list {
+		    margin-left: 5px;
+		}
+		
 		.bomb-entry {
-		    padding: 4px 8px;
-		    margin-bottom: 6px; /* Espaço entre linhas */
+		    padding: 2px 5px;
+		    margin-bottom: 2px;
 		}
 		
 		.bomb-selected {
-		    background: rgba(0, 119, 255, 0.2); /* Fundo azul claro */
-		    border-left: 2px solid #0077ff; /* Borda lateral */
+		    background: rgba(0, 119, 255, 0.3);
+		    border-left: 2px solid #0077ff;
 		}
 		
 	</style>
