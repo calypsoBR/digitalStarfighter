@@ -9,39 +9,42 @@
 	    body { margin: 0; overflow: hidden; }
 	    canvas { display: block; }
 	
-	    /* === NOVO HUD LATERAL (APENAS DURANTE O JOGO) === */
-	    .game-hud {
-	        position: fixed;
-	        width: 150px;
-	        background: rgba(0, 0, 0, 0.7);
-	        border-radius: 5px;
-	        padding: 10px;
-	        color: white;
-	        text-shadow: 0 0 5px #0077ff;
-	        z-index: 100;
-	    }
-	    #left-panel { left: 10px; top: 10px; }
-	    #right-panel { right: 10px; top: 10px; }
-	    .hud-title {
-	        font-weight: bold;
-	        margin-bottom: 5px;
-	        font-size: 18px;
-	    }
-	    .hud-value {
-	        margin-left: 15px;
-	        margin-bottom: 10px;
-	        font-size: 16px;
-	    }
-	    .bomb-entry {
-	        margin-left: 5px;
-	        padding: 2px 5px;
-	        margin-bottom: 2px;
-	        border-radius: 3px;
-	    }
-	    .bomb-selected {
-	        background: rgba(0, 119, 255, 0.3);
-	        border-left: 2px solid #0077ff;
-	    }
+	    /* === NOVO HUD LATERAL (APENAS DURANTE O JOGO) === */		
+		.game-hud {
+		    position: fixed;
+		    width: 160px;
+		    background: rgba(0, 0, 0, 0.7);
+		    border-radius: 5px;
+		    padding: 12px;
+		    color: white;
+		    font-family: monospace;
+		    z-index: 100;
+		}
+		
+		/* Títulos (ex: "CAÇA", "PSB") */
+		.hud-title {
+		    font-weight: bold;
+		    font-size: 18px;
+		    margin-bottom: 8px; /* Espaço após o título */
+		}
+		
+		/* Valores (ex: "Alpha", "1") */
+		.hud-value {
+		    font-size: 16px;
+		    margin-bottom: 24px; /* Espaço antes do próximo título */
+		}
+		
+		/* Lista de bombas */
+		.bomb-entry {
+		    padding: 4px 8px;
+		    margin-bottom: 6px; /* Espaço entre linhas */
+		}
+		
+		.bomb-selected {
+		    background: rgba(0, 119, 255, 0.2); /* Fundo azul claro */
+		    border-left: 2px solid #0077ff; /* Borda lateral */
+		}
+		
 	</style>
 	
 </head>
