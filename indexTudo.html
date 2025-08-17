@@ -509,100 +509,99 @@
         function getSafePSB() {
             return window.playerPSB ?? 1; // Garante sempre 0 ou 1
         }
-        
-        
-        function spawnEnemy(type, x, y) {
-                let mesh;
-            
-                // ==================== [1. DEFINE VIDA POR TIPO DE NAVE] ====================
-                let health;
-                if (type.shape === 'cube') {  // Caças
-                    health = 2 + Math.floor(wave * 0.5);  // Wave 1 = 2
-                } else if (type.shape === 'tetra') {  // Cruzadores
-                    health = 3 + Math.floor(wave * 0.7);  // Wave 5 = 6
-                } else if (type.shape === 'octahedron') {  // Destroyers
-                    health = 4 + Math.floor(wave * 1.0);  // Wave 7 = 11
-                }
-                health = Math.max(health, 3);  // Garante vida mínima = 3
-            
-                // ==================== [2. CRIA GEOMETRIA] ====================
-                if (type.shape === 'cube') {
-                    mesh = new THREE.Mesh(
-                        new THREE.BoxGeometry(1, 1, 1),
-                        new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
-                    );
-                } else if (type.shape === 'tetra') {
-                    mesh = new THREE.Mesh(
-                        new THREE.TetrahedronGeometry(0.7),
-                        new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
-                    );
-                } else if (type.shape === 'octahedron') {
-                    mesh = new THREE.Mesh(
-                        new THREE.OctahedronGeometry(0.8),
-                        new THREE.MeshLambertMaterial({ 
-                            color: ENEMY_COLOR,
-                            emissive: 0xff3300,
-                            emissiveIntensity: 0.3
-                        })
-                    );
-                }
-                mesh.position.set(x, y, 0);
-            
-                // ==================== [3. ESTRUTURA DE DANO/EXIBIÇÃO] ====================
-                let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
-                healthBar.position.set(0, -0.8, 0);
-                mesh.add(healthBar);
-             
 
-				// ==================== [4. INICIALIZA VALORES LÓGICOS] =========
-				let ab = type.ab;
-				let A = ab ? (type.A ? type.A() : Math.round(Math.random())) : null;
-				let B = ab ? (type.B ? type.B(playerPSB) : Math.round(Math.random())) : null; // Nota: Passa playerPSB se necessário
-					
-				// Garante que `ev` use os valores fixos de A e B, mesmo para inimigos dinâmicos
-				let ev;
-				if (type.ev) {
-				    // Para inimigos dinâmicos, cria uma cópia da função original que usa os valores fixos
-				    if (type.isDynamic) {
-				        ev = () => {
-				            const context = { A: () => A, B: () => B };
-				            return type.ev.call(context); // Chama type.ev() com A e B fixos
-				        };
-				    } else {
-				        // Para inimigos estáticos, calcula ev uma única vez
-				        ev = type.ev.call({ A: () => A, B: () => B });
-			    	  }
-				} else {
-				    ev = (A !== null && B !== null) ? eval(type.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null;					
-				}	
+		
+        function spawnEnemy(type, x, y) {
+		    let mesh;
+		
+		    // ==================== [1. DEFINE VIDA POR TIPO DE NAVE] ====================
+		    let health;
+		    if (type.shape === 'cube') {  // Caças
+		        health = 2 + Math.floor(wave * 0.5);  // Wave 1 = 2
+		    } else if (type.shape === 'tetra') {  // Cruzadores
+		        health = 3 + Math.floor(wave * 0.7);  // Wave 5 = 6
+		    } else if (type.shape === 'octahedron') {  // Destroyers
+		        health = 4 + Math.floor(wave * 1.0);  // Wave 7 = 11
+		    }
+		    health = Math.max(health, 3);  // Garante vida mínima = 3
+		
+		    // ==================== [2. CRIA GEOMETRIA] ===================================
+		    if (type.shape === 'cube') {
+		        mesh = new THREE.Mesh(
+		            new THREE.BoxGeometry(1, 1, 1),
+		            new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
+		        );
+		    } else if (type.shape === 'tetra') {
+		        mesh = new THREE.Mesh(
+		            new THREE.TetrahedronGeometry(0.7),
+		            new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
+		        );
+		    } else if (type.shape === 'octahedron') {
+		        mesh = new THREE.Mesh(
+		            new THREE.OctahedronGeometry(0.8),
+		            new THREE.MeshLambertMaterial({ 
+		                color: ENEMY_COLOR,
+		                emissive: 0xff3300,
+		                emissiveIntensity: 0.3
+		            })
+		        );
+		    }
+		    mesh.position.set(x, y, 0);
+		
+		    // ===== [3. BARRA DE VIDA] =================================================
+		    let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
+		    healthBar.position.set(0, -0.8, 0);
+		    mesh.add(healthBar);
+
+			// ===== [4. INICIALIZAÇÃO DOS VALORES LÓGICOS] ====================== 
+		    let ab = type.ab;
+		    let A = ab ? (type.A ? type.A() : Math.round(Math.random())) : null;
+		    let B = ab ? (type.B ? type.B(playerPSB) : Math.round(Math.random())) : null;
+		
+		    // Cálculo de 'ev' com garantia de sincronia
+		    let ev;
+		    if (type.ev) {
+		        const context = { 
+		            A: () => A, 
+		            B: () => B,
+		            generators: type.generators || [] 
+		        };
+		        ev = type.isDynamic 
+		            ? () => type.ev.call(context)  // Dinâmico: função que recalcula
+		            : type.ev.call(context);     // Estático: valor fixo
+		    } else {
+		        ev = (A !== null && B !== null) 
+		            ? eval(type.expr.replace('.', '&').replace('+', '|').replace('⊕', '^'))
+		            : 0;
+		    }
 			
-				let evText = type.expr || ev?.toString();
+		
+		    // ==================== [5. CRIA SPRITE DE EXPRESSÃO] ====================
+		    let evText = type.expr || (typeof ev === 'function' ? ev().toString() : ev.toString());			
+		    let evMesh = createEVSprite(evText, A, B, type.expr);
 			
-			
-	            // ==================== [5. CRIA SPRITE DE EXPRESSÃO] ====================
-                let evMesh = createEVSprite(evText, A, B, type.expr);
-                evMesh.position.set(0, 1.2, 0);
-                mesh.add(evMesh);
-                scene.add(mesh);
-                        
-                return {
-                    mesh,           // Objeto 3D da nave inimiga
-                    health,         // Vida atual do inimigo
-                    maxHealth: health, // Vida máxima (igual à inicial)
-                    healthBar,      // Barra de vida flutuante
-                    ev,             // Valor lógico atual (0 ou 1)
-                    evMesh,         // Sprite com a expressão lógica (ex: "A+B")
-                    ab,             // Flag que indica se tem variáveis A/B
-                    A,              // Valor da variável A (se existir)
-                    B,              // Valor da variável B (se existir)
-                    expr: type.expr, // Expressão textual (ex: "A+B")
-                    alive: true,    // Status do inimigo (vivo/morto)
-                    type,           // Referência ao tipo original (ENEMY_TYPES)
-                    changeTimer: 0, // Contador para mudanças dinâmicas
-                    isDynamic: type.isDynamic || false // Flag de comportamento dinâmico (herdado do tipo)
-                };
+		    evMesh.position.set(0, 1.2, 0);
+		    mesh.add(evMesh);
+		    scene.add(mesh);
+		
+		    return {
+		        mesh,           // Objeto 3D da nave inimiga
+                health,         // Vida atual do inimigo
+                maxHealth: health, // Vida máxima (igual à inicial)
+                healthBar,      // Barra de vida flutuante
+                ev,             // Valor lógico atual (0 ou 1)
+                evMesh,         // Sprite com a expressão lógica (ex: "A+B")
+                ab,             // Flag que indica se tem variáveis A/B
+                A,              // Valor da variável A (se existir)
+                B,              // Valor da variável B (se existir)
+                expr: type.expr, // Expressão textual (ex: "A+B")
+                alive: true,    // Status do inimigo (vivo/morto)
+                type,           // Referência ao tipo original (ENEMY_TYPES)
+                changeTimer: 0, // Contador para mudanças dinâmicas
+                isDynamic: type.isDynamic || false // Flag de comportamento dinâmico (herdado do tipo)				
+		    };
+		}
         
-        }
 
         function updateDynamicEnemies(dt) {
                 
