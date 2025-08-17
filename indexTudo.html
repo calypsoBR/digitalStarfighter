@@ -88,11 +88,11 @@
 
         // ===== [ TIPOS DE "BOMBAS" (OPERADORES LÓGICOS)  ] ===== //         
         const OPERATORS = [
-            { key: 'AND', fn: (a, b) => a & b },
-            { key: 'OR', fn: (a, b) => a | b },
-            { key: 'XOR', fn: (a, b) => a ^ b },           
+            { key: 'AND',  fn: (a, b) => a & b },
+            { key: 'OR',   fn: (a, b) => a | b },
+            { key: 'XOR',  fn: (a, b) => a ^ b },           
             { key: 'NAND', fn: (a, b) => 1 - (a & b) },
-            { key: 'NOR', fn: (a, b) => 1 - (a | b) },
+            { key: 'NOR',  fn: (a, b) => 1 - (a | b) },
             { key: 'XNOR', fn: (a, b) => 1 - (a ^ b) }
         ];
 
@@ -155,7 +155,7 @@
                 isDynamic: false  // não muda os valores de A e B
             },
 
-            // 3) Operação OR
+            // 3) Operação XOR
             {   shape: 'tetra', A: () => Math.round(Math.random()), B: () => Math.round(Math.random()),
                 ev: function() { return this.A() ^ this.B(); }, // Cálculo real: A XOR B
                 ab: true, expr: 'A⊕B',  // Exibição visual
@@ -361,12 +361,12 @@
         function initBombCounts() {
             OPERATORS.forEach(op => {          
                 bombCounts = {
-                    'AND': 10,
-                    'OR': 8,
-                    'XOR': 12,
-                    'NAND': 8,
-                    'NOR': 15,
-                    'XNOR': 15
+                    'AND' : 12,
+                    'OR'  : 6,
+                    'XOR' : 9,
+                    'NAND': 9,
+                    'NOR' : 15,
+                    'XNOR': 12
                 };
                 bombReplenishedAtScore = {};                
             });
@@ -402,7 +402,7 @@
                 }
             );
         
-            // 2. Adicione as luzes (mantenha isso)
+            // 2. Adicione as luzes
             let ambient = new THREE.AmbientLight(0xffffff, 0.7);
             let dir = new THREE.DirectionalLight(0xffffff, 0.8);
             dir.position.set(0, 0, 10);
@@ -426,7 +426,7 @@
             playerShip.position.set(player.x, player.y, 0); // Usa player.x e player.y
             scene.add(playerShip);
         
-            // Thruster e health bar (mantido igual)
+            // Thruster e health bar
             let thrusterGeo = new THREE.CylinderGeometry(0.18, 0.01, 0.4, 8);
             let thrusterMat = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.7 });
             playerThruster = new THREE.Mesh(thrusterGeo, thrusterMat);
@@ -553,7 +553,7 @@
                 healthBar.position.set(0, -0.8, 0);
                 mesh.add(healthBar);
 
-                // ==================== [4. INICIALIZA VALORES LÓGICOS (À PROVA DE ERROS)] =========
+                // ==================== [4. INICIALIZA VALORES LÓGICOS] =========
                 let ab = type.ab;
                 let A = ab ? (type.A ? type.A() : Math.round(Math.random())) : null;
                 let B = ab ? (type.B ? type.B() : Math.round(Math.random())) : null;
@@ -637,6 +637,7 @@
         }
         
         function spawnMothership() {
+			
             const type = ENEMY_TYPES.find(t => t.isBoss);
             const mothership = spawnEnemy(type, 0, PLAY_AREA.y/2.5);                        
             mothership.mesh.scale.set(1.5, 1.5, 1.5);  // Expansão
@@ -983,7 +984,8 @@
 		    } else if (n >= 8) {		        
 		        nEnemies = 10;   // Waves 8 e 9 têm 10 inimigos (mistura de tipos avançados)
 		    } else {		        
-		        nEnemies = Math.min(4 + n, 7);  // Waves 1, 2, 4-7: mínimo 4, máximo 7 inimigos (progressão: 4 + número da wave)
+		        //nEnemies = Math.min(4 + n, 7);  // Waves 1, 2, 4-7: mínimo 4, máximo 7 inimigos (progressão: 4 + número da wave)
+				nEnemies = 3
 		    }
 		    
 		    // Atualiza o contador global de inimigos da wave
