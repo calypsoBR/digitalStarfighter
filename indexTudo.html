@@ -2,20 +2,83 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>O Último Guerreiro Digital das Estrelas</title>
-    <style>
-        body { margin: 0; overflow: hidden; }
-        canvas { display: block; }        
-    </style>
+    <title>O Último Guerreiro Digital das Estrelas</title>    
+
+	<style>
+		/* === o que já tinha antes === */
+	    body { margin: 0; overflow: hidden; }
+	    canvas { display: block; }
+	
+	    /* === NOVO HUD LATERAL (APENAS DURANTE O JOGO) === */
+	    .game-hud {
+	        position: fixed;
+	        width: 150px;
+	        background: rgba(0, 0, 0, 0.7);
+	        border-radius: 5px;
+	        padding: 10px;
+	        color: white;
+	        text-shadow: 0 0 5px #0077ff;
+	        z-index: 100;
+	    }
+	    #left-panel { left: 10px; top: 10px; }
+	    #right-panel { right: 10px; top: 10px; }
+	    .hud-title {
+	        font-weight: bold;
+	        margin-bottom: 5px;
+	        font-size: 18px;
+	    }
+	    .hud-value {
+	        margin-left: 15px;
+	        margin-bottom: 10px;
+	        font-size: 16px;
+	    }
+	    .bomb-entry {
+	        margin-left: 5px;
+	        padding: 2px 5px;
+	        margin-bottom: 2px;
+	        border-radius: 3px;
+	    }
+	    .bomb-selected {
+	        background: rgba(0, 119, 255, 0.3);
+	        border-left: 2px solid #0077ff;
+	    }
+	</style>
+	
 </head>
 <body>
 
    <button id="unmute" style="position:fixed; top:10px; left:10px; z-index:10000; padding:8px 15px; background:#0077ff; color:white; border:none; border-radius:5px; cursor:pointer;">
         CLIQUE AQUI PARA ATIVAR SOM
-    </button>
+   </button>
 
+	<!-- HUD DO JOGO (FICA ESCONDIDO ATÉ INICIAR) -->
+	<div id="left-panel" class="game-hud" style="display:none;">
+	    <div class="hud-title">CAÇA</div>
+	    <div class="hud-value">Alpha</div>
+	    
+	    <div class="hud-title">PSB</div>
+	    <div class="hud-value" id="psb-value">1</div>
+	    
+	    <div class="hud-title">BOMBAS</div>
+	    <div id="bomb-list"></div>
+	</div>
+	
+	<div id="right-panel" class="game-hud" style="display:none;">
+	    <div class="hud-title">FASE</div>
+	    <div class="hud-value" id="wave-value">1/10</div>
+	    
+	    <div class="hud-title">TEMPO</div>
+	    <div class="hud-value" id="time-value">00:00</div>
+	    
+	    <div class="hud-title">PONTUAÇÃO</div>
+	    <div class="hud-value" id="score-value">0</div>
+	    
+	    <div class="hud-title">VIDA</div>
+	    <div class="hud-value" id="health-value">■■■■■</div>
+	</div>
     
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+	
     <script>    
 
          // ===== [SEÇÃO DE SONS DO JOGO] ===== //
@@ -893,7 +956,11 @@
 
         
         function resetGame() {
-            
+
+			// Mostra os painéis do HUD
+		    document.getElementById('left-panel').style.display = 'block';
+		    document.getElementById('right-panel').style.display = 'block';
+			
             // Remove todos os objetos 3D da cena (limpeza total)
             while (scene.children.length) scene.remove(scene.children[0]);
         
@@ -1029,147 +1096,66 @@
             }
         }
 
-
-        function updateHUD() {
-            // =============================================
-            // ELEMENTO DE VIDA (COM ALERTA CONTÍNUO)
-            // =============================================
-            if (!hud.health) {
-                hud.health = document.createElement('div');
-                hud.health.style.position = 'fixed';
-                hud.health.style.left = '18px';
-                hud.health.style.top = '12px';
-                hud.health.style.color = '#00ff88';
-                hud.health.style.font = 'bold 22px monospace';
-                hud.health.style.textShadow = '0 0 5px #003';
-                document.body.appendChild(hud.health);
-            }
-            
-            const isLowHealth = playerHealth <= playerMaxHealth * 0.2;
-            
-            // Efeitos de vida baixa
-            if (isLowHealth && gameState === GAME_STATE.PLAYING && gameState !== GAME_STATE.PAUSED) {
-                // Efeito sonoro: toca repetidamente ....
-                if (!hud.lowHealthSoundInterval) {
-                    playSound('lowHealth'); // Toca imediatamente
-                    hud.lowHealthSoundInterval = setInterval(() => {
-                        if (gameState === GAME_STATE.PLAYING && !pauseOverlay)  {  // ← Verificação extra
-                            playSound('lowHealth');
-                        }
-                    }, 1000); // ... a cada 1000 milisegundos.
-                }
-                
-                // Efeito visual piscante
-                hud.health.style.color = (Math.floor(Date.now() / 200) % 2 === 0 
-                    ? '#ff0000' 
-                    : '#00ff88');
-                hud.health.style.textShadow = '0 0 10px #ff0000';
-            } else {
-                // Remove alertas quando vida > 20% ou jogo não está em PLAYING
-                if (hud.lowHealthSoundInterval) {
-                    clearInterval(hud.lowHealthSoundInterval);
-                    hud.lowHealthSoundInterval = null;
-                    sounds.lowHealth.pause();  // ← Pausa o som imediatamente
-                    sounds.lowHealth.currentTime = 0;  // ← Reinicia o áudio
-                }
-                hud.health.style.color = '#00ff88';
-                hud.health.style.textShadow = '0 0 5px #003';
-            }
-            
-            hud.health.innerHTML = 'Vida: ' + playerHealth;
+		function updateHUD() {
+			
+		    // ===== [MANTIDO: Lógica de alertas de vida baixa] =====
+		    const isLowHealth = playerHealth <= playerMaxHealth * 0.2;
+		    if (isLowHealth && gameState === GAME_STATE.PLAYING) {
+		        if (!hud.lowHealthSoundInterval) {
+		            playSound('lowHealth');
+		            hud.lowHealthSoundInterval = setInterval(() => {
+		                if (gameState === GAME_STATE.PLAYING) playSound('lowHealth');
+		            }, 1000);
+		        }
+		        // Efeito visual de piscar (agora aplicado ao texto "■■■□□" no painel direito)
+		        document.getElementById('health-value').style.color = 
+		            (Math.floor(Date.now() / 200) % 2 === 0 ? '#ff0000' : '#00ff55');
+		    } else if (hud.lowHealthSoundInterval) {
+		        clearInterval(hud.lowHealthSoundInterval);
+		        hud.lowHealthSoundInterval = null;
+		        sounds.lowHealth.pause();
+		        sounds.lowHealth.currentTime = 0;
+		        document.getElementById('health-value').style.color = '#00ff55';
+		    }
+		
+		    // ===== [PAINEL ESQUERDO] =====
+		    // PSB (valor e cor)
+		    const psbElement = document.getElementById('psb-value');
+		    psbElement.textContent = playerPSB;
+		    psbElement.style.color = playerPSB ? '#0090ff' : '#ff2222';
+		
+		    // Lista de bombas (operadores)
+		    const bombList = document.getElementById('bomb-list');
+		    bombList.innerHTML = OPERATORS.map((op, index) => {
+		        const isSelected = index === operatorIndex;
+		        return `<div class="bomb-entry ${isSelected ? 'bomb-selected' : ''}">
+		            ${op.key} (${bombCounts[op.key]})
+		        </div>`;
+		    }).join('');
+		
+		    // ===== [PAINEL DIREITO] =====
+		    document.getElementById('wave-value').textContent = `${wave}/${maxWaves}`;
+		    document.getElementById('score-value').textContent = playerScore;
+		    document.getElementById('health-value').textContent = 
+		        '■'.repeat(playerHealth) + '□'.repeat(playerMaxHealth - playerHealth);
+		    document.getElementById('time-value').textContent = '00:00'; // TEMPO fixo (sem lógica de nave-mãe)
+		
+		    // ===== [REMOVE ELEMENTOS FLUTUANTES ANTIGOS] =====
+		    if (hud.health && hud.health.parentNode) hud.health.parentNode.removeChild(hud.health);
+		    if (hud.score && hud.score.parentNode) hud.score.parentNode.removeChild(hud.score);
+		    if (hud.psb && hud.psb.parentNode) hud.psb.parentNode.removeChild(hud.psb);
+		    if (hud.op && hud.op.parentNode) hud.op.parentNode.removeChild(hud.op);
+		    if (hud.wave && hud.wave.parentNode) hud.wave.parentNode.removeChild(hud.wave);
+		    // NÃO remove hud.bossGens (pois ele continua sendo exibido acima da nave-mãe, como originalmente)
+		}
         
-            // =============================================
-            // ELEMENTO DE PONTUAÇÃO 
-            // =============================================
-            if (!hud.score) {
-                hud.score = document.createElement('div');
-                hud.score.style.position = 'fixed';
-                hud.score.style.right = '18px';
-                hud.score.style.top = '12px';
-                hud.score.style.color = '#fff';
-                hud.score.style.font = 'bold 22px monospace';
-                hud.score.style.textShadow = '0 0 5px #003';
-                document.body.appendChild(hud.score);
-            }
-            hud.score.innerHTML = 'Pontuação: ' + playerScore;
-        
-            // =============================================
-            // ELEMENTO PSB 
-            // =============================================
-            if (!hud.psb) {
-                hud.psb = document.createElement('div');
-                hud.psb.style.position = 'fixed';
-                hud.psb.style.left = '18px';
-                hud.psb.style.bottom = '18px';
-                hud.psb.style.color = '#fff';
-                hud.psb.style.font = 'bold 32px monospace';
-                hud.psb.style.textShadow = '0 0 8px #0077ff';
-                document.body.appendChild(hud.psb);
-            }
-            hud.psb.innerHTML = 'PSB: <span style="color:' + (playerPSB ? '#0090ff' : '#ff2222') + '">' + playerPSB + '</span>';
-        
-            // =============================================
-            // ELEMENTO DE OPERADOR
-            // =============================================
-            if (!hud.op) {
-                hud.op = document.createElement('div');
-                hud.op.style.position = 'fixed';
-                hud.op.style.bottom = '18px';
-                hud.op.style.left = '50%';
-                hud.op.style.transform = 'translateX(-50%)';
-                hud.op.style.color = '#fff';
-                hud.op.style.font = 'bold 28px monospace';
-                hud.op.style.textShadow = '0 0 8px #fff';
-                document.body.appendChild(hud.op);
-            }
-            const currentOperatorKey = OPERATORS[operatorIndex].key;          
-            hud.op.innerHTML = 'Operador: <span style="color:#fff;background:#222;padding:2px 10px;border-radius:7px;">' + 
-                   OPERATORS[operatorIndex].key + '</span>' +
-                   ' <span style="color:#00ff88;font-size:22px;">(' + bombCounts[OPERATORS[operatorIndex].key] + ')</span>';
-        
-            // =============================================
-            // ELEMENTO DE Fases (WAVE)
-            // =============================================
-            if (!hud.wave) {
-                hud.wave = document.createElement('div');
-                hud.wave.style.position = 'fixed';
-                hud.wave.style.top = '12px';
-                hud.wave.style.left = '50%';
-                hud.wave.style.transform = 'translateX(-50%)';
-                hud.wave.style.color = '#fff';
-                hud.wave.style.font = 'bold 22px monospace';
-                hud.wave.style.textShadow = '0 0 7px #0077ff';
-                document.body.appendChild(hud.wave);
-            }
-            if (gameState === GAME_STATE.PLAYING && !mothership)
-                hud.wave.innerHTML = 'Fase ' + wave + ' de ' + maxWaves;
-            else if (mothership && gameState === GAME_STATE.PLAYING)
-                hud.wave.innerHTML = 'Nave-Mãe';
-            else
-                hud.wave.innerHTML = '';
-        
-            // =============================================
-            // GERADORES DA NAVE-MÃE 
-            // =============================================
-            if (mothership && mothership.alive) {
-                if (!hud.bossGens) {
-                    hud.bossGens = document.createElement('div');
-                    hud.bossGens.style.position = 'fixed';
-                    hud.bossGens.style.top = '50px';
-                    hud.bossGens.style.left = '50%';
-                    hud.bossGens.style.transform = 'translateX(-50%)';
-                    hud.bossGens.style.color = '#ff5555';
-                    hud.bossGens.style.font = 'bold 18px monospace';
-                    hud.bossGens.style.textShadow = '0 0 5px #000';
-                    document.body.appendChild(hud.bossGens);
-                }
-                hud.bossGens.innerHTML = `Geradores: A=${mothership.generators[0].value} | B=${mothership.generators[1].value}`;
-            } else if (hud.bossGens) {
-                hud.bossGens.innerHTML = '';
-            }
-        }
        
         function clearHUD() {
+
+			// Esconde os painéis laterais
+		    document.getElementById('left-panel').style.display = 'none';
+		    document.getElementById('right-panel').style.display = 'none';
+			
             for (let k in hud) {
                 if (hud[k] && hud[k].parentNode) hud[k].parentNode.removeChild(hud[k]);
                 hud[k] = null;
