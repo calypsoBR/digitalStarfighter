@@ -277,7 +277,7 @@
               ev: function() {          
                   const A = this.generators[0].value;
                   const B = this.generators[1].value;
-                  return (A ^ B) & playerPSB;
+                  return (A ^ B) & playerPSB;    // C = PSB do jogador
               },
               expr: '(A⊕B).C',
               isBoss: true,
@@ -606,8 +606,9 @@
                     if (e.type.B) e.B = e.type.B(playerPSB); // Passa playerPSB se necessário
                     
                     // Recalcula ev (usando a expressão ou função ev)
-                    e.ev = e.type.ev ? e.type.ev() : 
-                          (e.A !== null && e.B !== null ? eval(e.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
+                    //e.ev = e.type.ev ? e.type.ev() : 
+                    //      (e.A !== null && e.B !== null ? eval(e.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
+					e.ev = e.type.ev(); // SEMPRE usa a função definida no tipo do inimigo
                     
                     // Atualiza o sprite da expressão (HUD)
                     updateEnemyEVSprite(e);
@@ -909,9 +910,26 @@
         }
 
         function getEnemyType(wave, index) {
-            
+
+
+	//		Fase	Tipo de Naves						Quantidade		Comportamento/Dinâmica					Intervalo Atualização
+	//  -------------------------------------------------------------------------------------------------------------------------------
+	//		1		Caças estáticos (nível 1)				5			Valores fixos (0/1)								-
+	//		2		Caças dinâmicos (nível 2)				6			Valores mudam aleatoriamente					3s
+	//		3		Caças PSB (nível 3)						7			Alternam entre PSB e !PSB do jogador			4s
+	//		4		Mistura: níveis 1, 2, 3 (4:2:3)			9			Combina comportamentos das waves 1-3		- / 3s / 4s
+	//		5		Cruzadores estáticos (nível 4)			7			Expressões básicas (AND, OR, XOR)				-
+	//		6		Cruzadores dinâmicos (nível 5)			4-7			A e B mudam aleatoriamente						5s
+	//		7		Cruzadores PSB (nível 6)				4-7			A fixo, B = PSB ou !PSB							4s
+	//		8		Mistura: níveis 1, 5, 7 (4:4:4)			12			Caças estáticos + Cruzadores dinâmicos		- / 5s / 4s
+	//		9		Mistura: níveis 2, 3, 6, 8 (3:3:4:3)	14			Combina naves dinâmicas complexas			3s / 4s / 5s
+	//		10		Nave-mãe + escoltas						1 + extras	Geradores A/B mudam aleatoriamente	
+    //  -------------------------------------------------------------------------------------------------------------------------------
+
+
+			
             // Waves 1-3: Níveis 1-3 puros
-            if (wave === 1) return ENEMY_TYPES[0]; // Caças (nível 1)
+            if (wave === 1) return ENEMY_TYPES[0]; // Caças estáticos (nível 1)
             if (wave === 2) return ENEMY_TYPES[1]; // Caças dinâmicos (nível 2)
             if (wave === 3) return ENEMY_TYPES[2]; // Caças PSB (nível 3)
         
@@ -927,7 +945,7 @@
             // Wave 6: Cruzadores dinâmicos (nível 5)
             if (wave === 6) return ENEMY_TYPES[6 + (index % 3)]; // AND, OR, XOR dinâmicos
         
-            // Wave 7: Cruzadores A fixo + B = PSB (nível 6)
+            // Wave 7: Cruzadores dinâmicos A fixo + B = PSB (nível 6)
             if (wave === 7) return ENEMY_TYPES[9 + (index % 3)]; // AND, OR, XOR com B dinâmico
         
             // Wave 8: Mistura de níveis 1, 5, 7 (4:4:4)
@@ -937,40 +955,57 @@
             }
         
             // Wave 9: Mistura de níveis 2, 3, 6, 8 (3:3:4:3)
-            if (wave === 9) {
-                const types = [1, 2, 9, 1, 2, 12, 1, 2, 9, 1, 2, 12, 9, 12]; // Proporção 3:3:4:3
-                return ENEMY_TYPES[types[index % types.length]];
-            }
+            if (wave === 9) {			    
+				//const types = [1, 2, 9, 1, 2, 12, 1, 2, 9, 1, 2, 12, 9, 12]; // Proporção 3:3:4:3
+			    const types = [1, 2, 6, 1, 2, 9, 1, 2, 6, 1, 2, 9, 6, 9]; // Proporção 3:3:4:3
+			    return ENEMY_TYPES[types[index % types.length]];
+			}
         
             // Wave 10: Nave-mãe + escoltas (será implementada separadamente)
-            return ENEMY_TYPES[0]; // Padrão (não deve ocorrer)
+            if (wave === 10) return ENEMY_TYPES.find(t => t.isBoss); // Retorna a nave-mãe
         }
         
         function startWave(n) {
             
             // Wave 10: Nave-mãe + escoltas
             if (n === 10) {
-                spawnMothership(); // Implemente essa função separadamente
-                waveEnemies = 1; // Conta apenas a nave-mãe (escoltas são extras)
-                return;
+                spawnMothership();  // Spawna a nave-mãe (função separada que cria a nave-boss)
+                waveEnemies = 1;    // Define o contador de inimigos como 1 (só a nave-mãe, escoltas são extras)
+                return;             // Sai da função, pois a wave 10 é tratada de forma especial
             }
-        
-            // Waves 1-9: Inimigos normais
-            let nEnemies;
-            if (n === 3) {
-                nEnemies = 5; // Wave 3 tem 5 inimigos
-            } else if (n >= 8) {
-                nEnemies = 10; // Waves 8-9 têm mais inimigos
-            } else {
-                nEnemies = Math.min(4 + n, 7); // Waves 1-2,4-7: 4 a 7 inimigos
-            }            
-            waveEnemies = nEnemies;
-        
-            for (let i = 0; i < nEnemies; i++) {
-                let type = getEnemyType(n, i);
-                let x = -PLAY_AREA.x / 2 + 1.5 + (i % nEnemies) * (PLAY_AREA.x - 3) / (nEnemies - 1);
-                let y = PLAY_AREA.y / 2 - 1.5 - Math.random() * 1.4;
-                enemies.push(spawnEnemy(type, x, y));
+
+			// Waves 1-9: Inimigos normais
+		    let nEnemies;
+		    
+		    // Define a quantidade de inimigos com base na wave atual (n)
+		    if (n === 3) {		        
+		        nEnemies = 5;    // Wave 3 tem exatamente 5 inimigos (caças PSB)
+		    } else if (n >= 8) {		        
+		        nEnemies = 10;   // Waves 8 e 9 têm 10 inimigos (mistura de tipos avançados)
+		    } else {		        
+		        nEnemies = Math.min(4 + n, 7);  // Waves 1, 2, 4-7: mínimo 4, máximo 7 inimigos (progressão: 4 + número da wave)
+		    }
+		    
+		    // Atualiza o contador global de inimigos da wave
+		    waveEnemies = nEnemies;
+		
+		    // Loop para spawnar cada inimigo da wave
+		    for (let i = 0; i < nEnemies; i++) {
+				
+		        // Obtém o tipo de inimigo com base na wave e índice atual
+		        let type = getEnemyType(n, i);
+		        
+		        // Calcula posição X: distribui os inimigos uniformemente na área de jogo
+		        // - PLAY_AREA.x: largura total da área
+		        // - (i % nEnemies): garante posicionamento cíclico se necessário
+		        let x = -PLAY_AREA.x / 2 + 1.5 + (i % nEnemies) * (PLAY_AREA.x - 3) / (nEnemies - 1);
+		        
+		        // Calcula posição Y: topo da tela com pequena variação aleatória
+		        let y = PLAY_AREA.y / 2 - 1.5 - Math.random() * 1.4;
+		        
+		        // Cria o inimigo e adiciona ao array global
+		        enemies.push(spawnEnemy(type, x, y));
+            
             }
         }
 
