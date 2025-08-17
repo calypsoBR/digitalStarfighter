@@ -557,9 +557,33 @@
                 let ab = type.ab;
                 let A = ab ? (type.A ? type.A() : Math.round(Math.random())) : null;
                 let B = ab ? (type.B ? type.B() : Math.round(Math.random())) : null;
+			
                 let ev = type.ev ? type.ev() : (A !== null && B !== null ? eval(type.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
                 let evText = type.expr || ev?.toString();
-        
+
+				// ==================== [4. INICIALIZA VALORES LÓGICOS] =========
+				let ab = type.ab;
+				let A = ab ? (type.A ? type.A() : Math.round(Math.random())) : null;
+				let B = ab ? (type.B ? type.B(playerPSB) : Math.round(Math.random())) : null; // Nota: Passa playerPSB se necessário
+				
+				// Garante que `ev` use os valores fixos de A e B, mesmo para inimigos dinâmicos
+				let ev;
+				if (type.ev) {
+				    // Para inimigos dinâmicos, cria uma cópia da função original que usa os valores fixos
+				    if (type.isDynamic) {
+				        ev = () => {
+				            const context = { A: () => A, B: () => B };
+				            return type.ev.call(context); // Chama type.ev() com A e B fixos
+				        };
+				    } else {
+				        // Para inimigos estáticos, calcula ev uma única vez
+				        ev = type.ev.call({ A: () => A, B: () => B });
+				    }
+				} else {
+				    ev = (A !== null && B !== null) ? eval(type.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null;					
+				}
+			
+			
 	            // ==================== [5. CRIA SPRITE DE EXPRESSÃO] ====================
                 let evMesh = createEVSprite(evText, A, B, type.expr);
                 evMesh.position.set(0, 1.2, 0);
