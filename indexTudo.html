@@ -42,15 +42,15 @@
 		/* Títulos (ex: "FASE", "VIDA") */
 		.hud-title {
 		    font-weight: bold;
-		    font-size: 18px; /* Tamanho acordado */
+		    font-size: 20px;    /* Tamanho */
 		    margin-bottom: 8px; /* Espaço após título */
-		    color: #0077ff; /* Azul acordado */
+		    color: #0077ff;     /* Azul */
 		}
 		
 		/* Valores (ex: "1/10", "■■■■□") */
 		.hud-value {
-		    font-size: 16px; /* Tamanho acordado */
-		    margin-bottom: 24px; /* Espaço após valor */
+		    font-size: 16px; /* Tamanho */
+		    margin-bottom: 28px; /* Espaço após valor */
 		}
 		
 		/* Bombas (Painel Esquerdo) */
@@ -59,10 +59,14 @@
 		}
 		
 		.bomb-entry {
-		    padding: 2px 5px;
-		    margin-bottom: 2px;
+			font-size: 16px;      /* Mesmo tamanho que .hud-value */
+		    padding: 3px 5px;     /* Espaço interno ao redor do texto de cada bomba 
+			                         1º - espaço vertical (acima e abaixo), 2º - espaço horizontal (esquerda e direita) */
+		    margin-bottom: 5px;   /* Espaço externo abaixo de cada linha de bomba (distância entre itens da lista */
+						
 		}
-		
+
+		/* Retângulo que indica qual bomba está selecionada */
 		.bomb-selected {
 		    background: rgba(0, 119, 255, 0.3);
 		    border-left: 2px solid #0077ff;
@@ -80,12 +84,12 @@
 	<!-- HUD DO JOGO (FICA ESCONDIDO ATÉ INICIAR) -->
 	<div id="left-panel" class="game-hud" style="display:none;">
 	    <div class="hud-title">CAÇA</div>
-	    <div class="hud-value">Alpha</div>
+	    <div class="hud-value">Estelar</div>
 	    
-	    <div class="hud-title">PSB</div>
-	    <div class="hud-value" id="psb-value">1</div>
+	    <div class="hud-title">VLC</div>
+	    <div class="hud-value" id="vlc-value">1</div>
 	    
-	    <div class="hud-title">BOMBAS</div>
+	    <div class="hud-title">MUNIÇÃO</div>
 	    <div id="bomb-list"></div>
 	</div>
 	
@@ -96,7 +100,7 @@
 	    <div class="hud-title">TEMPO</div>
 	    <div class="hud-value" id="time-value">00:00</div>
 	    
-	    <div class="hud-title">PONTUAÇÃO</div>
+	    <div class="hud-title">PONTOS</div>
 	    <div class="hud-value" id="score-value">0</div>
 	    
 	    <div class="hud-title">VIDA</div>
@@ -191,10 +195,10 @@
       //  ---------------------------------------------------------------------------------------
       //   1       Caças estáticos        Valor lógico não muda depois de gerado         X  
       //   2	   Caças Dinâmicos	      Valor lógico muda aleatoriamente (0/1)	     3s
-      //   3	   Caças PSB	          Alterna entre PSB e !PSB do jogador            4s
+      //   3	   Caças VLC	          Alterna entre VLC e !VLC do jogador            4s
       //   4       Cruzadores estáticos   Valor lógico não muda depois de gerado         X  
       //   5	   Cruzadores Dinâmicos	  Valores A e B mudam aleatoriamente	         5s
-      //   6	   Cruzadores PSB	      A fixo, B alterna entre PSB e !PSB	         4s
+      //   6	   Cruzadores VLC	      A fixo, B alterna entre VLC e !VLC	         4s
       //   7       Destroyers estáticos   Valor lógico não muda depois de gerado         X  
       //   8	   Destroyers Dinâmicos	  Expressões complexas com A e B dinâmicos	     5s
       //   9       Nave-Mãe	              Geradores A e B mudam aleatoriamente	         5s
@@ -216,13 +220,13 @@
             },
 
             
-         // --- NÍVEL 3 (caças, com valor mudando a cada "changeInterval" segundos, condicionado ao PSB ou seu contraditório)
+         // --- NÍVEL 3 (caças, com valor mudando a cada "changeInterval" segundos, condicionado ao VLC ou seu contraditório)
                         
             {
                 shape: 'cube',  // define nave,
                 ev: function() { 
-                    const psb = getSafePSB(); // <-- Usa a função segura
-                    return Math.random() > 0.5 ? psb : 1 - psb;  //gera valor com 50% de chance de ser psb ou !psb
+                    const vlc = getSafeVLC(); // <-- Usa a função segura
+                    return Math.random() > 0.5 ? vlc : 1 - vlc;  //gera valor com 50% de chance de ser vlc ou !vlc
                 },
                 isDynamic: true, changeInterval: 4  // muda o valor a cada 4 segundos
             },
@@ -276,13 +280,13 @@
             },
 
         
-        // --- NÍVEL 6 (cruzadores, com expressões básicas, A fixo, B dinâmico = PSB ou !PSB), ambos mudando de tempos em tempos
+        // --- NÍVEL 6 (cruzadores, com expressões básicas, A fixo, B dinâmico = VLC ou !VLC), ambos mudando de tempos em tempos
 
             // 1) Operação AND            
             {   shape: 'tetra', 
                 A: () => Math.round(Math.random()), // gerado aleatoriamente                
                 B: function() { 
-                    return Math.random() > 0.5 ? getSafePSB() : 1 - getSafePSB(); // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
+                    return Math.random() > 0.5 ? getSafeVLC() : 1 - getSafeVLC(); // Recalcula sempre que chamada (dinâmico + reage ao playerVLC)
                 },
                 ev: function() { return this.A() & this.B(); }, // Cálculo A.B
                 ab: true, expr: 'A.B',   // Exibição visual
@@ -294,7 +298,7 @@
                 shape: 'tetra',
                 A: () => Math.round(Math.random()), 
                 B: function() { 
-                    return Math.random() > 0.5 ? getSafePSB() : 1 - getSafePSB(); // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
+                    return Math.random() > 0.5 ? getSafeVLC() : 1 - getSafeVLC(); // Recalcula sempre que chamada (dinâmico + reage ao playerVLC)
                 },
                 ev: function() { return this.A() | this.B(); }, // Cálculo A+B
                 ab: true, expr: 'A+B', // Exibição visual
@@ -306,9 +310,9 @@
                 shape: 'tetra',
                 A: () => Math.round(Math.random()),                
                 B: function() { 
-                    return Math.random() > 0.5 ? getSafePSB() : 1 - getSafePSB(); // Recalcula sempre que chamada (dinâmico + reage ao playerPSB)
+                    return Math.random() > 0.5 ? getSafeVLC() : 1 - getSafeVLC(); // Recalcula sempre que chamada (dinâmico + reage ao playerVLC)
                 },
-                ev: function() { return this.A() ^ this.B(playerPSB); }, // Cálculo A⊕B
+                ev: function() { return this.A() ^ this.B(playerVLC); }, // Cálculo A⊕B
                 ab: true, expr: 'A⊕B', // Exibição visual
                 isDynamic: true, changeInterval: 4    // muda os valores de A e B a cada 4 segundos
             },
@@ -366,7 +370,7 @@
               ev: function() {          
                   const A = this.generators[0].value;
                   const B = this.generators[1].value;
-                  return (A ^ B) & playerPSB;    // C = PSB do jogador
+                  return (A ^ B) & playerVLC;    // C = VLC do jogador
               },
               expr: '(A⊕B).C',
               isBoss: true,
@@ -397,16 +401,16 @@
         
         // ===== [ VARIÁVEIS DO JOGADOR ] ===== //
         let player,                             // Objeto com posição/speed do jogador
-            playerPSB = 1,                      // Valor lógico atual do jogador (0 ou 1)
+            playerVLC = 1,                      // Valor lógico atual do jogador (0 ou 1)
             playerHealth = 5,                   // Vida atual
             playerMaxHealth = 5,                // Vida máxima
             playerScore = 0;                    // Pontuação
-            window.playerPSB = playerPSB;       // cria uma referência global
+            window.playerVLC = playerVLC;       // cria uma referência global
         
         // ===== [ OBJETOS 3D DO JOGADOR ] ===== //
         let playerShip,                         // Malha 3D da nave
             playerThruster,                     // Efeito de propulsão
-            playerPSBMesh,                      // Sprite do valor lógico (PSB)
+            playerVLCMesh,                      // Sprite do valor lógico (VLC)
             playerHealthBar;                    // Barra de vida flutuante
         
         // ===== [ ARRAYS DE ENTIDADES ] ===== //
@@ -507,7 +511,7 @@
                 speed: 7.5
             };
         
-            // Depois, cria a nave e o PSB usando player.x e player.y
+            // Depois, cria a nave e o VLC usando player.x e player.y
             let geo = new THREE.ConeGeometry(0.6, 1.6, 5);
             let mat = new THREE.MeshLambertMaterial({ color: PLAYER_COLOR });
             playerShip = new THREE.Mesh(geo, mat);
@@ -527,14 +531,14 @@
             playerHealthBar.position.set(0, 1.2, 0);
             playerShip.add(playerHealthBar);
         
-            // Agora o PSB pode usar player.x e player.y sem erro
-            playerPSBMesh = createPSBMesh(playerPSB);
-            playerPSBMesh.position.set(player.x, player.y + 1.7, 0); // Posição correta desde o início
-            scene.add(playerPSBMesh);
+            // Agora o VLC pode usar player.x e player.y sem erro
+            playerVLCMesh = createVLCMesh(playerVLC);
+            playerVLCMesh.position.set(player.x, player.y + 1.7, 0); // Posição correta desde o início
+            scene.add(playerVLCMesh);
         }
 
         
-        function createPSBMesh(val) {
+        function createVLCMesh(val) {
             let canvas = document.createElement('canvas');
             canvas.width = 128;
             canvas.height = 128;
@@ -551,12 +555,12 @@
             let mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
             let sprite = new THREE.Sprite(mat);
             sprite.scale.set(0.9, 0.9, 1);
-            sprite.psbValue = val;
+            sprite.vlcValue = val;
             return sprite;
         }
 
-        function updatePSBMesh(val) {
-            let sprite = playerPSBMesh;
+        function updateVLCMesh(val) {
+            let sprite = playerVLCMesh;
             let canvas = document.createElement('canvas');
             canvas.width = 128;
             canvas.height = 128;
@@ -571,7 +575,7 @@
             ctx.fillText(val ? '1' : '0', 64, 64);
             sprite.material.map.image = canvas;
             sprite.material.map.needsUpdate = true;
-            sprite.psbValue = val;
+            sprite.vlcValue = val;
         }
 
         function createBar(w, h, color, border) {
@@ -595,8 +599,8 @@
             fg.position.x = -(1 - frac) * (fg.geometry.parameters.width / 2);
         }
 
-        function getSafePSB() {
-            return window.playerPSB ?? 1; // Garante sempre 0 ou 1
+        function getSafeVLC() {
+            return window.playerVLC ?? 1; // Garante sempre 0 ou 1
         }
 
 		
@@ -645,7 +649,7 @@
 			// ===== [4. INICIALIZAÇÃO DOS VALORES LÓGICOS] ====================== 
 		    let ab = type.ab;
 		    let A = ab ? (type.A ? type.A() : Math.round(Math.random())) : null;
-		    let B = ab ? (type.B ? type.B(playerPSB) : Math.round(Math.random())) : null;
+		    let B = ab ? (type.B ? type.B(playerVLC) : Math.round(Math.random())) : null;
 		
 		    // Cálculo de 'ev' com garantia de sincronia
 		    let ev;
@@ -710,7 +714,7 @@
                     
                     // Atualiza A e B (se existirem)
                     if (e.type.A) e.A = e.type.A();
-                    if (e.type.B) e.B = e.type.B(playerPSB); // Passa playerPSB se necessário
+                    if (e.type.B) e.B = e.type.B(playerVLC); // Passa playerVLC se necessário
                     
                     // Recalcula ev (usando a expressão ou função ev)
                     //e.ev = e.type.ev ? e.type.ev() : 
@@ -780,7 +784,7 @@
 		        mothership.generators[1].value = Math.round(Math.random());
 		
 		        // 7. Recalcula o valor lógico (ev) da nave-mãe usando a função definida em ENEMY_TYPES:
-		        //    - Acessa mothership.type.ev(), que calcula (A⊕B).C automaticamente, onde C = PSB do jogador
+		        //    - Acessa mothership.type.ev(), que calcula (A⊕B).C automaticamente, onde C = VLC do jogador
 		        mothership.ev = mothership.type.ev();
 		
 		        // 8. Atualiza o HUD visual da nave-mãe com os novos valores (A, B, ev):
@@ -1007,8 +1011,8 @@
             playerScore = 0;                 // Pontuação zerada
             wave = 1;                        // Volta para a fase 1
             operatorIndex = 0;               // Operador lógico padrão (AND)
-            playerPSB = 1;                   // Valor lógico inicial (1)
-            updatePSBMesh(playerPSB);        // Atualiza visualização do PSB
+            playerVLC = 1;                   // Valor lógico inicial (1)
+            updateVLCMesh(playerVLC);        // Atualiza visualização do VLC
         
             // Reseta timers de disparo
             lastFire = 0;        // Tempo do último tiro do jogador
@@ -1028,11 +1032,11 @@
 	//  -------------------------------------------------------------------------------------------------------------------------------
 	//		1		Caças estáticos (nível 1)				5			Valores fixos (0/1)								-
 	//		2		Caças dinâmicos (nível 2)				6			Valores mudam aleatoriamente					3s
-	//		3		Caças PSB (nível 3)						7			Alternam entre PSB e !PSB do jogador			4s
+	//		3		Caças VLC (nível 3)						7			Alternam entre VLC e !VLC do jogador			4s
 	//		4		Mistura: níveis 1, 2, 3 (4:2:3)			9			Combina comportamentos das waves 1-3		- / 3s / 4s
 	//		5		Cruzadores estáticos (nível 4)			7			Expressões básicas (AND, OR, XOR)				-
 	//		6		Cruzadores dinâmicos (nível 5)			4-7			A e B mudam aleatoriamente						5s
-	//		7		Cruzadores PSB (nível 6)				4-7			A fixo, B = PSB ou !PSB							4s
+	//		7		Cruzadores VLC (nível 6)				4-7			A fixo, B = VLC ou !VLC							4s
 	//		8		Mistura: níveis 1, 5, 7 (4:4:4)			12			Caças estáticos + Cruzadores dinâmicos		- / 5s / 4s
 	//		9		Mistura: níveis 2, 3, 6, 8 (3:3:4:3)	14			Combina naves dinâmicas complexas			3s / 4s / 5s
 	//		10		Nave-mãe + escoltas						1 + extras	Geradores A/B mudam aleatoriamente	
@@ -1043,7 +1047,7 @@
             // Waves 1-3: Níveis 1-3 puros
             if (wave === 1) return ENEMY_TYPES[0]; // Caças estáticos (nível 1)
             if (wave === 2) return ENEMY_TYPES[1]; // Caças dinâmicos (nível 2)
-            if (wave === 3) return ENEMY_TYPES[2]; // Caças PSB (nível 3)
+            if (wave === 3) return ENEMY_TYPES[2]; // Caças VLC (nível 3)
         
             // Wave 4: Mistura de níveis 1-3 (4:2:3)
             if (wave === 4) {
@@ -1057,7 +1061,7 @@
             // Wave 6: Cruzadores dinâmicos (nível 5)
             if (wave === 6) return ENEMY_TYPES[6 + (index % 3)]; // AND, OR, XOR dinâmicos
         
-            // Wave 7: Cruzadores dinâmicos A fixo + B = PSB (nível 6)
+            // Wave 7: Cruzadores dinâmicos A fixo + B = VLC (nível 6)
             if (wave === 7) return ENEMY_TYPES[9 + (index % 3)]; // AND, OR, XOR com B dinâmico
         
             // Wave 8: Mistura de níveis 1, 5, 7 (4:4:4)
@@ -1091,7 +1095,7 @@
 		    
 		    // Define a quantidade de inimigos com base na wave atual (n)
 		    if (n === 3) {		        
-		        nEnemies = 5;    // Wave 3 tem exatamente 5 inimigos (caças PSB)
+		        nEnemies = 5;    // Wave 3 tem exatamente 5 inimigos (caças VLC)
 		    } else if (n >= 8) {		        
 		        nEnemies = 10;   // Waves 8 e 9 têm 10 inimigos (mistura de tipos avançados)
 		    } else {		        
@@ -1145,10 +1149,10 @@
 		    }
 		
 		    // ===== [PAINEL ESQUERDO] =====
-		    // PSB (valor e cor)
-		    const psbElement = document.getElementById('psb-value');
-		    psbElement.textContent = playerPSB;
-		    psbElement.style.color = playerPSB ? '#0090ff' : '#ff2222';
+		    // VLC (valor e cor)
+		    const vlcElement = document.getElementById('vlc-value');
+		    vlcElement.textContent = playerVLC;
+		    vlcElement.style.color = playerVLC ? '#0090ff' : '#ff2222';
 		
 		    // Lista de bombas (operadores)
 		    const bombList = document.getElementById('bomb-list');
@@ -1162,14 +1166,18 @@
 		    // ===== [PAINEL DIREITO] =====
 		    document.getElementById('wave-value').textContent = `${wave}/${maxWaves}`;
 		    document.getElementById('score-value').textContent = playerScore;
-		    document.getElementById('health-value').textContent = 
-		        '■'.repeat(playerHealth) + '□'.repeat(playerMaxHealth - playerHealth);
+		    //document.getElementById('health-value').textContent = 
+		    //    '■'.repeat(playerHealth) + '□'.repeat(playerMaxHealth - playerHealth);
+			document.getElementById('health-value').textContent = '■'.repeat(playerHealth);
+			if (!isLowHealth) {// Cor padrão da vida (verde) - SOMENTE se não estiver em estado de vida baixa
+			    document.getElementById('health-value').style.color = '#00ff88';
+			}
 		    document.getElementById('time-value').textContent = '00:00'; // TEMPO fixo (sem lógica de nave-mãe)
 		
 		    // ===== [REMOVE ELEMENTOS FLUTUANTES ANTIGOS] =====
 		    if (hud.health && hud.health.parentNode) hud.health.parentNode.removeChild(hud.health);
 		    if (hud.score && hud.score.parentNode) hud.score.parentNode.removeChild(hud.score);
-		    if (hud.psb && hud.psb.parentNode) hud.psb.parentNode.removeChild(hud.psb);
+		    if (hud.vlc && hud.vlc.parentNode) hud.vlc.parentNode.removeChild(hud.vlc);
 		    if (hud.op && hud.op.parentNode) hud.op.parentNode.removeChild(hud.op);
 		    if (hud.wave && hud.wave.parentNode) hud.wave.parentNode.removeChild(hud.wave);
 		    // NÃO remove hud.bossGens (pois ele continua sendo exibido acima da nave-mãe, como originalmente)
@@ -1231,11 +1239,11 @@
             if (e.repeat) return;
             keys[e.code] = true;
         
-            // Tecla C - Alternar PSB (NOT) - Funciona em qualquer estado
+            // Tecla C - Alternar VLC (NOT) - Funciona em qualquer estado
             if (e.code === 'KeyC') {
-                playerPSB = 1 - playerPSB;
-                window.playerPSB = playerPSB;
-                updatePSBMesh(playerPSB);
+                playerVLC = 1 - playerVLC;
+                window.playerVLC = playerVLC;
+                updateVLCMesh(playerVLC);
                 return;
             }
         
@@ -1486,12 +1494,12 @@
 						// Coleta os operandos e a operação lógica a ser aplicada aos primeiros p/ verificar se 
 						// o projétil irá gerar dano a nave inimiga ou seu escudo booleano a protejerá
 		                let op = OPERATORS[p.operator];  // Bomba lógica (Operador) selecionada pelo jogador
-		                let psb = playerPSB;   // Valor lógico do jogador (0 ou 1)
+		                let vlc = playerVLC;   // Valor lógico do jogador (0 ou 1)
 		                let ev = e.ev; // Valor lógico do inimigo (calculado em spawnEnemy() ou updateDynamicEnemies())
 		
 		                // Cálculo universal de dano (igual para todas as naves):
-						// Se a operação da bomba lógica sobre o PSB e o valor lógico final da nave inimiga deve ser 1...
-		                if (op.fn(psb, ev) === 1) {   
+						// Se a operação da bomba lógica sobre o VLC e o valor lógico final da nave inimiga deve ser 1...
+		                if (op.fn(vlc, ev) === 1) {   
 		                    e.health--;               // Causa dano: decrementa a vida da nave inimiga
 		                    setBarValue(e.healthBar, e.health / e.maxHealth);  // Causa dano: atualiza isso na barra de vida da nave
 
@@ -1505,7 +1513,7 @@
 		                    }
 		                }
 
-						console.log(`DANO: ${e.expr} | A=${e.A}, B=${e.B} | PSB=${psb}, OP=${op.key} | EV=${e.ev} | RESULT=${op.fn(psb, e.ev)}`);
+						console.log(`DANO: ${e.expr} | A=${e.A}, B=${e.B} | VLC=${vlc}, OP=${op.key} | EV=${e.ev} | RESULT=${op.fn(vlc, e.ev)}`);
 						
 		                scene.remove(p.mesh);
 		                p.alive = false;
@@ -1665,7 +1673,7 @@
                 player.x = Math.max(-PLAY_AREA.x / 2 + 0.8, Math.min(PLAY_AREA.x / 2 - 0.8, player.x));
                 player.y = Math.max(-PLAY_AREA.y / 2 + 0.7, Math.min(PLAY_AREA.y / 2 - 0.7, player.y));
                 playerShip.position.set(player.x, player.y, 0);
-                playerPSBMesh.position.set(player.x, player.y + 1.7, 0);
+                playerVLCMesh.position.set(player.x, player.y + 1.7, 0);
             }
             playerThruster.material.opacity = 0.7 + 0.2 * Math.abs(Math.sin(performance.now() / 110));
         }
