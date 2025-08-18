@@ -148,13 +148,17 @@
             };
 
             // (re)configura o volume dos sons: 10% do total 
-            //Object.values(sounds).forEach(audio => { audio.volume = 0.2; }); 
-			Object.values(sounds).forEach(audio => {
+           // Object.values(sounds).forEach(audio => { audio.volume = 0.2; }); 
+			/*Object.values(sounds).forEach(audio => {
 			    if (audio instanceof HTMLAudioElement) {  // Verifica se é um elemento de áudio válido
 			        audio.volume = 0.01;
 			    }
-			});
 
+				
+			}); */
+
+		    sounds.playlist.forEach(audio => audio.volume = 0.1);  // Playlist (10% volume)
+			sounds.mothership.volume = 0.1;                       // Nave-mãe (10% volume)
         
             function enableAudio() {                
                 audioEnabled = true; // Ativa o flag global que permite tocar sons no jogo
