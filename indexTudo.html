@@ -28,9 +28,9 @@
 		/* PAINEL DIREITO */
 		#right-panel {
 		    position: fixed;
-		    right: 12px;
+		    right: 8px;
 		    top: 12px;
-		    width: 150px; /* Largura original */
+		    width: 150px;
 		    background: rgba(0, 0, 0, 0.7);
 		    border-radius: 5px;
 		    padding: 10px;
@@ -62,7 +62,7 @@
 			font-size: 18px;      /* Mesmo tamanho que .hud-value */
 		    padding: 5px 10px;    /* Espaço interno ao redor do texto de cada bomba 
 			                         1º - espaço vertical (acima e abaixo), 2º - espaço horizontal (esquerda e direita) */
-		    margin-bottom: 8px;   /* Espaço externo abaixo de cada linha de bomba (distância entre itens da lista */
+		    margin-bottom: 6px;   /* Espaço externo abaixo de cada linha de bomba (distância entre itens da lista */
 						
 		}
 
@@ -99,7 +99,7 @@
 	    
 	    <div class="hud-title">TEMPO</div>
 	    <div class="hud-value" id="time-value">00:00</div>
-	    
+			    
 	    <div class="hud-title">PONTOS</div>
 	    <div class="hud-value" id="score-value">0</div>
 	    
@@ -173,6 +173,10 @@
             GAME_OVER: 3,  // Derrota (exibindo tela de game over)
             WIN: 4         // Vitória (inimigos derrotados)
         };
+
+		// ===== [VARIÁVEIS DE TEMPO] ===== //
+		let gameStartTime = 0;  // Etiqueta de tempo do início do jogo
+		let elapsedTime = 0;    // Tempo acumulado em segundos
 
         // ===== [CONTROLE DE WAVES/FASES] ===== //
         let wave = 1,       // Fase atual (começa na wave 1)
@@ -1022,7 +1026,11 @@
             // Reinicia sistema de bombas
             initBombCounts();            // Recarrega contagem de bombas
             bombReplenishedAtScore = {}; // Limpa registro de recargas
-                    
+
+			// Inicia o cronômetro
+		    gameStartTime = Date.now();
+		    elapsedTime = 0;
+			
         }
 
         function getEnemyType(wave, index) {
@@ -1182,8 +1190,15 @@
 		    if (hud.wave && hud.wave.parentNode) hud.wave.parentNode.removeChild(hud.wave);
 		    // NÃO remove hud.bossGens (pois ele continua sendo exibido acima da nave-mãe, como originalmente)
 		}
-        
-       
+
+		
+		function formatTime(seconds) {
+		    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+		    const secs = (seconds % 60).toString().padStart(2, '0');
+		    return `${mins}:${secs}`;
+		}
+
+		
         function clearHUD() {
 
 			// Esconde os painéis laterais
@@ -1688,7 +1703,11 @@
             
             // Atualiza o último registro de tempo
             lastUpdate = now; 
-        
+
+			// Atualização do tempo
+		    elapsedTime = Math.floor((Date.now() - gameStartTime) / 1000);
+		    document.getElementById('time-value').textContent = formatTime(elapsedTime);
+			
             // Lógica executada apenas durante o estado de jogo (PLAYING)
             if (gameState === GAME_STATE.PLAYING) {
                 
