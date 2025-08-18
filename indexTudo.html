@@ -75,11 +75,7 @@
 	</style>
 	
 </head>
-<body>
-
-	<button id="unmute" style="position:fixed; top:10px; left:10px; z-index:10000; padding:8px 15px; background:#0077ff; color:white; border:none; border-radius:5px; cursor:pointer;">
-        CLIQUE AQUI PARA ATIVAR SOM
-   </button>
+<body>	
 
 	<!-- HUD DO JOGO (FICA ESCONDIDO ATÉ INICIAR) -->
 	<div id="left-panel" class="game-hud" style="display:none;">
@@ -106,7 +102,11 @@
 	    <div class="hud-title">VIDA</div>
 	    <div class="hud-value" id="health-value">■■■■■</div>
 	</div>
-    
+
+	<button id="unmute" style="position:fixed; top:10px; left:10px; z-index:10000; padding:8px 15px; background:#0077ff; color:white; border:none; border-radius:5px; cursor:pointer;">
+        CLIQUE AQUI PARA ATIVAR SOM
+    </button>
+	
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
 	
     <script>    
@@ -1719,7 +1719,7 @@
                 // Condição de destruição: 
                 // 1. Tempo esgotado -OU- 
                 // 2. Saiu da área visível (baseado em PLAY_AREA.y atual)
-				const destroyThreshold = -PLAY_AREA.y * 0.6; // 80% da altura (Ajuste para controlar quando desaparece. Quanto MAIOR, 
+				const destroyThreshold = -PLAY_AREA.y * 0.2; // 80% da altura (Ajuste para controlar quando desaparece. Quanto MAIOR, 
                                                                             // mais próximo do final da tela.                
                 if (pu.ttl < 0 || pu.mesh.position.y < destroyThreshold) {
                     scene.remove(pu.mesh);
