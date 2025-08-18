@@ -133,9 +133,9 @@
 
 			   // Playlist de fases normais (ordem aleatória ou sequencial)
 			   playlist: [
-			        new Audio('./sounds/playlist/trilha1.mp3'),
-			        new Audio('./sounds/playlist/trilha2.mp3'),
-			        new Audio('./sounds/playlist/trilha3.ogg')			        
+			        new Audio('./sounds/trilha1.mp3'),
+			        new Audio('./sounds/trilha2.mp3'),
+			        new Audio('./sounds/trilha3.ogg')			        
 			   ],
 			   mothership: new Audio('./sounds/nave_mae.ogg'), // Música da nave-mãe
 			   currentTrack: null,  // Áudio atual
@@ -148,7 +148,12 @@
             };
 
             // (re)configura o volume dos sons: 20% do total 
-            Object.values(sounds).forEach(audio => { audio.volume = 0.2; });  
+            //Object.values(sounds).forEach(audio => { audio.volume = 0.2; }); 
+			Object.values(sounds).forEach(audio => {
+			    if (audio instanceof HTMLAudioElement) {  // Verifica se é um elemento de áudio válido
+			        audio.volume = 0.2;
+			    }
+			});
 
         
             function enableAudio() {                
