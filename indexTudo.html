@@ -116,11 +116,11 @@
             const sounds = {
                // do jogador
                 shoot: new Audio('./sounds/shoot.mp3'),
-                lowHealth: new Audio('./sounds/low_health2.mp3'),
-                booleanShield: new Audio('./sounds/boolean_shield.mp3'),
-                lifeBonus: new Audio('./sounds/life_bonus.mp3'),
+                lowHealth: new Audio('./sounds/low_health2.mp3'),                
                 playerHit: new Audio('./sounds/player_hit.mp3'),
                 powerupCollect: new Audio('./sounds/powerup_collect.mp3'),
+				booleanShield: new Audio('./sounds/boolean_shield.mp3'),
+                lifeBonus: new Audio('./sounds/life_bonus.mp3'),
                 
                // dos inimigos                 
                 explosion: new Audio('./sounds/explosion.mp3'),
@@ -130,52 +130,67 @@
                 quineCannon: new Audio('./sounds/quine_cannon.mp3'),
 
                // Nave mãe
-
-			   // Playlist de fases normais (ordem aleatória ou sequencial)
-			   playlist: [
-			        new Audio('./sounds/trilha1.mp3'),
-			        new Audio('./sounds/trilha2.mp3'),
-			        new Audio('./sounds/trilha3.ogg')			        
-			   ],
-			   mothership: new Audio('./sounds/nave_mae.ogg'), // Música da nave-mãe
-			   currentTrack: null,  // Áudio atual
-			   currentIndex: 0,     // Índice da playlist
+				//TBD			   
 				   
                // do jogo  
                 gameOver: new Audio('./sounds/game_over2.mp3'),
-                victory: new Audio('./sounds/victory.mp3')                
-                
+                victory: new Audio('./sounds/victory.mp3'),
+
+			  // Playlist de músicas de fundo (fases normais)
+			    playlist: [
+			        new Audio('./sounds/trilha1.mp3'),
+			        new Audio('./sounds/trilha2.mp3'),
+			        new Audio('./sounds/trilha3.ogg')			        
+			    ],
+
+			  // Música de fundo para a fase da nave-mãe	
+			    mothership: new Audio('./sounds/nave_mae.ogg'),
+
+			 // Váriáveis da playlist
+			    currentTrack: null,  // Áudio atual
+			    currentTrackIndex: 0,     // Índice da playlist
+				
+			  // Controle global de volumes:
+			    volume: {
+			        music: 0.05,    // 5% para músicas de fundo
+			        effects: 0.2    // 20% para efeitos (padrão)
+    			}
+				
             };
 
-            // (re)configura o volume dos sons: 10% do total 
-            // Object.values(sounds).forEach(audio => { audio.volume = 0.2; }); 
-			/*Object.values(sounds).forEach(audio => {
-			    if (audio instanceof HTMLAudioElement) {  // Verifica se é um elemento de áudio válido
-			        audio.volume = 0.01;
-			    }
-			}); */
 
-		    sounds.playlist.forEach(audio => audio.volume = 0.05);  // Playlist (5% volume)
-			sounds.mothership.volume = 0.05;                        // Nave-mãe (5% volume)
-        
-            function enableAudio() {                
-                audioEnabled = true; // Ativa o flag global que permite tocar sons no jogo
+		 // --- FUNÇÕES DE EXECUÇÃO DE MÚSICAS/SOM --- //
+		
+            function enableAudio() {
+				
+				// Ativa o flag global que permite tocar sons no jogo
+                audioEnabled = true; 
+				
+				// Aplica volumes globais ao ativar
+			    sounds.playlist.forEach(audio => audio.volume = sounds.volume.music);
+			    sounds.mothership.volume = sounds.volume.music;
 				
 				if (wave === 10 || (mothership && mothership.alive)) {
 			        playMothershipTrack();
-			    } else { playPlaylist(); }
-            }
-
-        
-            function playSound(name) {                
+			    } else { 
+					playPlaylist(); 
+				}
+            }  
+		
+            function playSound(name) {
+				
                 // Se o áudio estiver desativado ou não existir, sai da função sem fazer nada
                 if (!audioEnabled || !sounds[name]) return;
                 // define variável para não ficar chamando sounds várias vezes
                 const audio = sounds[name]; 
                 // Reinicia apenas se necessário (opcional), se já estiver tocando
-                audio.currentTime = 0; 
-                // Silencia erros de autoplay/intencionais
-                audio.play().catch(() => {}); 
+                audio.currentTime = 0;
+				// Define volume baseado no tipo (música ou efeito)
+			    audio.volume = (name === 'mothership' || sounds.playlist.includes(audio)) 
+			        ? sounds.volume.music 
+			        : sounds.volume.effects;
+                                
+				audio.play().catch(e => console.log("Erro ao tocar efeito:", e.name, "(Nome:", name + ")"));
             }
         
             document.getElementById('unmute').addEventListener('click', () => {
@@ -183,27 +198,30 @@
                 document.getElementById('unmute').style.display = 'none';
             });            
 
-			// --- FUNÇÕES DE CONTROLE DE MÚSICA --- //
+			
 			function playPlaylist() {
 			    if (sounds.currentTrack && sounds.currentTrack !== sounds.mothership) return;
-			
+
+				// Para a música atual (se for nave-mãe)
 			    if (sounds.currentTrack === sounds.mothership) {
 			        sounds.mothership.pause();
 			        sounds.mothership.currentTime = 0;
 			    }
-			
-			    //const track = sounds.playlist[sounds.currentIndex];
+
+				// Seleção aleatória ou sequencial (comente uma das opções)
+			    /* const track = sounds.playlist[sounds.currentTrackIndex];  // Sequencial */
 				const track = sounds.playlist[Math.floor(Math.random() * sounds.playlist.length)]; // Aleatório
-			    sounds.currentIndex = (sounds.currentIndex + 1) % sounds.playlist.length;
+				
+			    sounds.currentTrackIndex = (sounds.currentTrackIndex + 1) % sounds.playlist.length;
 			
 			    track.loop = false;
-			    track.volume = 0.4;
+			    track.volume = sounds.volume.music; // Usa volume centralizado
 			    track.play()
 			        .then(() => {
 			            sounds.currentTrack = track;
 			            track.onended = () => playPlaylist();
-			        })
-			        .catch(e => console.log("Erro na playlist:", e));
+			        })			        
+					.catch(e => console.log("Erro ao tocar playlist:", e.name, "(Track:", track.src + ")"));
 			}
 		
 			function playMothershipTrack() {
@@ -214,10 +232,10 @@
 			    }
 			
 			    sounds.mothership.loop = true;
-			    sounds.mothership.volume = 0.4;
+			    sounds.mothership.volume = sounds.volume.music; // Usa volume centralizado
 			    sounds.mothership.play()
-			        .then(() => sounds.currentTrack = sounds.mothership)
-			        .catch(e => console.log("Erro na nave-mãe:", e));
+			        .then(() => sounds.currentTrack = sounds.mothership)			        
+					.catch(e => console.log("Erro ao tocar nave-mãe:", e.name));
 			}
 
          // ===== [FIM DA SEÇÃO DE SONS] ===== //
@@ -778,9 +796,7 @@
                     if (e.type.A) e.A = e.type.A();
                     if (e.type.B) e.B = e.type.B(playerVLC); // Passa playerVLC se necessário
                     
-                    // Recalcula ev (usando a expressão ou função ev)
-                    //e.ev = e.type.ev ? e.type.ev() : 
-                    //      (e.A !== null && e.B !== null ? eval(e.expr.replace('.', '&').replace('+', '|').replace('⊕', '^')) : null);
+                    // Recalcula ev (usando a expressão ou função ev)                   
 					e.ev = e.type.ev(); // SEMPRE usa a função definida no tipo do inimigo
                     
                     // Atualiza o sprite da expressão (HUD)
@@ -1319,44 +1335,46 @@
         
             // Tecla C - Alternar VLC (NOT) - Funciona em qualquer estado
             if (e.code === 'KeyC') {
-                playerVLC = 1 - playerVLC;
-                window.playerVLC = playerVLC;
-                updateVLCMesh(playerVLC);
+                playerVLC = 1 - playerVLC;		// Gera o contraditório do VLC
+                window.playerVLC = playerVLC;	
+                updateVLCMesh(playerVLC);		// Atualiza o valor do VLC sobre o jogador
                 return;
             }
         
             switch (gameState) {
                 case GAME_STATE.START:
-                    if (e.code === 'Space') {
-                        removeOverlay(startOverlay);
-                        resetGame();
-                        gameState = GAME_STATE.PLAYING;
-                        startWave(wave);
+                    if (e.code === 'Space') {  // se está na tela de apresentação e quer iniciar o jogo...
+                        removeOverlay(startOverlay);		// Remove a tela inicial
+                        resetGame();                       	// Reseta para a fase 1
+                        gameState = GAME_STATE.PLAYING;    	// muda o estado do jogo
+                        startWave(wave);				   	// Começa na fase 1
                     }
                     break;
         
                 case GAME_STATE.GAME_OVER:
-                    if (e.code === 'KeyR') {
-                        removeOverlay(gameOverOverlay);
-                        clearHUD();
-                        resetGame();
-                        gameState = GAME_STATE.PLAYING;
-                        startWave(wave);
+                    if (e.code === 'KeyR') {   // se perdeu e quer reiniciar o jogo...
+                        removeOverlay(gameOverOverlay);		// Remove a tela de término de jogo
+                        clearHUD();					    	// Limpa HUD
+                        resetGame();                       	// Reseta para a fase 1
+                        gameState = GAME_STATE.PLAYING;    	// muda o estado do jogo
+                        startWave(wave);				   	// Começa na fase 1						
+        				if (audioEnabled) playPlaylist();  	// Reinicia a playlist padrão (não precisa verificar wave)
                     }
                     break;
         
                 case GAME_STATE.WIN:
-                    if (e.code === 'KeyR') {
-                        removeOverlay(winOverlay);
-                        clearHUD();
-                        resetGame();
-                        gameState = GAME_STATE.PLAYING;
-                        startWave(wave);
+                    if (e.code === 'KeyR') {   // se venceu e quer reiniciar o jogo...
+                        removeOverlay(winOverlay);			// Remove a tela de vitória do jogo
+                        clearHUD();					    	// Limpa HUD
+                        resetGame();                       	// Reseta para a fase 1
+                        gameState = GAME_STATE.PLAYING;    	// muda o estado do jogo
+                        startWave(wave);				   	// Começa na fase 1
+						if (audioEnabled) playPlaylist();  	// Reinicia a playlist padrão (não precisa verificar wave)
                     }
                     break;
         
                 case GAME_STATE.PLAYING:
-                    if (e.code === 'KeyP') {
+                    if (e.code === 'KeyP') {   // se está jogando e decide pausar o jogo...
                         // Cria overlay de pause com transparência
                         pauseOverlay = document.createElement('div');
                         pauseOverlay.style.position = 'fixed';
@@ -1390,15 +1408,23 @@
                         pauseOverlay.appendChild(subtext);
                         
                         document.body.appendChild(pauseOverlay);
-                        gameState = GAME_STATE.PAUSED;
+
+						// 2. Pausa QUALQUER áudio em execução (playlist ou nave-mãe)
+				        if (sounds.currentTrack) {
+				            sounds.currentTrack.pause(); 	// Congela no ponto atual
+				        }
+
+						// 3. Pausa o jogo
+                        gameState = GAME_STATE.PAUSED;		// Troca o estado
+						
                     }
         
-                    if (e.code === 'Tab') {
+                    if (e.code === 'Tab') {  // Se quer trocar a bomba lógica...
                         operatorIndex = (operatorIndex + 1) % OPERATORS.length;
                         e.preventDefault();
                     }
         
-                    if (e.code === 'Space') {
+                    if (e.code === 'Space') {  // se quer lançar bombas no inimigo...
                         let now = performance.now() / 1000;
                         const currentOperatorKey = OPERATORS[operatorIndex].key;
                         if (bombCounts[currentOperatorKey] > 0 && now - lastFire > fireDelay) {
@@ -1410,10 +1436,20 @@
                     break;
         
                 case GAME_STATE.PAUSED:
-                    if (e.code === 'KeyP') {
+                    if (e.code === 'KeyP') {  // se quer retomar o jogo que está pausado...
+																	
+						// 1. Retoma o áudio atual (se existir e o áudio estiver habilitado)
+				        if (sounds.currentTrack && audioEnabled) {
+				            sounds.currentTrack.play()
+				                .catch(e => console.log("Erro ao retomar áudio:", e.name));
+				        }
+						
+						// 2. Muda o estado do jogo
+                        gameState = GAME_STATE.PLAYING;  // jogando
+
+						//3. Remove a tela de pausa
                         removeOverlay(pauseOverlay);
-                        pauseOverlay = null;
-                        gameState = GAME_STATE.PLAYING;                        
+						pauseOverlay = null;   // Limpeza final
                     }
                     break;
             }
@@ -1683,9 +1719,9 @@
                 // Condição de destruição: 
                 // 1. Tempo esgotado -OU- 
                 // 2. Saiu da área visível (baseado em PLAY_AREA.y atual)
-                const isBelowScreen = pu.mesh.position.y < -PLAY_AREA.y * 0.8; // Ajuste para controlar quando desaparece. Quanto maior, 
-                                                                               // mais próximo do final da tela.
-                if (pu.ttl < 0 || isBelowScreen) {
+				const destroyThreshold = -PLAY_AREA.y * 0.8; // 80% da altura (Ajuste para controlar quando desaparece. Quanto MAIOR, 
+                                                                            // mais próximo do final da tela.                
+                if (pu.ttl < 0 || pu.mesh.position.y < destroyThreshold) {
                     scene.remove(pu.mesh);
                     pu.alive = false;
                     continue;
