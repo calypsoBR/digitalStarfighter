@@ -147,11 +147,11 @@
                 
             };
 
-            // (re)configura o volume dos sons: 20% do total 
+            // (re)configura o volume dos sons: 10% do total 
             //Object.values(sounds).forEach(audio => { audio.volume = 0.2; }); 
 			Object.values(sounds).forEach(audio => {
 			    if (audio instanceof HTMLAudioElement) {  // Verifica se é um elemento de áudio válido
-			        audio.volume = 0.2;
+			        audio.volume = 0.1;
 			    }
 			});
 
