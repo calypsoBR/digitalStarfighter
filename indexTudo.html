@@ -148,13 +148,11 @@
             };
 
             // (re)configura o volume dos sons: 10% do total 
-           // Object.values(sounds).forEach(audio => { audio.volume = 0.2; }); 
+            // Object.values(sounds).forEach(audio => { audio.volume = 0.2; }); 
 			/*Object.values(sounds).forEach(audio => {
 			    if (audio instanceof HTMLAudioElement) {  // Verifica se é um elemento de áudio válido
 			        audio.volume = 0.01;
 			    }
-
-				
 			}); */
 
 		    sounds.playlist.forEach(audio => audio.volume = 0.05);  // Playlist (5% volume)
@@ -1201,7 +1199,7 @@
 
 		function updateHUD() {
 			
-		    // ===== [MANTIDO: Lógica de alertas de vida baixa] =====
+		    // ===== [Lógica de alertas de vida baixa] =====
 		    const isLowHealth = playerHealth <= playerMaxHealth * 0.2;
 		    if (isLowHealth && gameState === GAME_STATE.PLAYING) {
 		        if (!hud.lowHealthSoundInterval) {
@@ -1244,9 +1242,9 @@
 			document.getElementById('health-value').textContent = '■'.repeat(playerHealth);
 			if (!isLowHealth) {// Cor padrão da vida (verde) - SOMENTE se não estiver em estado de vida baixa
 			    document.getElementById('health-value').style.color = '#00ff88';
-			}
-		    document.getElementById('time-value').textContent = '00:00'; // TEMPO fixo (sem lógica de nave-mãe)
-		
+			}		    
+		    document.getElementById('time-value').textContent = formatTime(elapsedTime);
+			
 		    // ===== [REMOVE ELEMENTOS FLUTUANTES ANTIGOS] =====
 		    if (hud.health && hud.health.parentNode) hud.health.parentNode.removeChild(hud.health);
 		    if (hud.score && hud.score.parentNode) hud.score.parentNode.removeChild(hud.score);
