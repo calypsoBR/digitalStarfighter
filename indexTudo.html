@@ -1641,6 +1641,8 @@
                         
                         // Ativa estado de Game Over
                         gameState = GAME_STATE.GAME_OVER;
+						sounds.currentTrack.pause(); // Para a música atual
+    					sounds.currentTrack.currentTime = 0; // Reinicia a música
                         playSound('gameOver'); // Toca som de derrota
                         
                         // Exibe overlay de Game Over
