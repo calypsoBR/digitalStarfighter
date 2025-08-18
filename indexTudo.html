@@ -130,7 +130,17 @@
                 quineCannon: new Audio('./sounds/quine_cannon.mp3'),
 
                // Nave mãe
-                
+
+			   // Playlist de fases normais (ordem aleatória ou sequencial)
+			   playlist: [
+			        new Audio('./sounds/playlist/trilha1.mp3'),
+			        new Audio('./sounds/playlist/trilha2.mp3'),
+			        new Audio('./sounds/playlist/trilha3.ogg')			        
+			   ],
+			   mothership: new Audio('./sounds/nave_mae.ogg'), // Música da nave-mãe
+			   currentTrack: null,  // Áudio atual
+			   currentIndex: 0      // Índice da playlist
+				   
                // do jogo  
                 gameOver: new Audio('./sounds/game_over2.mp3'),
                 victory: new Audio('./sounds/victory.mp3')                
@@ -142,7 +152,11 @@
 
         
             function enableAudio() {                
-                audioEnabled = true; // Ativa o flag global que permite tocar sons no jogo                
+                audioEnabled = true; // Ativa o flag global que permite tocar sons no jogo
+				
+				if (wave === 10 || (mothership && mothership.alive)) {
+			        playMothershipTrack();
+			    } else { playPlaylist(); }
             }
 
         
@@ -161,7 +175,44 @@
                 enableAudio();
                 document.getElementById('unmute').style.display = 'none';
             });            
-        
+
+			// --- FUNÇÕES DE CONTROLE DE MÚSICA --- //
+			function playPlaylist() {
+			    if (sounds.currentTrack && sounds.currentTrack !== sounds.mothership) return;
+			
+			    if (sounds.currentTrack === sounds.mothership) {
+			        sounds.mothership.pause();
+			        sounds.mothership.currentTime = 0;
+			    }
+			
+			    //const track = sounds.playlist[sounds.currentIndex];
+				const track = sounds.playlist[Math.floor(Math.random() * sounds.playlist.length)]; // Aleatório
+			    sounds.currentIndex = (sounds.currentIndex + 1) % sounds.playlist.length;
+			
+			    track.loop = false;
+			    track.volume = 0.4;
+			    track.play()
+			        .then(() => {
+			            sounds.currentTrack = track;
+			            track.onended = () => playPlaylist();
+			        })
+			        .catch(e => console.log("Erro na playlist:", e));
+			}
+		
+			function playMothershipTrack() {
+			    if (sounds.currentTrack && sounds.currentTrack !== sounds.mothership) {
+			        sounds.currentTrack.pause();
+			        sounds.currentTrack.currentTime = 0;
+			        sounds.currentTrack.onended = null;
+			    }
+			
+			    sounds.mothership.loop = true;
+			    sounds.mothership.volume = 0.4;
+			    sounds.mothership.play()
+			        .then(() => sounds.currentTrack = sounds.mothership)
+			        .catch(e => console.log("Erro na nave-mãe:", e));
+			}
+
          // ===== [FIM DA SEÇÃO DE SONS] ===== //
              
         
@@ -193,19 +244,19 @@
             { key: 'XNOR', fn: (a, b) => 1 - (a ^ b) }
         ];
 
-        // ===== [ TIPOS DE INIMIGOS (NAVES E SUAS CARACTERÍSTICAS) ] ===== //
+      // ===== [ TIPOS DE INIMIGOS (NAVES E SUAS CARACTERÍSTICAS) ] ===== //
 
       //  Nível	    Tipo de Nave	           Comportamento Esperado	             Intervalo
       //  ---------------------------------------------------------------------------------------
-      //   1       Caças estáticos        Valor lógico não muda depois de gerado         X  
-      //   2	   Caças Dinâmicos	      Valor lógico muda aleatoriamente (0/1)	     3s
-      //   3	   Caças VLC	          Alterna entre VLC e !VLC do jogador            4s
-      //   4       Cruzadores estáticos   Valor lógico não muda depois de gerado         X  
-      //   5	   Cruzadores Dinâmicos	  Valores A e B mudam aleatoriamente	         5s
-      //   6	   Cruzadores VLC	      A fixo, B alterna entre VLC e !VLC	         4s
-      //   7       Destroyers estáticos   Valor lógico não muda depois de gerado         X  
-      //   8	   Destroyers Dinâmicos	  Expressões complexas com A e B dinâmicos	     5s
-      //   9       Nave-Mãe	              Geradores A e B mudam aleatoriamente	         5s
+      //   1		Caças estáticos        	Valor lógico não muda depois de gerado       X  
+      //   2		Caças Dinâmicos	      	Valor lógico muda aleatoriamente (0/1)	     3s
+      //   3		Caças VLC	          	Alterna entre VLC e !VLC do jogador          4s
+      //   4		Cruzadores estáticos   	Valor lógico não muda depois de gerado       X  
+      //   5		Cruzadores Dinâmicos	Valores A e B mudam aleatoriamente	         5s
+      //   6		Cruzadores VLC	      	A fixo, B alterna entre VLC e !VLC	         4s
+      //   7		Destroyers estáticos   	Valor lógico não muda depois de gerado       X  
+      //   8		Destroyers Dinâmicos	Expressões complexas com A e B dinâmicos	 5s
+      //   9		Nave-Mãe	            Geradores A e B mudam aleatoriamente	     5s
       //  --------------------------------------------------------------------------------------
             
         const ENEMY_TYPES = [
@@ -1093,11 +1144,15 @@
             
             // Wave 10: Nave-mãe + escoltas
             if (n === 10) {
-                spawnMothership();  // Spawna a nave-mãe (função separada que cria a nave-boss)
+                playMothershipTrack();
+				spawnMothership();  // Spawna a nave-mãe (função separada que cria a nave-boss)
                 waveEnemies = 1;    // Define o contador de inimigos como 1 (só a nave-mãe, escoltas são extras)
                 return;             // Sai da função, pois a wave 10 é tratada de forma especial
-            }
+            } else if (n >= 1 && n <= 8) {
+		        playPlaylist();
+		    }
 
+			
 			// Waves 1-9: Inimigos normais
 		    let nEnemies;
 		    
@@ -1131,7 +1186,8 @@
 		        // Cria o inimigo e adiciona ao array global
 		        enemies.push(spawnEnemy(type, x, y));
             
-            }
+            }			
+			
         }
 
 		function updateHUD() {
@@ -1797,6 +1853,16 @@
         
         window.addEventListener('keydown', keyDown);
         window.addEventListener('keyup', keyUp);
+
+		window.addEventListener('blur', () => {
+	    	if (sounds.currentTrack) sounds.currentTrack.pause();
+		});
+		
+		window.addEventListener('focus', () => {
+		    if (audioEnabled && sounds.currentTrack) {
+		        sounds.currentTrack.play().catch(e => {});
+		    }
+		});
 
         createRenderer();
         createCamera();
