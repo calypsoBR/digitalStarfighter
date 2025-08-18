@@ -28,7 +28,7 @@
 		/* PAINEL DIREITO */
 		#right-panel {
 		    position: fixed;
-		    right: 8px;
+		    right: 20px;
 		    top: 12px;
 		    width: 150px;
 		    background: rgba(0, 0, 0, 0.7);
@@ -60,9 +60,9 @@
 		
 		.bomb-entry {
 			font-size: 18px;      /* Mesmo tamanho que .hud-value */
-		    padding: 5px 10px;    /* Espaço interno ao redor do texto de cada bomba 
+		    padding: 4px 10px;    /* Espaço interno ao redor do texto de cada bomba 
 			                         1º - espaço vertical (acima e abaixo), 2º - espaço horizontal (esquerda e direita) */
-		    margin-bottom: 6px;   /* Espaço externo abaixo de cada linha de bomba (distância entre itens da lista */
+		    margin-bottom: 4px;   /* Espaço externo abaixo de cada linha de bomba (distância entre itens da lista */
 						
 		}
 
@@ -391,7 +391,7 @@
         const POWERUP_COLOR = 0x00ff00;         // Cor verde dos power-ups
         
         // ===== [ CONSTANTES DA AREA DO JOGO ] ===== //
-        const PLAY_AREA = { x: 30, y: 20 };     // Dimensões da área jogável (unidades 3D)  o dobro do original = x: 16, y: 10
+        const PLAY_AREA = { x: 30, y: 40 };     // Dimensões da área jogável (unidades 3D)  o dobro do original = x: 16, y: 10
 
         // ===== [ VARIÁVEIS DE RENDERIZAÇÃO ] ===== //
         let renderer, scene, camera;            // Objetos principais do Three.js
