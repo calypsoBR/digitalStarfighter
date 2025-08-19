@@ -212,9 +212,9 @@
 			        sounds.currentTrack.pause();
 			        sounds.currentTrack.currentTime = 0;
 			    }
-						    
-				// 2. Recria a fila se estiver vazia E não houver música tocando
-    			if (audioSettings.playlistQueue.length === 0 && !sounds.currentTrack) {
+								
+				// 2. Se não há fila OU a música atual acabou, recria a fila
+    			if (audioSettings.playlistQueue.length === 0) {
 			        audioSettings.playlistQueue = [...sounds.playlist]; // Cópia da playlist original
 			
 			        // Embaralha a fila se estiver em modo aleatório
@@ -231,7 +231,9 @@
 			    track.loop = false;
 			    track.play()
 			        .then(() => {
-			            track.onended = () => playPlaylist(); // Chama a próxima ao terminar
+			            track.onended = () => { //playPlaylist(); // Chama a próxima ao terminar
+							if (gameState === GAME_STATE.PLAYING) playPlaylist(); // Só continua se o jogo estiver ativo
+						};
 			        })
 			        .catch(e => console.log("Erro ao tocar:", e));
 			}
@@ -1102,6 +1104,9 @@
 
 			// Reseta a fila de músicas
     		audioSettings.playlistQueue = [];
+				
+			// Reinicia a música
+			if (audioEnabled) playPlaylist(); 
 			
             // Recria elementos essenciais           
             createPlayer();      // Recria a nave do jogador        
@@ -1194,7 +1199,7 @@
                 waveEnemies = 1;    // Define o contador de inimigos como 1 (só a nave-mãe, escoltas são extras)
                 return;             // Sai da função, pois a wave 10 é tratada de forma especial
             } /*else if (n >= 1 && n <= 8) {
-		        playPlaylist();
+		        ();
 		    }*/
 			
 			// Fases 1-9: Inimigos normais
@@ -1378,8 +1383,7 @@
                         clearHUD();					    	// Limpa HUD
                         resetGame();                       	// Reseta para a fase 1
                         gameState = GAME_STATE.PLAYING;    	// muda o estado do jogo
-                        startWave(wave);				   	// Começa na fase 1						
-        				if (audioEnabled) playPlaylist();  	// Reinicia a playlist padrão (não precisa verificar wave)
+                        startWave(wave);				   	// Começa na fase 1						        				
                     }
                     break;
         
@@ -1389,8 +1393,7 @@
                         clearHUD();					    	// Limpa HUD
                         resetGame();                       	// Reseta para a fase 1
                         gameState = GAME_STATE.PLAYING;    	// muda o estado do jogo
-                        startWave(wave);				   	// Começa na fase 1
-						if (audioEnabled) playPlaylist();  	// Reinicia a playlist padrão (não precisa verificar wave)
+                        startWave(wave);				   	// Começa na fase 1						
                     }
                     break;
         
