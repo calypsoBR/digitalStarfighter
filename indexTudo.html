@@ -111,8 +111,11 @@
 	
     <script>    
 
-         // ===== [SEÇÃO DE SONS DO JOGO] ===== //
+        			 // ===== [INÍCIO DA SEÇÃO DE SONS DO JOGO] ===== //
+	
             let audioEnabled = false;
+
+		// --- CONSTANTES DE MÚSICA/SOM --- //		
             const sounds = {
                // do jogador
                 shoot: new Audio('./sounds/shoot.mp3'),
@@ -142,27 +145,33 @@
 			        new Audio('./sounds/trilha2.mp3'),
 			        new Audio('./sounds/trilha3.ogg')			        
 			    ],
-
+				
+				playlistQueue: [], // Fila de execução da playlist (Inicializa a fila vazia)
+		
 			  // Música de fundo para a fase da nave-mãe	
 			    mothership: new Audio('./sounds/nave_mae.ogg'),
 
 			 // Váriáveis da playlist
-			    currentTrack: null,  // Áudio atual
+			    currentTrack: null,       // Áudio atual
 			    currentTrackIndex: 0,     // Índice da playlist
 				
 			  // Controle global de volumes:
 			    volume: {
-			        music: 0.1,     // 10% para músicas de fundo
+			        music: 0.15,     // 10% para músicas de fundo
 			        effects: 0.2    // 20% para efeitos (padrão)
     			}
 				
             };
 
+			const audioSettings = {
+			    isShuffleMode: true,  // true = aleatório | false = sequencial
+			    playlistQueue: []     // Fila de músicas (será preenchida dinamicamente)
+			};
 
+		
 		 // --- FUNÇÕES DE EXECUÇÃO DE MÚSICAS/SOM --- //
 		
-            function enableAudio() {
-				
+            function enableAudio() {				
 				// Ativa o flag global que permite tocar sons no jogo
                 audioEnabled = true; 
 				
@@ -177,8 +186,7 @@
 				}
             }  
 		
-            function playSound(name) {
-				
+            function playSound(name) {				
                 // Se o áudio estiver desativado ou não existir, sai da função sem fazer nada
                 if (!audioEnabled || !sounds[name]) return;
                 // define variável para não ficar chamando sounds várias vezes
@@ -198,30 +206,41 @@
                 document.getElementById('unmute').style.display = 'none';
             });            
 
-			
 			function playPlaylist() {
-			    if (sounds.currentTrack && sounds.currentTrack !== sounds.mothership) return;
-
-				// Para a música atual (se for nave-mãe)
-			    if (sounds.currentTrack === sounds.mothership) {
-			        sounds.mothership.pause();
-			        sounds.mothership.currentTime = 0;
+			    // 1. Pausa a música atual (se existir)
+			    if (sounds.currentTrack) {
+			        sounds.currentTrack.pause();
+			        sounds.currentTrack.currentTime = 0;
 			    }
-
-				// Seleção aleatória ou sequencial (comente uma das opções)
-			    /* const track = sounds.playlist[sounds.currentTrackIndex];  // Sequencial */
-				const track = sounds.playlist[Math.floor(Math.random() * sounds.playlist.length)]; // Aleatório
-				
-			    sounds.currentTrackIndex = (sounds.currentTrackIndex + 1) % sounds.playlist.length;
 			
+			    // 2. Recria a fila se estiver vazia
+			    if (audioSettings.playlistQueue.length === 0) {
+			        audioSettings.playlistQueue = [...sounds.playlist]; // Cópia da playlist original
+			
+			        // Embaralha se estiver em modo aleatório
+			        if (audioSettings.isShuffleMode) {
+			            shuffleArray(audioSettings.playlistQueue);
+			        }
+			    }
+			
+			    // 3. Pega a próxima música da fila
+			    const track = audioSettings.playlistQueue.shift(); // Remove o primeiro item
+			    sounds.currentTrack = track;
+			
+			    // 4. Toca e prepara a próxima
 			    track.loop = false;
-			    track.volume = sounds.volume.music; // Usa volume centralizado
 			    track.play()
 			        .then(() => {
-			            sounds.currentTrack = track;
-			            track.onended = () => playPlaylist();
-			        })			        
-					.catch(e => console.log("Erro ao tocar playlist:", e.name, "(Track:", track.src + ")"));
+			            track.onended = () => playPlaylist(); // Chama a próxima ao terminar
+			        })
+			        .catch(e => console.log("Erro ao tocar:", e));
+			}
+
+			function shuffleArray(array) {
+			    for (let i = array.length - 1; i > 0; i--) {
+			        const j = Math.floor(Math.random() * (i + 1));
+			        [array[i], array[j]] = [array[j], array[i]];
+			    }
 			}
 		
 			function playMothershipTrack() {
@@ -238,7 +257,7 @@
 					.catch(e => console.log("Erro ao tocar nave-mãe:", e.name));
 			}
 
-         // ===== [FIM DA SEÇÃO DE SONS] ===== //
+         			// ===== [FIM DA SEÇÃO DE SONS DO JOGO] ===== //
              
         
         // ===== [DEFINIÇÃO DOS ESTADOS DO JOGO] ===== //
@@ -1080,7 +1099,10 @@
             explosions = [];       // Efeitos de explosão
             powerUps = [];         // Power-ups coletáveis
             mothership = null;     // Remove referência à nave-mãe
-        
+
+			// Reseta a fila de músicas
+    		audioSettings.playlistQueue = [];
+			
             // Recria elementos essenciais           
             createPlayer();      // Recria a nave do jogador        
             
@@ -1719,7 +1741,7 @@
                 // Condição de destruição: 
                 // 1. Tempo esgotado -OU- 
                 // 2. Saiu da área visível (baseado em PLAY_AREA.y atual)
-				const destroyThreshold = -PLAY_AREA.y * 0.2; // 80% da altura (Ajuste para controlar quando desaparece. Quanto MAIOR, 
+				const destroyThreshold = -PLAY_AREA.y * 0.95; // 80% da altura (Ajuste para controlar quando desaparece. Quanto MAIOR, 
                                                                             // mais próximo do final da tela.                
                 if (pu.ttl < 0 || pu.mesh.position.y < destroyThreshold) {
                     scene.remove(pu.mesh);
