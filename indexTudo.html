@@ -201,11 +201,6 @@
 				audio.play().catch(e => console.log("Erro ao tocar efeito:", e.name, "(Nome:", name + ")"));
             }
         
-            document.getElementById('unmute').addEventListener('click', () => {
-                enableAudio();
-                document.getElementById('unmute').style.display = 'none';
-            });            
-
 			function playPlaylist() {
 			    // 1. Pausa a música atual (se existir)
 			    if (sounds.currentTrack) {
@@ -258,6 +253,11 @@
 			        .then(() => sounds.currentTrack = sounds.mothership)			        
 					.catch(e => console.log("Erro ao tocar nave-mãe:", e.name));
 			}
+
+			document.getElementById('unmute').addEventListener('click', () => {
+                enableAudio();
+                document.getElementById('unmute').style.display = 'none';
+            });            
 
          			// ===== [FIM DA SEÇÃO DE SONS DO JOGO] ===== //
              
