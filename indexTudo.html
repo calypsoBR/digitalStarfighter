@@ -1760,9 +1760,9 @@
                 // Condição de destruição: 
                 // 1. Tempo esgotado -OU- 
                 // 2. Saiu da área visível (baseado em PLAY_AREA.y atual)
-				const destroyThreshold = -PLAY_AREA.y * 1; // 100% da altura (Ajuste para controlar quando desaparece. Quanto MAIOR, 
+				const destroyThreshold = -PLAY_AREA.y * 0.8; // 80% da altura (Ajuste para controlar quando desaparece. Quanto MAIOR, 
                                                                             // mais próximo do final da tela.                
-                if (pu.ttl < 0 || pu.mesh.position.y < destroyThreshold) {
+                if (pu.ttl < 0 || pu.mesh.position.y < 1.5*destroyThreshold) {
                     scene.remove(pu.mesh);
                     pu.alive = false;
                     continue;
