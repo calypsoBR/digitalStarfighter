@@ -62,8 +62,7 @@
 			font-size: 18px;      /* Mesmo tamanho que .hud-value */
 		    padding: 4px 10px;    /* Espaço interno ao redor do texto de cada bomba 
 			                         1º - espaço vertical (acima e abaixo), 2º - espaço horizontal (esquerda e direita) */
-		    margin-bottom: 4px;   /* Espaço externo abaixo de cada linha de bomba (distância entre itens da lista */
-						
+		    margin-bottom: 4px;   /* Espaço externo abaixo de cada linha de bomba (distância entre itens da lista */						
 		}
 
 		/* Retângulo que indica qual bomba está selecionada */
@@ -103,9 +102,24 @@
 	    <div class="hud-value" id="health-value">■■■■■</div>
 	</div>
 
-	<button id="unmute" style="position:fixed; top:10px; left:10px; z-index:10000; padding:8px 15px; background:#0077ff; color:white; border:none; border-radius:5px; cursor:pointer;">
-        CLIQUE AQUI PARA ATIVAR SOM
-    </button>
+	<button 
+	    id="unmute" 
+	    style="
+	        position: fixed;
+	        top: 70%;
+	        left: 50%;
+	        transform: translateX(-50%);
+	        z-index: 10000;
+	        padding: 8px 15px;
+	        background: #0077ff;
+	        color: white;
+	        border: none;
+	        border-radius: 5px;
+	        cursor: pointer;
+	    "
+	>
+	    CLIQUE ANTE AQUI PARA ATIVAR SOM!
+	</button>
 	
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
 	
