@@ -268,11 +268,25 @@
 					.catch(e => console.log("Erro ao tocar nave-mãe:", e.name));
 			}
 
-			document.getElementById('unmute').addEventListener('click', () => {
-                enableAudio();
-                document.getElementById('unmute').style.display = 'none';
-            });            
+			//document.getElementById('unmute').addEventListener('click', () => {
+            //    enableAudio();
+            //    document.getElementById('unmute').style.display = 'none';
+           // });            
 
+			document.getElementById('unmute').addEventListener('click', function() {
+			    // 1. Esconde o botão IMEDIATAMENTE (antes de qualquer lógica)
+			    this.style.display = 'none';			    
+			    // 2. Habilita o áudio (chama enableAudio())
+			    enableAudio();			    
+			    // 3. Se estiver na tela inicial (START), inicia o jogo automaticamente
+			    if (gameState === GAME_STATE.START) {
+			        removeOverlay(startOverlay);
+			        resetGame();
+			        gameState = GAME_STATE.PLAYING;
+			        startWave(wave);
+			    }
+			});
+		
          			// ===== [FIM DA SEÇÃO DE SONS DO JOGO] ===== //
              
         
