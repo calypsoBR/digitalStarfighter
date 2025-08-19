@@ -71,6 +71,17 @@
 		    border-left: 2px solid #0077ff;
 		}
 		
+		/* Cores do escudo no HUD */
+		#shield-value.ready {
+		    color: #00ff88;    /* Verde (3 cargas - pronto) */
+		}
+		#shield-value.charging {
+		    color: #ff9900;    /* Laranja (1-2 cargas - carregando) */
+		}
+		#shield-value.empty {
+		    color: #ff3333;    /* Vermelho (0 cargas - vazio) */
+		}
+		
 	</style>
 	
 </head>
@@ -83,7 +94,10 @@
 	    
 	    <div class="hud-title">VLC</div>
 	    <div class="hud-value" id="vlc-value">1</div>
-	    
+
+		<div class="hud-title">ESCUDO</div>
+		<div class="hud-value" id="shield-value">■■■</div>
+		
 	    <div class="hud-title">MUNIÇÃO</div>
 	    <div id="bomb-list"></div>
 	</div>
@@ -138,6 +152,7 @@
                 powerupCollect: new Audio('./sounds/powerup_collect.mp3'),
 				booleanShield: new Audio('./sounds/boolean_shield.mp3'),
                 lifeBonus: new Audio('./sounds/life_bonus.mp3'),
+				shieldHit: new Audio('./sounds/shield_hit.mp3'),
                 
                // dos inimigos                 
                 explosion: new Audio('./sounds/explosion.mp3'),
@@ -518,13 +533,18 @@
 
         
         // ===== [ VARIÁVEIS DO JOGADOR ] ===== //
-        let player,                             // Objeto com posição/speed do jogador
-            playerVLC = 1,                      // Valor lógico atual do jogador (0 ou 1)
-            playerHealth = 5,                   // Vida atual
-            playerMaxHealth = 5,                // Vida máxima
-            playerScore = 0;                    // Pontuação
-            window.playerVLC = playerVLC;       // cria uma referência global
-        
+        let player,                         // Objeto com posição/speed do jogador
+            playerVLC = 1,                  // Valor lógico atual do jogador (0 ou 1)
+            playerHealth = 5,               // Vida atual
+            playerMaxHealth = 5,            // Vida máxima
+            playerScore = 0,                // Pontuação
+			playerShield = false,         	// Estado do escudo (ativo/inativo)  
+			shieldCharges = 3,           	// Cargas iniciais (0 a 3)  
+			shieldCooldown = 60,         	// Tempo de recarga em segundos  
+			shieldTimer = 0,             	// Contador de tempo para recarga
+			shieldAura;                     // Aura do escudo booleano
+        window.playerVLC = playerVLC; 		// cria uma referência global
+		
         // ===== [ OBJETOS 3D DO JOGADOR ] ===== //
         let playerShip,                         // Malha 3D da nave
             playerThruster,                     // Efeito de propulsão
@@ -635,20 +655,28 @@
             playerShip = new THREE.Mesh(geo, mat);
             playerShip.rotation.z = Math.PI;
             playerShip.position.set(player.x, player.y, 0); // Usa player.x e player.y
-            scene.add(playerShip);
-        
-            // Thruster e health bar
+            scene.add(playerShip);			
+			
+            // Cria thruster e barra de vida (health bar)
             let thrusterGeo = new THREE.CylinderGeometry(0.18, 0.01, 0.4, 8);
             let thrusterMat = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.7 });
             playerThruster = new THREE.Mesh(thrusterGeo, thrusterMat);
             playerThruster.position.set(0, -0.95, 0);
             playerThruster.rotation.x = Math.PI / 2;
-            playerShip.add(playerThruster);
+            playerShip.add(playerThruster);  // adiciona o Thruster à nave
         
             playerHealthBar = createBar(1.5, 0.12, 0x00ff55, 0.2);
             playerHealthBar.position.set(0, 1.2, 0);
-            playerShip.add(playerHealthBar);
-        
+            playerShip.add(playerHealthBar);  // adiciona a barra de vida à nave
+
+			// Cria a aura do escudo (já adicionada à nave)  
+			shieldAura = new THREE.Mesh(  
+			    new THREE.RingGeometry(0.8, 1.0, 32),  
+			    new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.5 })  
+			);			
+			playerShip.add(shieldAura); // adiciona o escudo à nave 
+			shieldAura.visible = false; // o escudo começa invisível
+
             // Agora o VLC pode usar player.x e player.y sem erro
             playerVLCMesh = createVLCMesh(playerVLC);
             playerVLCMesh.position.set(player.x, player.y + 1.7, 0); // Posição correta desde o início
@@ -1283,7 +1311,21 @@
 		    const vlcElement = document.getElementById('vlc-value');
 		    vlcElement.textContent = playerVLC;
 		    vlcElement.style.color = playerVLC ? '#0090ff' : '#ff2222';
-		
+
+			// Atualiza cargas do escudo
+			// ESCUDO (cargas e cor)
+			const shieldElement = document.getElementById('shield-value');
+			shieldElement.textContent = '■'.repeat(shieldCharges) + '□'.repeat(3 - shieldCharges);
+			
+			// Altera a cor conforme o estado
+			if (shieldCharges === 3) {
+			    shieldElement.className = 'hud-value ready';     // Verde
+			} else if (shieldCharges >= 1) {
+			    shieldElement.className = 'hud-value charging';  // Laranja
+			} else {
+			    shieldElement.className = 'hud-value empty';     // Vermelho
+			}
+			
 		    // Lista de bombas (operadores)
 		    const bombList = document.getElementById('bomb-list');
 		    bombList.innerHTML = OPERATORS.map((op, index) => {
@@ -1415,7 +1457,29 @@
                     break;
         
                 case GAME_STATE.PLAYING:
-                    if (e.code === 'KeyP') {   // se está jogando e decide pausar o jogo...
+					
+					if (e.code === 'KeyE' && shieldCharges > 0 && !playerShield) {  // Se quer ativar escudo booleano...
+				        playerShield = true;  
+				        playSound('booleanShield');
+						shieldAura.visible = true;				        
+				    }  
+					        
+                    if (e.code === 'Tab') {  // Se quer trocar a bomba lógica...
+                        operatorIndex = (operatorIndex + 1) % OPERATORS.length;
+                        e.preventDefault();
+                    }
+        
+                    if (e.code === 'Space') {  // se quer lançar bombas no inimigo...
+                        let now = performance.now() / 1000;
+                        const currentOperatorKey = OPERATORS[operatorIndex].key;
+                        if (bombCounts[currentOperatorKey] > 0 && now - lastFire > fireDelay) {
+                            fireProjectile();
+                            bombCounts[currentOperatorKey]--;
+                            lastFire = now;
+                        }
+                    }
+
+					if (e.code === 'KeyP') {   // se está jogando e decide pausar o jogo...
                         // Cria overlay de pause com transparência
                         pauseOverlay = document.createElement('div');
                         pauseOverlay.style.position = 'fixed';
@@ -1458,22 +1522,7 @@
 						// 3. Pausa o jogo
                         gameState = GAME_STATE.PAUSED;		// Troca o estado
 						
-                    }
-        
-                    if (e.code === 'Tab') {  // Se quer trocar a bomba lógica...
-                        operatorIndex = (operatorIndex + 1) % OPERATORS.length;
-                        e.preventDefault();
-                    }
-        
-                    if (e.code === 'Space') {  // se quer lançar bombas no inimigo...
-                        let now = performance.now() / 1000;
-                        const currentOperatorKey = OPERATORS[operatorIndex].key;
-                        if (bombCounts[currentOperatorKey] > 0 && now - lastFire > fireDelay) {
-                            fireProjectile();
-                            bombCounts[currentOperatorKey]--;
-                            lastFire = now;
-                        }
-                    }
+                    }					
                     break;
         
                 case GAME_STATE.PAUSED:
@@ -1705,28 +1754,38 @@
                     // Remove o projétil da cena
                     scene.remove(p.mesh);
                     p.alive = false;
-        
-                    // Aplica dano ao jogador
-                    playerHealth--;
-                    setBarValue(playerHealthBar, playerHealth / playerMaxHealth); // Atualiza HUD
-                    playSound('playerHit'); // Toca som de impacto
-        
-                    // Verifica morte do jogador
-                    if (playerHealth <= 0) {
-                        
-                        // Ativa estado de Game Over
-                        gameState = GAME_STATE.GAME_OVER;
-						sounds.currentTrack.pause(); // Para a música atual
-    					sounds.currentTrack.currentTime = 0; // Reinicia a música
-                        playSound('gameOver'); // Toca som de derrota
-                        
-                        // Exibe overlay de Game Over
-                        gameOverOverlay = showOverlay(
-                            'gameover', 
-                            'GAME OVER', 
-                            'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar'
-                        );
-                    }
+
+					// Verifica se o escudo está ativo
+					if (playerShield) {
+					    shieldCharges--;           			     	// Consome uma carga do escudo
+					    playSound('shieldHit');         			// Som de escudo atingido
+					    shieldAura.visible = (shieldCharges > 0); 	// Some se acabarem as cargas
+					    playerShield = (shieldCharges > 0);       	// Desativa se acabarem as cargas
+					}
+					// Se não tem escudo ativo, aplica dano
+					else {					
+	                    // Aplica dano ao jogador
+	                    playerHealth--;
+	                    setBarValue(playerHealthBar, playerHealth / playerMaxHealth); // Atualiza HUD
+	                    playSound('playerHit'); // Toca som de impacto
+	        
+	                    // Verifica morte do jogador
+	                    if (playerHealth <= 0) {
+	                        
+	                        // Ativa estado de Game Over
+	                        gameState = GAME_STATE.GAME_OVER;
+							sounds.currentTrack.pause(); // Para a música atual
+	    					sounds.currentTrack.currentTime = 0; // Reinicia a música
+	                        playSound('gameOver'); // Toca som de derrota
+	                        
+	                        // Exibe overlay de Game Over
+	                        gameOverOverlay = showOverlay(
+	                            'gameover', 
+	                            'GAME OVER', 
+	                            'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar'
+	                        );
+	                    }
+					}
                 }
             }
         
@@ -1875,7 +1934,16 @@
                 
                 // Atualiza comportamentos específicos da nave-mãe (se existir)
                 updateMothership(dt);
-        
+
+				// Recarga do escudo (apenas se estiver totalmente descarregado e desativado)  
+				if (shieldCharges === 0 && !playerShield) {  
+				    shieldTimer += dt;  
+				    if (shieldTimer >= shieldCooldown) {  
+				        shieldCharges = 3;  // Recarrega totalmente  
+				        shieldTimer = 0;    // Reseta o timer  
+				    }  
+				}  
+				
                 // Movimentação oscilatória dos inimigos (efeito "flutuante")
                 for (let e of enemies) {
                     if (!e.alive) continue;
