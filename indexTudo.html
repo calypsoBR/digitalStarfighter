@@ -212,12 +212,12 @@
 			        sounds.currentTrack.pause();
 			        sounds.currentTrack.currentTime = 0;
 			    }
-			
-			    // 2. Recria a fila se estiver vazia
-			    if (audioSettings.playlistQueue.length === 0) {
+						    
+				// 2. Recria a fila se estiver vazia E não houver música tocando
+    			if (audioSettings.playlistQueue.length === 0 && !sounds.currentTrack) {
 			        audioSettings.playlistQueue = [...sounds.playlist]; // Cópia da playlist original
 			
-			        // Embaralha se estiver em modo aleatório
+			        // Embaralha a fila se estiver em modo aleatório
 			        if (audioSettings.isShuffleMode) {
 			            shuffleArray(audioSettings.playlistQueue);
 			        }
@@ -1187,27 +1187,26 @@
         
         function startWave(n) {
             
-            // Wave 10: Nave-mãe + escoltas
+            // Fase 10: Nave-mãe + escoltas
             if (n === 10) {
                 playMothershipTrack();
 				spawnMothership();  // Spawna a nave-mãe (função separada que cria a nave-boss)
                 waveEnemies = 1;    // Define o contador de inimigos como 1 (só a nave-mãe, escoltas são extras)
                 return;             // Sai da função, pois a wave 10 é tratada de forma especial
-            } else if (n >= 1 && n <= 8) {
+            } /*else if (n >= 1 && n <= 8) {
 		        playPlaylist();
-		    }
-
+		    }*/
 			
-			// Waves 1-9: Inimigos normais
+			// Fases 1-9: Inimigos normais
 		    let nEnemies;
 		    
-		    // Define a quantidade de inimigos com base na wave atual (n)
+		    // Define a quantidade de inimigos com base na fase atual (n)
 		    if (n === 3) {		        
-		        nEnemies = 5;    // Wave 3 tem exatamente 5 inimigos (caças VLC)
+		        nEnemies = 5;    // Fase 3 tem exatamente 5 inimigos (caças VLC)
 		    } else if (n >= 8) {		        
-		        nEnemies = 10;   // Waves 8 e 9 têm 10 inimigos (mistura de tipos avançados)
+		        nEnemies = 10;   // Fases 8 e 9 têm 10 inimigos (mistura de tipos avançados)
 		    } else {		        
-		        //nEnemies = Math.min(4 + n, 7);  // Waves 1, 2, 4-7: mínimo 4, máximo 7 inimigos (progressão: 4 + número da wave)
+		        //nEnemies = Math.min(4 + n, 7);  // Fases 1, 2, 4-7: mínimo 4, máximo 7 inimigos (progressão: 4 + número da wave)
 				nEnemies = 3
 		    }
 		    
@@ -1741,7 +1740,7 @@
                 // Condição de destruição: 
                 // 1. Tempo esgotado -OU- 
                 // 2. Saiu da área visível (baseado em PLAY_AREA.y atual)
-				const destroyThreshold = -PLAY_AREA.y * 0.95; // 80% da altura (Ajuste para controlar quando desaparece. Quanto MAIOR, 
+				const destroyThreshold = -PLAY_AREA.y * 0.02; // 80% da altura (Ajuste para controlar quando desaparece. Quanto MAIOR, 
                                                                             // mais próximo do final da tela.                
                 if (pu.ttl < 0 || pu.mesh.position.y < destroyThreshold) {
                     scene.remove(pu.mesh);
