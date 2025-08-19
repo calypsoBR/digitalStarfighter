@@ -1228,8 +1228,8 @@
 		    } else if (n >= 8) {		        
 		        nEnemies = 10;   // Fases 8 e 9 têm 10 inimigos (mistura de tipos avançados)
 		    } else {		        
-		        //nEnemies = Math.min(4 + n, 7);  // Fases 1, 2, 4-7: mínimo 4, máximo 7 inimigos (progressão: 4 + número da wave)
-				nEnemies = 3
+		        nEnemies = Math.min(4 + n, 7);  // Fases 1, 2, 4-7: mínimo 4, máximo 7 inimigos (progressão: 4 + número da wave)
+				//nEnemies = 3
 		    }
 		    
 		    // Atualiza o contador global de inimigos da wave
@@ -1760,9 +1760,9 @@
                 // Condição de destruição: 
                 // 1. Tempo esgotado -OU- 
                 // 2. Saiu da área visível (baseado em PLAY_AREA.y atual)
-				const destroyThreshold = -PLAY_AREA.y * 0.8; // 80% da altura (Ajuste para controlar quando desaparece. Quanto MAIOR, 
+				const destroyThreshold = -PLAY_AREA.y * 0.9; // 80% da altura (Ajuste para controlar quando desaparece. Quanto MAIOR, 
                                                                             // mais próximo do final da tela.                
-                if (pu.ttl < 0 || pu.mesh.position.y < 1.5*destroyThreshold) {
+                if (pu.ttl < 0 || pu.mesh.position.y < *destroyThreshold) {
                     scene.remove(pu.mesh);
                     pu.alive = false;
                     continue;
