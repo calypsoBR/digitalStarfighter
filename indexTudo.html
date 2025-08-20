@@ -651,11 +651,7 @@
                 speed: 7.5
             };
         
-            // Depois, cria a nave e o VLC usando player.x e player.y
-           /* let geo = new THREE.ConeGeometry(0.6, 1.6, 5);
-            let mat = new THREE.MeshLambertMaterial({ color: PLAYER_COLOR });
-            playerShip = new THREE.Mesh(geo, mat);*/
-			// Adicione:
+            // Cria a nave usando player.x e player           
 			const textureLoader = new THREE.TextureLoader();
 			const playerTexture = textureLoader.load('./figs/starleague_fighter2_tr.webp');
 			const playerMaterial = new THREE.SpriteMaterial({ 
@@ -669,17 +665,17 @@
             playerShip.position.set(player.x, player.y, 0); // Usa player.x e player.y
             scene.add(playerShip);			
 			
-            // Cria thruster e barra de vida (health bar)
-            //let thrusterGeo = new THREE.CylinderGeometry(0.18, 0.01, 0.4, 8);
+            // Cria thruster           
 			let thrusterGeo = new THREE.CylinderGeometry(0.001, 0.0001, 0.001, 8); // Tamanho mínimo
             let thrusterMat = new THREE.MeshBasicMaterial({ color: 0xff6600, transparent: true, opacity: 0.7 });
             playerThruster = new THREE.Mesh(thrusterGeo, thrusterMat);
             playerThruster.position.set(0, -0.95, 0);
             playerThruster.rotation.x = Math.PI / 2;
             playerShip.add(playerThruster);  // adiciona o Thruster à nave
-        
+
+			// Cria barra de vida (health bar)            
             playerHealthBar = createBar(1.5, 0.12, 0x00ff55, 0.2);
-            playerHealthBar.position.set(0, 0.7, 0);  // playerHealthBar.position.set(0, 1.2, 0);
+            playerHealthBar.position.set(0, 0.6, 0);  // playerHealthBar.position.set(0, 1.2, 0);
 			playerHealthBar.scale.set(0.28, 0.28, 0.28); // Para compensa o scaling da nave
             playerShip.add(playerHealthBar);  // adiciona a barra de vida à nave
 
@@ -696,7 +692,7 @@
 			playerShip.add(shieldAura); 	// adiciona o escudo à nave 
 			shieldAura.visible = false; 	// o escudo começa invisível
 
-            // Agora o VLC pode usar player.x e player.y sem erro
+            // Agora o VLC pode usar player.x e player.y
             playerVLCMesh = createVLCMesh(playerVLC);
             playerVLCMesh.position.set(player.x - 1, player.y + 2, 0); // Posição correta desde o início
             scene.add(playerVLCMesh);
@@ -770,9 +766,9 @@
 		
         function spawnEnemy(type, x, y) {
 		    let mesh;
-		
-		    // ==================== [1. DEFINE VIDA POR TIPO DE NAVE] ====================
-		    let health;
+			let health;
+			
+		    // ==================== [1. DEFINE VIDA POR TIPO DE NAVE] ====================		    
 		    if (type.shape === 'cube') {  // Caças
 		        health = 2 + Math.floor(wave * 0.5);  // Wave 1 = 2
 		    } else if (type.shape === 'tetra') {  // Cruzadores
@@ -782,35 +778,44 @@
 		    }
 		    health = Math.max(health, 3);  // Garante vida mínima = 3
 		
-		    // ==================== [2. CRIA GEOMETRIA] ===================================
+		    // ==================== [2. CRIA NAVES (SPRITES) ] ===================================
+		    const textureLoader = new THREE.TextureLoader();
+		    let enemyTexture;
+		    
+		    // Carrega textura baseada no tipo de nave
 		    if (type.shape === 'cube') {
-		        mesh = new THREE.Mesh(
-		            new THREE.BoxGeometry(1, 1, 1),
-		            new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
-		        );
+		        enemyTexture = textureLoader.load('./figs/enemy_fighter1.png');
 		    } else if (type.shape === 'tetra') {
-		        mesh = new THREE.Mesh(
-		            new THREE.TetrahedronGeometry(0.7),
-		            new THREE.MeshLambertMaterial({ color: ENEMY_COLOR })
-		        );
+		        enemyTexture = textureLoader.load('./figs/enemy_cruiser.png');
 		    } else if (type.shape === 'octahedron') {
-		        mesh = new THREE.Mesh(
-		            new THREE.OctahedronGeometry(0.8),
-		            new THREE.MeshLambertMaterial({ 
-		                color: ENEMY_COLOR,
-		                emissive: 0xff3300,
-		                emissiveIntensity: 0.3
-		            })
-		        );
+		        if (type.isBoss) {
+		            enemyTexture = textureLoader.load('./figs/enemy_mothership.png');
+		        } else {
+		            enemyTexture = textureLoader.load('./figs/enemy_destroyer.png');
+		        }
 		    }
+		    
+		    const enemyMaterial = new THREE.SpriteMaterial({ 
+		        map: enemyTexture,
+		        transparent: true
+		    });
+		    
+		    mesh = new THREE.Sprite(enemyMaterial);
+		    
+		    // Ajuste de escala baseado no tipo de nave
+		    if (type.isBoss) {
+		        mesh.scale.set(6, 6, 1); // Nave-mãe maior
+		    } else if (type.shape === 'cube') {
+		        mesh.scale.set(2.5, 2.5, 1); // Caças
+		    } else if (type.shape === 'tetra') {
+		        mesh.scale.set(3, 3, 1); // Cruzadores
+		    } else {
+		        mesh.scale.set(3.5, 3.5, 1); // Destroyers
+		    }
+			
 		    mesh.position.set(x, y, 0);
-		
-		    // ===== [3. BARRA DE VIDA] =================================================
-		    let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
-		    healthBar.position.set(0, -0.8, 0);
-		    mesh.add(healthBar);
-
-			// ===== [4. INICIALIZAÇÃO DOS VALORES LÓGICOS] ====================== 
+					
+			// ===== [3. INICIALIZAÇÃO DOS VALORES LÓGICOS] ====================== 
 		    let ab = type.ab;
 		    let A = ab ? (type.A ? type.A() : Math.round(Math.random())) : null;
 		    let B = ab ? (type.B ? type.B(playerVLC) : Math.round(Math.random())) : null;
@@ -832,7 +837,7 @@
 		            : 0;
 		    }
 			
-			// ===== [5. PERFIL DE MOVIMENTO DAS NAVES] ============================
+			// ===== [4. PERFIL DE MOVIMENTO DAS NAVES] ============================
 			let movementType;
 			// Define o movimento baseado no formato da nave (shape)
 			if (type.shape === 'cube') movementType = 'fighter';      			// Caças
@@ -840,15 +845,25 @@
 			else if (type.shape === 'octahedron') movementType = 'destroyer'; 	// Destroyers
 			if (type.isBoss) movementType = 'mothership';            			// Nave-mãe
 
+			// ===== [5. BARRA DE VIDA] =================================================
+		    let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
+		    healthBar.position.set(0, -1.2, 0); // Ajuste de -0.8 para -1.2
+		    mesh.add(healthBar);
 			
-		    // ==================== [6. CRIA SPRITE DE EXPRESSÃO] ====================
-		    let evText = type.expr || (typeof ev === 'function' ? ev().toString() : ev.toString());			
+		    // ==================== [6. CRIA TEXTO DA EXPRESSÃO] ====================
+
+			// Cria texto que ficará acima da nave
+		    let evText = type.expr || (typeof ev === 'function' ? ev().toString() : ev.toString());				
 		    let evMesh = createEVSprite(evText, A, B, type.expr);
-			
-		    evMesh.position.set(0, 1.2, 0);
+
+			// Texto de expressão - posicione mais alto para sprites
+		    evMesh.position.set(0, 1.8, 0); // Ajuste de 1.2 para 1.8
 		    mesh.add(evMesh);
+
+			// ==================== [7. ADICIONA A CENA] ============================
 		    scene.add(mesh);
-		
+
+			// ==================== [8. RETORNA O OBJETO INIMIGO] ====================
 		    return {
 		        mesh,           					// Objeto 3D da nave inimiga
                 health,         					// Vida atual do inimigo
@@ -921,8 +936,10 @@
         function spawnMothership() {
 			
             const type = ENEMY_TYPES.find(t => t.isBoss);
-            const mothership = spawnEnemy(type, 0, PLAY_AREA.y/2.5);                        
-            mothership.mesh.scale.set(1.5, 1.5, 1.5);  // Expansão
+            const mothership = spawnEnemy(type, 0, PLAY_AREA.y/2.5);
+
+			// MANTENHA ou AJUSTE a escala conforme necessário
+            mothership.mesh.scale.set(3, 3, 1);  // Expansão
             
             // Adiciona geradores
             mothership.generators = [ // Preenche os geradores aqui
@@ -1731,7 +1748,16 @@
 
 					// cálculo para saber se o projétil atingiu a nave número "e"
 		            let dist = Math.sqrt((e.mesh.position.x - p.mesh.position.x) ** 2 + (e.mesh.position.y - p.mesh.position.y) ** 2);
-		            let hitRadius = e.isBoss ? 1.5 : 0.8; // Raio de colisão da nave: 1,5 para a nave-mãe, 0,8 para as restantes
+		            let hitRadius;
+					if (e.isBoss) {
+					    hitRadius = 3.0; // Nave-mãe (escala 6)
+					} else if (e.type.shape === 'cube') {
+					    hitRadius = 1.2; // Caças (escala 2.5)
+					} else if (e.type.shape === 'tetra') {
+					    hitRadius = 1.5; // Cruzadores (escala 3)
+					} else {
+					    hitRadius = 1.8; // Destroyers (escala 3.5)
+					}
 
 					// Se o projétil está dentro do raio de colisão da nave número "e"... 
 		            if (dist < hitRadius) {
@@ -2001,6 +2027,44 @@
 		}
 
 		// ============================================= //
+
+		function debugCollisionCircles() {
+	    // Remove círculos antigos se existirem
+	    scene.children.filter(child => child.userData?.isDebugCircle).forEach(child => scene.remove(child));
+	    
+	    // Adiciona círculos de colisão para todos os inimigos
+	    enemies.forEach(enemy => {
+	        if (!enemy.alive) return;
+	        
+	        let radius;
+	        if (enemy.isBoss) {
+	            radius = 3.0;
+	        } else if (enemy.type.shape === 'cube') {
+	            radius = 1.2;
+	        } else if (enemy.type.shape === 'tetra') {
+	            radius = 1.5;
+	        } else {
+	            radius = 1.8;
+	        }
+	        
+	        const circleGeometry = new THREE.RingGeometry(radius - 0.1, radius, 32);
+	        const circleMaterial = new THREE.MeshBasicMaterial({ 
+	            color: 0x00ff00, 
+	            transparent: true, 
+	            opacity: 0.5 
+	        });
+	        const circle = new THREE.Mesh(circleGeometry, circleMaterial);
+	        circle.rotation.x = Math.PI / 2;
+	        circle.position.copy(enemy.mesh.position);
+	        circle.position.z = 0.1;
+	        circle.userData = { isDebugCircle: true };
+	        
+	        scene.add(circle);
+	    });
+	}	
+	// Chame esta função no gameLoop após atualizar as posições dos inimigos
+		
+		// ============================================= //
 		
 		
         function gameLoop() {
@@ -2126,7 +2190,17 @@
             // Renderiza a cena e chama o próximo frame
             renderer.render(scene, camera);
             requestAnimationFrame(gameLoop);
-            
+
+			// Debug (opcional - remova depois dos ajustes)
+			if (debugMode) debugCollisionCircles();
+			
+			// Atualize as escalas se necessário com base no teste
+			// Se as naves estiverem muito grandes ou pequenas, ajuste os valores:
+			// - Caças: mesh.scale.set(2.5, 2.5, 1);
+			// - Cruzadores: mesh.scale.set(3, 3, 1);
+			// - Destroyers: mesh.scale.set(3.5, 3.5, 1);
+			// - Nave-Mãe: mesh.scale.set(6, 6, 1);
+			
         }  
         
         // Inicialização do jogo    
