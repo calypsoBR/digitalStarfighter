@@ -520,7 +520,8 @@
         const POWERUP_COLOR = 0x00ff00;         // Cor verde dos power-ups
         
         // ===== [ CONSTANTES DA AREA DO JOGO ] ===== //
-        const PLAY_AREA = { x: 30, y: 26 };     // Dimensões da área jogável (unidades 3D)  o dobro do original = x: 16, y: 10
+        const PLAY_AREA = { x: 30, y: 26 };     	// Dimensões da área jogável (unidades 3D)  o dobro do original = x: 16, y: 10
+		const ENEMY_LIMIT_Y = -PLAY_AREA.y * 0.66;  // Limite de avanço vertical das naves inimigas (2/3 da tela, abaixo do centro)
 
         // ===== [ VARIÁVEIS DE RENDERIZAÇÃO ] ===== //
         let renderer, scene, camera;            // Objetos principais do Three.js
@@ -533,14 +534,15 @@
 
         
         // ===== [ VARIÁVEIS DO JOGADOR ] ===== //
+		const SHIELD_MAX_CHARGE = 5;		// Carga máxima de proteção do escudo booleano
         let player,                         // Objeto com posição/speed do jogador
             playerVLC = 1,                  // Valor lógico atual do jogador (0 ou 1)
             playerHealth = 5,               // Vida atual
             playerMaxHealth = 5,            // Vida máxima
             playerScore = 0,                // Pontuação
 			playerShield = false,         	// Estado do escudo (ativo/inativo)  
-			shieldCharges = 3,           	// Cargas iniciais (0 a 3)  
-			shieldCooldown = 60,         	// Tempo de recarga em segundos  
+			shieldCharge = SHIELD_MAX_CHARGE,	// Carga inicial do escudo			
+			shieldCooldown = 60,         	// Tempo de recarga (segundos)
 			shieldTimer = 0,             	// Contador de tempo para recarga
 			shieldAura;                     // Aura do escudo booleano
         window.playerVLC = playerVLC; 		// cria uma referência global
@@ -1186,7 +1188,7 @@
 
 			// Reseta o escudo  
 		    playerShield = false; 						// Escudo desativado
-		    shieldCharges = 3;          				// Mas carregado (pronto para uso) 
+		    shieldCharge = SHIELD_MAX_CHARGE; 			// Mas carregado (pronto para uso) 
 		    shieldTimer = 0;   					        // Reseta o timer  
 		    if (shieldAura) shieldAura.visible = false; // Garante que a aura está invisível 
 			
@@ -1341,12 +1343,12 @@
 			// Atualiza cargas do escudo
 			// ESCUDO (cargas e cor)
 			const shieldElement = document.getElementById('shield-value');
-			shieldElement.textContent = '■'.repeat(shieldCharges) + '□'.repeat(3 - shieldCharges);
+			shieldElement.textContent = '■'.repeat(shieldCharge) + '□'.repeat(SHIELD_MAX_CHARGE - shieldCharge);
 			
 			// Altera a cor conforme o estado
-			if (shieldCharges === 3) {
+			if (shieldCharge === SHIELD_MAX_CHARGE) {
 			    shieldElement.className = 'hud-value ready';     // Verde
-			} else if (shieldCharges >= 1) {
+			} else if (shieldCharge >= 1) {
 			    shieldElement.className = 'hud-value charging';  // Laranja
 			} else {
 			    shieldElement.className = 'hud-value empty';     // Vermelho
@@ -1484,7 +1486,7 @@
         
                 case GAME_STATE.PLAYING:
 					
-					if (e.code === 'KeyE' && shieldCharges > 0 && !playerShield) {  // Se quer ativar escudo booleano...
+					if (e.code === 'KeyE' && shieldCharge > 0 && !playerShield) {  // Se quer ativar escudo booleano...
 				        playerShield = true;  
 				        playSound('booleanShield');
 						shieldAura.visible = true;				        
@@ -1783,10 +1785,10 @@
 
 					// Verifica se o escudo está ativo
 					if (playerShield) {
-					    shieldCharges--;           			     	// Consome uma carga do escudo
+					    shieldCharge--;           			     	// Consome uma carga do escudo
 					    playSound('shieldHit');         			// Som de escudo atingido
-					    shieldAura.visible = (shieldCharges > 0); 	// Some se acabarem as cargas
-					    playerShield = (shieldCharges > 0);       	// Desativa se acabarem as cargas
+					    shieldAura.visible = (shieldCharge > 0); 	// Some se acabarem as cargas
+					    playerShield = (shieldCharge > 0);       	// Desativa se acabarem as cargas
 					}
 					// Se não tem escudo ativo, aplica dano
 					else {					
@@ -1928,10 +1930,15 @@
 		    const amp = 0.5 + (phaseMultiplier * 0.3);
 		    const zig = Math.sin(now / freq) * amp;
 		    const zag = Math.cos(now / (freq * 0.7)) * (amp * 0.8);
-		    e.mesh.position.x += zig * dt;
-			if (e.mesh.position.y > -PLAY_AREA.y * 0.7) {
-		    	e.mesh.position.y += zag * dt - (0.3 * phaseMultiplier * dt);  // controla a descida das naves em direção ao jogador
-			}
+			
+		    e.mesh.position.x += zig * dt;			
+			// Só move para baixo se não atingiu o limite  
+		    if (e.mesh.position.y > ENEMY_LIMIT_Y) {  
+		        e.mesh.position.y += zag * dt - (0.4 * phaseMultiplier * dt);  
+		    } else {  
+		        // Mantém no limite e só se move horizontalmente  
+		        e.mesh.position.y = ENEMY_LIMIT_Y;  		       
+		    }  
 		}
 		
 		// 2. Cruzadores (ondas suaves)
@@ -1939,10 +1946,16 @@
 		    const waveFreq = 800 - (phaseMultiplier * 150);
 		    const waveAmp = 0.4 + (phaseMultiplier * 0.2);
 		    const wave = Math.sin(now / waveFreq + e.mesh.position.x * 0.5) * waveAmp;
-		    e.mesh.position.x += wave * dt;
-			if (e.mesh.position.y > -PLAY_AREA.y * 0.5) {
-		    	e.mesh.position.y -= (0.2 + phaseMultiplier * 0.2) * dt;  // controla a descida das naves em direção ao jogador
-			}
+		    
+			e.mesh.position.x += wave * dt;			
+			// Só move para baixo se não atingiu o limite  
+		    if (e.mesh.position.y > ENEMY_LIMIT_Y) {  
+		        e.mesh.position.y -= (0.3 + phaseMultiplier * 0.2) * dt;  // controla a descida das naves em direção ao jogador
+		    } else {  
+		        // Mantém no limite e só se move horizontalmente  
+		        e.mesh.position.y = ENEMY_LIMIT_Y;		    
+		    }
+			
 		}
 		
 		// 3. Destroyers (bloqueador tático)
@@ -1951,10 +1964,15 @@
 		    const blockAmp = 0.6 + (phaseMultiplier * 0.4);
 		    const blockMove = Math.sin(now / blockFreq) * blockAmp;
 		    const advance = Math.max(0, (player.y - e.mesh.position.y) * 0.01);
-		    e.mesh.position.x += blockMove * dt;
-			if (e.mesh.position.y > -PLAY_AREA.y * 0.6) {
-		    	e.mesh.position.y -= (0.15 + advance) * dt;   // controla a descida das naves em direção ao jogador
-			}
+			
+		    e.mesh.position.x += blockMove * dt;			
+			// Só move para baixo se não atingiu o limite  
+		    if (e.mesh.position.y > ENEMY_LIMIT_Y) {  
+		        e.mesh.position.y -= (0.2 + advance) * dt;   // controla a descida das naves em direção ao jogador
+		    } else {  
+		        // Mantém no limite e só se move horizontalmente  
+		        e.mesh.position.y = ENEMY_LIMIT_Y;  		        
+		    }
 		}
 		
 		// 4. Nave-Mãe (ameaça imponente)
@@ -1962,9 +1980,12 @@
 		    const sway = Math.sin(now / 1200) * 0.8;
 		    const pulse = Math.sin(now / 800) * 0.3;
 		    e.mesh.position.x += sway * dt;
-			if (e.mesh.position.y > -PLAY_AREA.y * 0.5) {
-		    	e.mesh.position.y += pulse * dt - 0.1 * dt;   // controla a descida das naves em direção ao jogador
-			}
+			if (e.mesh.position.y > ENEMY_LIMIT_Y + 3) { // Para 5 unidades acima do limite  
+		        e.mesh.position.y += pulse * dt - 0.1 * dt;  
+		    } else {  
+		        // Fica estacionária em uma posição de "chefe"  
+		        e.mesh.position.y = ENEMY_LIMIT_Y + 3;  
+		    }			
 		}
 
 		// ============================================= //
@@ -2012,11 +2033,11 @@
                 updateMothership(dt);
 
 				// Recarga do escudo (apenas se estiver totalmente descarregado e desativado)  
-				if (shieldCharges === 0 && !playerShield) {  
+				if (shieldCharge === 0 && !playerShield) {  
 				    shieldTimer += dt;  
 				    if (shieldTimer >= shieldCooldown) {  
-				        shieldCharges = 3;  // Recarrega totalmente  
-				        shieldTimer = 0;    // Reseta o timer  
+				        shieldCharge = SHIELD_MAX_CHARGE;  // Recarrega totalmente  
+				        shieldTimer = 0;    			   // Reseta o timer  
 				    }  
 				}  
 				
