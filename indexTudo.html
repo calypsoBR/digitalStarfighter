@@ -50,7 +50,7 @@
 		/* Valores (ex: "1/10", "■■■■□") */
 		.hud-value {
 		    font-size: 16px; /* Tamanho */
-		    margin-bottom: 30px; /* Espaço após valor */
+		    margin-bottom: 28px; /* Espaço após valor */
 		}
 		
 		/* Bombas (Painel Esquerdo) */
@@ -62,7 +62,7 @@
 			font-size: 18px;      /* Mesmo tamanho que .hud-value */
 		    padding: 4px 10px;    /* Espaço interno ao redor do texto de cada bomba 
 			                         1º - espaço vertical (acima e abaixo), 2º - espaço horizontal (esquerda e direita) */
-		    margin-bottom: 3px;   /* Espaço externo abaixo de cada linha de bomba (distância entre itens da lista */						
+		    margin-bottom: 2px;   /* Espaço externo abaixo de cada linha de bomba (distância entre itens da lista */						
 		}
 
 		/* Retângulo que indica qual bomba está selecionada */
@@ -669,13 +669,17 @@
             playerHealthBar.position.set(0, 1.2, 0);
             playerShip.add(playerHealthBar);  // adiciona a barra de vida à nave
 
-			// Cria a aura do escudo (já adicionada à nave)  
+			// Cria a aura do escudo  
 			shieldAura = new THREE.Mesh(  
-			    new THREE.RingGeometry(0.8, 1.0, 32),  
-			    new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.5 })  
-			);			
-			playerShip.add(shieldAura); // adiciona o escudo à nave 
-			shieldAura.visible = false; // o escudo começa invisível
+			    new THREE.RingGeometry(0.8, 1.5, 32),  // argumentos: (Raio interno, Raio externo, Segmentos). Segmentos diz sobre suavidade do anel
+			    new THREE.MeshBasicMaterial({ 
+					color: 0x00ffff, 		// Cor ciano
+					transparent: true, 		// transparência
+					opacity: 0.5 			// 50% de transparência
+				})  
+			);
+			playerShip.add(shieldAura); 	// adiciona o escudo à nave 
+			shieldAura.visible = false; 	// o escudo começa invisível
 
             // Agora o VLC pode usar player.x e player.y sem erro
             playerVLCMesh = createVLCMesh(playerVLC);
@@ -1121,10 +1125,17 @@
         
             // Armazena o power-up no array global `powerUps` com suas propriedades:
             powerUps.push({
-                mesh,        // Referência ao objeto 3D
-                alive: true, // Flag para controle (se ainda está ativo)
-                ttl: 9.0,   // Time-To-Live (tempo de vida em segundos)
-                dy: -2       // Velocidade vertical (movimento para baixo)
+                mesh,        	// Referência ao objeto 3D
+                alive: true, 	// Flag para controle (se ainda está ativo)
+                ttl: 9.0,		// Time-To-Live (tempo de vida em segundos)
+                dy: -3       	// Velocidade vertical (movimento para baixo)
+				//------------------------------------------------------------------------------------------
+				// Cálculo da distância percorrida pelo power-up e sua relação com a altura da tela de jogo:
+				//
+				// Area útil do jogo: PLAY_AREA = { x: XX, y: YY }, onde XX e YY são unidades de distância
+				// Distância percorrida = |dy| * ttl (unidades de distância) , onde dy (velocidade), ttl (tempo de vida)
+				// P/ o powerup cruzar toda a tela verticalmente: |dy| * ttl > PLAY_AREA.y
+				//------------------------------------------------------------------------------------------
             });
         }
 
@@ -1163,7 +1174,13 @@
             operatorIndex = 0;               // Operador lógico padrão (AND)
             playerVLC = 1;                   // Valor lógico inicial (1)
             updateVLCMesh(playerVLC);        // Atualiza visualização do VLC
-        
+
+			// Reseta o escudo  
+		    playerShield = false; 						// Escudo desativado
+		    shieldCharges = 3;          				// Mas carregado (pronto para uso) 
+		    shieldTimer = 0;   					        // Reseta o timer  
+		    if (shieldAura) shieldAura.visible = false; // Garante que a aura está invisível 
+			
             // Reseta timers de disparo
             lastFire = 0;        // Tempo do último tiro do jogador
             lastEnemyFire = 0;   // Tempo do último tiro inimigo
