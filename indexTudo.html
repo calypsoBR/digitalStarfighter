@@ -678,7 +678,7 @@
             playerShip.add(playerThruster);  // adiciona o Thruster à nave
         
             playerHealthBar = createBar(1.5, 0.12, 0x00ff55, 0.2);
-            playerHealthBar.position.set(0, 1.2, 0);
+            playerHealthBar.position.set(0, 0.5, 0);  // playerHealthBar.position.set(0, 1.2, 0);
 			playerHealthBar.scale.set(0.25, 0.25, 0.25); // Para compensa o scaling da nave
             playerShip.add(playerHealthBar);  // adiciona a barra de vida à nave
 
@@ -1928,7 +1928,7 @@
                 player.x = Math.max(-PLAY_AREA.x / 2 + 0.8, Math.min(PLAY_AREA.x / 2 - 0.8, player.x));
                 player.y = Math.max(-PLAY_AREA.y / 2 + 0.7, Math.min(PLAY_AREA.y / 2 - 0.7, player.y));
                 playerShip.position.set(player.x, player.y, 0);
-                playerVLCMesh.position.set(player.x, player.y + 1.7, 0);
+                playerVLCMesh.position.set(player.x, player.y + 2.5, 0);
             }
             playerThruster.material.opacity = 0.7 + 0.2 * Math.abs(Math.sin(performance.now() / 110));
         }
