@@ -679,7 +679,7 @@
             playerShip.add(playerThruster);  // adiciona o Thruster à nave
         
             playerHealthBar = createBar(1.5, 0.12, 0x00ff55, 0.2);
-            playerHealthBar.position.set(-0.2, 0.4, 0);  // playerHealthBar.position.set(0, 1.2, 0);
+            playerHealthBar.position.set(0.1, 0.5, 0);  // playerHealthBar.position.set(0, 1.2, 0);
 			playerHealthBar.scale.set(0.28, 0.28, 0.28); // Para compensa o scaling da nave
             playerShip.add(playerHealthBar);  // adiciona a barra de vida à nave
 
@@ -698,7 +698,7 @@
 
             // Agora o VLC pode usar player.x e player.y sem erro
             playerVLCMesh = createVLCMesh(playerVLC);
-            playerVLCMesh.position.set(player.x - 1, player.y + 2.2, 0); // Posição correta desde o início
+            playerVLCMesh.position.set(player.x - 1, player.y + 2, 0); // Posição correta desde o início
             scene.add(playerVLCMesh);
         }
         
