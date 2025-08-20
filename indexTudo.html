@@ -652,9 +652,19 @@
             };
         
             // Depois, cria a nave e o VLC usando player.x e player.y
-            let geo = new THREE.ConeGeometry(0.6, 1.6, 5);
+           /* let geo = new THREE.ConeGeometry(0.6, 1.6, 5);
             let mat = new THREE.MeshLambertMaterial({ color: PLAYER_COLOR });
-            playerShip = new THREE.Mesh(geo, mat);
+            playerShip = new THREE.Mesh(geo, mat);*/
+			// Adicione:
+			const textureLoader = new THREE.TextureLoader();
+			const playerTexture = textureLoader.load('./figs/starleague_fighter2_tr.png');
+			const playerMaterial = new THREE.SpriteMaterial({ 
+			    map: playerTexture,
+			    transparent: true 
+			});
+			playerShip = new THREE.Sprite(playerMaterial);
+			playerShip.scale.set(2.5, 2.5, 1); // Ajuste a escala conforme necessário
+			
             playerShip.rotation.z = Math.PI;
             playerShip.position.set(player.x, player.y, 0); // Usa player.x e player.y
             scene.add(playerShip);			
