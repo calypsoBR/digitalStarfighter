@@ -818,8 +818,16 @@
 		            : 0;
 		    }
 			
-		
-		    // ==================== [5. CRIA SPRITE DE EXPRESSÃO] ====================
+			// ===== [5. PERFIL DE MOVIMENTO DAS NAVES] ============================
+			let movementType;
+			// Define o movimento baseado no formato da nave (shape)
+			if (type.shape === 'cube') movementType = 'fighter';      			// Caças
+			else if (type.shape === 'tetra') movementType = 'cruiser'; 			// Cruzadores  
+			else if (type.shape === 'octahedron') movementType = 'destroyer'; 	// Destroyers
+			if (type.isBoss) movementType = 'mothership';            			// Nave-mãe
+
+			
+		    // ==================== [6. CRIA SPRITE DE EXPRESSÃO] ====================
 		    let evText = type.expr || (typeof ev === 'function' ? ev().toString() : ev.toString());			
 		    let evMesh = createEVSprite(evText, A, B, type.expr);
 			
@@ -828,20 +836,21 @@
 		    scene.add(mesh);
 		
 		    return {
-		        mesh,           // Objeto 3D da nave inimiga
-                health,         // Vida atual do inimigo
-                maxHealth: health, // Vida máxima (igual à inicial)
-                healthBar,      // Barra de vida flutuante
-                ev,             // Valor lógico atual (0 ou 1)
-                evMesh,         // Sprite com a expressão lógica (ex: "A+B")
-                ab,             // Flag que indica se tem variáveis A/B
-                A,              // Valor da variável A (se existir)
-                B,              // Valor da variável B (se existir)
-                expr: type.expr, // Expressão textual (ex: "A+B")
-                alive: true,    // Status do inimigo (vivo/morto)
-                type,           // Referência ao tipo original (ENEMY_TYPES)
-                changeTimer: 0, // Contador para mudanças dinâmicas
-                isDynamic: type.isDynamic || false // Flag de comportamento dinâmico (herdado do tipo)				
+		        mesh,           					// Objeto 3D da nave inimiga
+                health,         					// Vida atual do inimigo
+                maxHealth: health, 					// Vida máxima (igual à inicial)
+                healthBar,      					// Barra de vida flutuante
+                ev,             					// Valor lógico atual (0 ou 1)
+                evMesh,         					// Sprite com a expressão lógica (ex: "A+B")
+                ab,             					// Flag que indica se tem variáveis A/B
+                A,              					// Valor da variável A (se existir)
+                B,              					// Valor da variável B (se existir)
+                expr: type.expr, 					// Expressão textual (ex: "A+B")
+                alive: true,    					// Status do inimigo (vivo/morto)
+                type,           					// Referência ao tipo original (ENEMY_TYPES)
+                changeTimer: 0, 					// Contador para mudanças dinâmicas
+                isDynamic: type.isDynamic || false, // Flag de comportamento dinâmico (herdado do tipo)
+				movementType 						// Perfil de movimento das naves inimigas
 		    };
 		}
         
@@ -1911,6 +1920,48 @@
             playerThruster.material.opacity = 0.7 + 0.2 * Math.abs(Math.sin(performance.now() / 110));
         }
 
+		// ===== [SISTEMA DE MOVIMENTO DE INIMIGOS] ===== //
+
+		// 1. Caças (zigue-zague agressivo)
+		function updateFighterMovement(e, dt, now, phaseMultiplier) {
+		    const freq = 600 - (phaseMultiplier * 100);
+		    const amp = 0.5 + (phaseMultiplier * 0.3);
+		    const zig = Math.sin(now / freq) * amp;
+		    const zag = Math.cos(now / (freq * 0.7)) * (amp * 0.8);
+		    e.mesh.position.x += zig * dt;
+		    e.mesh.position.y += zag * dt - (0.5 * phaseMultiplier * dt);
+		}
+		
+		// 2. Cruzadores (ondas suaves)
+		function updateCruiserMovement(e, dt, now, phaseMultiplier) {
+		    const waveFreq = 800 - (phaseMultiplier * 150);
+		    const waveAmp = 0.4 + (phaseMultiplier * 0.2);
+		    const wave = Math.sin(now / waveFreq + e.mesh.position.x * 0.5) * waveAmp;
+		    e.mesh.position.x += wave * dt;
+		    e.mesh.position.y -= (0.3 + phaseMultiplier * 0.2) * dt;
+		}
+		
+		// 3. Destroyers (bloqueador tático)
+		function updateDestroyerMovement(e, dt, now, phaseMultiplier) {
+		    const blockFreq = 1000 - (phaseMultiplier * 200);
+		    const blockAmp = 0.6 + (phaseMultiplier * 0.4);
+		    const blockMove = Math.sin(now / blockFreq) * blockAmp;
+		    const advance = Math.max(0, (player.y - e.mesh.position.y) * 0.01);
+		    e.mesh.position.x += blockMove * dt;
+		    e.mesh.position.y -= (0.2 + advance) * dt;
+		}
+		
+		// 4. Nave-Mãe (ameaça imponente)
+		function updateMothershipMovement(e, dt, now) {
+		    const sway = Math.sin(now / 1200) * 0.8;
+		    const pulse = Math.sin(now / 800) * 0.3;
+		    e.mesh.position.x += sway * dt;
+		    e.mesh.position.y += pulse * dt - 0.1 * dt;
+		}
+
+		// ============================================= //
+		
+		
         function gameLoop() {
             
             // Obtém o tempo atual em milisegundos
@@ -1968,6 +2019,34 @@
                     e.mesh.position.y += Math.sin(now / 1300 + e.mesh.position.x * 0.5) * 0.3 * dt;
                     e.mesh.position.x += t * dt * 0.25;
                 }
+
+				// Movimentação dos inimigos (baseada no tipo)
+				for (let e of enemies) {
+				    if (!e.alive) continue;
+				    
+				    // Calcula multiplicador da fase (ex: fase 1 = 0, fase 9 = 2.0)
+				    const phaseMultiplier = Math.min(2.0, (wave - 1) * 0.25);
+				    
+				    switch (e.movementType) {
+				        case 'fighter':
+				            updateFighterMovement(e, dt, now, phaseMultiplier);
+				            break;
+				        case 'cruiser':
+				            updateCruiserMovement(e, dt, now, phaseMultiplier);
+				            break;
+				        case 'destroyer':
+				            updateDestroyerMovement(e, dt, now, phaseMultiplier);
+				            break;
+				        case 'mothership':
+				            updateMothershipMovement(e, dt, now);
+				            break;
+				        default:
+				            // Fallback seguro (movimento original)
+				            let t = Math.sin(now / 800 + e.mesh.position.x * 0.7) * 0.7;
+				            e.mesh.position.y += Math.sin(now / 1300 + e.mesh.position.x * 0.5) * 0.3 * dt;
+				            e.mesh.position.x += t * dt * 0.25;
+				    }
+				}
         
                 // Verifica se a wave atual foi concluída
                 if (waveEnemies === 0 && !mothership && wave <= maxWaves) {
