@@ -663,7 +663,7 @@
 			    transparent: true 
 			});
 			playerShip = new THREE.Sprite(playerMaterial);
-			playerShip.scale.set(3.8, 3.8, 1); // Ajuste a escala conforme necessário
+			playerShip.scale.set(3.5, 3.5, 1); // Ajuste a escala conforme necessário
 			
             playerShip.rotation.z = Math.PI;  // rotaciona a imagem de 180º
             playerShip.position.set(player.x, player.y, 0); // Usa player.x e player.y
@@ -679,8 +679,8 @@
             playerShip.add(playerThruster);  // adiciona o Thruster à nave
         
             playerHealthBar = createBar(1.5, 0.12, 0x00ff55, 0.2);
-            playerHealthBar.position.set(0, 0.6, 0);  // playerHealthBar.position.set(0, 1.2, 0);
-			playerHealthBar.scale.set(0.25, 0.25, 0.25); // Para compensa o scaling da nave
+            playerHealthBar.position.set(-0.2, 0.4, 0);  // playerHealthBar.position.set(0, 1.2, 0);
+			playerHealthBar.scale.set(0.28, 0.28, 0.28); // Para compensa o scaling da nave
             playerShip.add(playerHealthBar);  // adiciona a barra de vida à nave
 
 			// Cria a aura do escudo  
