@@ -665,7 +665,7 @@
 			playerShip = new THREE.Sprite(playerMaterial);
 			playerShip.scale.set(4, 4, 1); // Ajuste a escala conforme necessário
 			
-            playerShip.rotation.z = Math.PI;
+            //playerShip.rotation.z = Math.PI;
             playerShip.position.set(player.x, player.y, 0); // Usa player.x e player.y
             scene.add(playerShip);			
 			
@@ -678,7 +678,7 @@
             playerShip.add(playerThruster);  // adiciona o Thruster à nave
         
             playerHealthBar = createBar(1.5, 0.12, 0x00ff55, 0.2);
-            playerHealthBar.position.set(0, 0.5, 0);  // playerHealthBar.position.set(0, 1.2, 0);
+            playerHealthBar.position.set(0, 0.7, 0);  // playerHealthBar.position.set(0, 1.2, 0);
 			playerHealthBar.scale.set(0.25, 0.25, 0.25); // Para compensa o scaling da nave
             playerShip.add(playerHealthBar);  // adiciona a barra de vida à nave
 
@@ -696,7 +696,7 @@
 
             // Agora o VLC pode usar player.x e player.y sem erro
             playerVLCMesh = createVLCMesh(playerVLC);
-            playerVLCMesh.position.set(player.x, player.y + 2.5, 0); // Posição correta desde o início
+            playerVLCMesh.position.set(player.x - 0.5, player.y + 2.2, 0); // Posição correta desde o início
             scene.add(playerVLCMesh);
         }
 
