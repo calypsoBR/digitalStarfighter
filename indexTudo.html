@@ -16,7 +16,7 @@
 		    position: fixed;
 		    left: 12px;
 		    top: 12px;
-		    width: 150px; /* Largura original */
+		    width: 120px; /* Largura original */
 		    background: rgba(0, 0, 0, 0.7);
 		    border-radius: 5px;
 		    padding: 10px;
@@ -186,7 +186,7 @@
 				
 			  // Controle global de volumes:
 			    volume: {
-			        music: 0.12,     // 10% para músicas de fundo
+			        music: 0.14,     // 10% para músicas de fundo
 			        effects: 0.25    // 20% para efeitos (padrão)
     			}
 				
@@ -594,12 +594,12 @@
         function initBombCounts() {
             OPERATORS.forEach(op => {          
                 bombCounts = {
-                    'AND' : 12,
+                    'AND' : 10,
                     'OR'  : 6,
-                    'XOR' : 9,
-                    'NAND': 9,
+                    'XOR' : 8,
+                    'NAND': 6,
                     'NOR' : 15,
-                    'XNOR': 12
+                    'XNOR': 10
                 };
                 bombReplenishedAtScore = {};                
             });
