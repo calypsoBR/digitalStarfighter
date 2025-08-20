@@ -804,13 +804,13 @@
 		    
 		    // Ajuste de escala baseado no tipo de nave
 		    if (type.isBoss) {
-		        mesh.scale.set(6, 6, 1); // Nave-mãe maior
+		        mesh.scale.set(7, 7, 1); // Nave-mãe maior
 		    } else if (type.shape === 'cube') {
-		        mesh.scale.set(2.5, 2.5, 1); // Caças
+		        mesh.scale.set(4.5, 4.5, 1); // Caças
 		    } else if (type.shape === 'tetra') {
-		        mesh.scale.set(3, 3, 1); // Cruzadores
+		        mesh.scale.set(4.5, 4.5, 1); // Cruzadores
 		    } else {
-		        mesh.scale.set(3.5, 3.5, 1); // Destroyers
+		        mesh.scale.set(4.5, 4.5, 1); // Destroyers
 		    }
 			
 		    mesh.position.set(x, y, 0);
