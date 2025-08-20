@@ -327,13 +327,13 @@
       //  Nível	    Tipo de Nave	           Comportamento Esperado	             Intervalo
       //  ---------------------------------------------------------------------------------------
       //   1		Caças estáticos        	Valor lógico não muda depois de gerado       X  
-      //   2		Caças Dinâmicos	      	Valor lógico muda aleatoriamente (0/1)	     3s
+      //   2		Caças dinâmicos	      	Valor lógico muda aleatoriamente (0/1)	     3s
       //   3		Caças VLC	          	Alterna entre VLC e !VLC do jogador          4s
       //   4		Cruzadores estáticos   	Valor lógico não muda depois de gerado       X  
-      //   5		Cruzadores Dinâmicos	Valores A e B mudam aleatoriamente	         5s
+      //   5		Cruzadores dinâmicos	Valores A e B mudam aleatoriamente	         5s
       //   6		Cruzadores VLC	      	A fixo, B alterna entre VLC e !VLC	         4s
       //   7		Destroyers estáticos   	Valor lógico não muda depois de gerado       X  
-      //   8		Destroyers Dinâmicos	Expressões complexas com A e B dinâmicos	 5s
+      //   8		Destroyers dinâmicos	Expressões complexas com A e B dinâmicos	 5s
       //   9		Nave-Mãe	            Geradores A e B mudam aleatoriamente	     5s
       //  --------------------------------------------------------------------------------------
             
@@ -671,7 +671,7 @@
 
 			// Cria a aura do escudo  
 			shieldAura = new THREE.Mesh(  
-			    new THREE.RingGeometry(0.8, 1.5, 32),  // argumentos: (Raio interno, Raio externo, Segmentos). Segmentos diz sobre suavidade do anel
+			    new THREE.RingGeometry(1.3, 1.5, 32),  // argumentos: (Raio interno, Raio externo, Segmentos). Segmentos diz sobre suavidade do anel
 			    new THREE.MeshBasicMaterial({ 
 					color: 0x00ffff, 		// Cor ciano
 					transparent: true, 		// transparência
