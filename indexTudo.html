@@ -684,7 +684,7 @@
 
 			// Cria a aura do escudo  
 			shieldAura = new THREE.Mesh(  
-			    new THREE.RingGeometry(1.7, 1.9, 32),  // argumentos: (Raio interno, Raio externo, Segmentos). Segmentos diz sobre suavidade do anel
+			    new THREE.RingGeometry(2.3, 2.5, 32),  // argumentos: (Raio interno, Raio externo, Segmentos). Segmentos diz sobre suavidade do anel
 			    new THREE.MeshBasicMaterial({ 
 					color: 0x00ffff, 		// Cor ciano
 					transparent: true, 		// transparência
@@ -708,7 +708,7 @@
             canvas.height = 128;
             let ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, 128, 128);
-            ctx.font = 'bold 88px Arial';
+            ctx.font = 'bold 90px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.shadowColor = val ? '#0090ff' : '#ff2222';
@@ -730,7 +730,7 @@
             canvas.height = 128;
             let ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, 128, 128);
-            ctx.font = 'bold 88px Arial';
+            ctx.font = 'bold 90px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.shadowColor = val ? '#0090ff' : '#ff2222';
