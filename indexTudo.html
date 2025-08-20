@@ -861,7 +861,7 @@
 		    let evMesh = createEVSprite(evText, A, B, type.expr);
 
 			// Texto de expressão - posicione mais alto para sprites
-		    evMesh.position.set(0, 0.2, 0); // Ajuste de 1.2 para 1.8
+		    evMesh.position.set(0, - 0.1, 0); // Ajuste de 1.2 para 1.8
 
 			// COMPENSA A ESCALA DA NAVE (adicione estas linhas)
 			//evMesh.scale.set(1/mesh.scale.x, 1/mesh.scale.y, 1/mesh.scale.z);
@@ -1016,7 +1016,7 @@
             const ctx = canvas.getContext('2d'); // Contexto 2D para desenho
                                         
             // Configuração da EXPRESSÃO PRINCIPAL (texto amarelo)
-            ctx.font = 'bold 30px Arial';      // Tamanho e tipo da Fonte, em negrito  70
+            ctx.font = 'bold 25px Arial';      // Tamanho e tipo da Fonte, em negrito  70
             ctx.textAlign = 'center';          // Alinhamento centralizado
             ctx.textBaseline = 'middle';       // Alinhamento vertical no meio
             ctx.fillStyle = "#ffff55";         // Cor amarela
@@ -1053,7 +1053,7 @@
                 ctx.fillRect(rectX, rectY, rectWidth, 70);                
                 
                 // Variáveis (A e B em verde)
-                ctx.font = 'bold 10px Arial';  // Fonte menor que a da expressão   48
+                ctx.font = 'bold 5px Arial';  // Fonte menor que a da expressão   48
                 ctx.fillStyle = "#55ff55";      // Cor verde
                 ctx.shadowBlur = 0;            // Remove sombra                
                 ctx.fillText(`A = ${A}  B = ${B}`, 128, 115); // Ajusta Y para 110 (centralizado no novo fundo)
