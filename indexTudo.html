@@ -679,6 +679,7 @@
         
             playerHealthBar = createBar(1.5, 0.12, 0x00ff55, 0.2);
             playerHealthBar.position.set(0, 1.2, 0);
+			playerHealthBar.scale.set(0.25, 0.25, 0.25); // Para compensa o scaling da nave
             playerShip.add(playerHealthBar);  // adiciona a barra de vida à nave
 
 			// Cria a aura do escudo  
@@ -695,7 +696,7 @@
 
             // Agora o VLC pode usar player.x e player.y sem erro
             playerVLCMesh = createVLCMesh(playerVLC);
-            playerVLCMesh.position.set(player.x, player.y + 1.7, 0); // Posição correta desde o início
+            playerVLCMesh.position.set(player.x, player.y + 2.5, 0); // Posição correta desde o início
             scene.add(playerVLCMesh);
         }
 
