@@ -847,7 +847,11 @@
 
 			// ===== [5. BARRA DE VIDA] =================================================
 		    let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
-		    healthBar.position.set(0, -1.2, 0); // Ajuste de -0.8 para -1.2
+		    healthBar.position.set(0, -1.2, 0); // Ajuste de -0.8 para -1.2	
+
+			// COMPENSA A ESCALA DA NAVE (adicione estas linhas)
+			healthBar.scale.set(1/mesh.scale.x, 1/mesh.scale.y, 1/mesh.scale.z);
+			
 		    mesh.add(healthBar);
 			
 		    // ==================== [6. CRIA TEXTO DA EXPRESSÃO] ====================
@@ -858,6 +862,10 @@
 
 			// Texto de expressão - posicione mais alto para sprites
 		    evMesh.position.set(0, 1.8, 0); // Ajuste de 1.2 para 1.8
+
+			// COMPENSA A ESCALA DA NAVE (adicione estas linhas)
+			evMesh.scale.set(1/mesh.scale.x * 0.8, 1/mesh.scale.y * 0.8, 1/mesh.scale.z);
+			
 		    mesh.add(evMesh);
 
 			// ==================== [7. ADICIONA A CENA] ============================
