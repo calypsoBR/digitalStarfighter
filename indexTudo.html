@@ -678,13 +678,13 @@
             playerShip.add(playerThruster);  // adiciona o Thruster à nave
         
             playerHealthBar = createBar(1.5, 0.12, 0x00ff55, 0.2);
-            playerHealthBar.position.set(0, 0.7, 0);  // playerHealthBar.position.set(0, 1.2, 0);
+            playerHealthBar.position.set(0, 0.5, 0);  // playerHealthBar.position.set(0, 1.2, 0);
 			playerHealthBar.scale.set(0.25, 0.25, 0.25); // Para compensa o scaling da nave
             playerShip.add(playerHealthBar);  // adiciona a barra de vida à nave
 
 			// Cria a aura do escudo  
 			shieldAura = new THREE.Mesh(  
-			    new THREE.RingGeometry(1.3, 1.5, 32),  // argumentos: (Raio interno, Raio externo, Segmentos). Segmentos diz sobre suavidade do anel
+			    new THREE.RingGeometry(1.0, 1.2, 32),  // argumentos: (Raio interno, Raio externo, Segmentos). Segmentos diz sobre suavidade do anel
 			    new THREE.MeshBasicMaterial({ 
 					color: 0x00ffff, 		// Cor ciano
 					transparent: true, 		// transparência
