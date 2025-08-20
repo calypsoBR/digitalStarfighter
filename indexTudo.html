@@ -806,7 +806,7 @@
 		    if (type.isBoss) {
 		        mesh.scale.set(7, 7, 1); // Nave-mãe maior
 		    } else if (type.shape === 'cube') {
-		        mesh.scale.set(4.5, 4.5, 1); // Caças
+		        mesh.scale.set(4, 4, 1); // Caças
 		    } else if (type.shape === 'tetra') {
 		        mesh.scale.set(4.5, 4.5, 1); // Cruzadores
 		    } else {
@@ -847,7 +847,7 @@
 
 			// ===== [5. BARRA DE VIDA] =================================================
 		    let healthBar = createBar(1.1, 0.11, 0xff4444, 0.18);
-		    healthBar.position.set(0, -0.6, 0); // Ajuste de -0.8 para -1.2	
+		    healthBar.position.set(0, -0.5, 0); // Ajuste de -0.8 para -1.2	
 
 			// COMPENSA A ESCALA DA NAVE (adicione estas linhas)
 			healthBar.scale.set(1/mesh.scale.x*1.2, 1/mesh.scale.y*1.2, 1/mesh.scale.z);
@@ -861,7 +861,7 @@
 		    let evMesh = createEVSprite(evText, A, B, type.expr);
 
 			// Texto de expressão - posicione mais alto para sprites
-		    evMesh.position.set(0, 1.2, 0); // Ajuste de 1.2 para 1.8
+		    evMesh.position.set(0, 0.2, 0); // Ajuste de 1.2 para 1.8
 
 			// COMPENSA A ESCALA DA NAVE (adicione estas linhas)
 			evMesh.scale.set(1/mesh.scale.x * 0.8, 1/mesh.scale.y * 0.8, 1/mesh.scale.z);
