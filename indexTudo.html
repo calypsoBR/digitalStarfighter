@@ -861,8 +861,8 @@
 		    let evMesh = createEVSprite(evText, A, B, type.expr);
 
 			// Texto de expressão - posicione mais alto para sprites
-		    evMesh.position.set(0, - 0.1, 0); // Ajuste de 1.2 para 1.8
-
+		    evMesh.position.set(0, 0.1, 0); // Ajuste de 1.2 para 1.8
+			
 			// COMPENSA A ESCALA DA NAVE (adicione estas linhas)
 			//evMesh.scale.set(1/mesh.scale.x, 1/mesh.scale.y, 1/mesh.scale.z);
 			
@@ -937,7 +937,7 @@
         	);
         
             // Posiciona o sprite acima da nave
-            enemy.evMesh.position.set(0, 1.2, 0);
+            enemy.evMesh.position.set(0, 0.1, 0);
             enemy.mesh.add(enemy.evMesh);
         }
         
