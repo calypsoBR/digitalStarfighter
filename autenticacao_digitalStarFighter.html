@@ -67,16 +67,18 @@
 
       const dataHora = new Date().toISOString();
       const dados = {
+        tipo: "autenticacao",
         jogador: jogador,
         equipe: codigo,
-        acesso: dataHora
+        dataHora: dataHora
       };
 
       const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
+      const nomeArquivo = `autenticacao_${jogador}_${dataHora}.json`.replace(/[:]/g, "-");
       const a = document.createElement("a");
       a.href = url;
-      a.download = `autenticacao_${jogador}_${dataHora}.json`;
+      a.download = nomeArquivo;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
