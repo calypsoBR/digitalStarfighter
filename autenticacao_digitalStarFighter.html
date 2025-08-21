@@ -65,7 +65,9 @@
         return;
       }
 
-      const dataHora = new Date().toISOString();
+     const agora = new Date();
+     const dataHora = agora.toLocaleString("sv-SE").replace(" ", "T");
+
 
       // Salva no localStorage para o jogo acessar
       localStorage.setItem("jogador", jogador);
@@ -99,3 +101,4 @@
   </script>
 </body>
 </html>
+
