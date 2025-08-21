@@ -28,12 +28,6 @@
       text-align: center;
       margin-top: 20px;
     }
-    #instrucoes {
-      margin-top: 30px;
-      text-align: center;
-      font-size: 0.95em;
-      color: #333;
-    }
   </style>
 </head>
 <body>
@@ -45,11 +39,10 @@
     <label for="jogador">Nome do Jogador:</label>
     <input type="text" id="jogador" name="jogador" required>
 
-    <button type="submit">Salvar Autenticação</button>
+    <button type="submit">Entrar no Jogo</button>
   </form>
 
   <div id="mensagem"></div>
-  <div id="instrucoes"></div>
 
   <script>
     function autenticarJogador(event) {
@@ -58,9 +51,7 @@
       const codigo = document.getElementById("codigo").value.trim().toUpperCase();
       const jogador = document.getElementById("jogador").value.trim();
       const mensagem = document.getElementById("mensagem");
-      const instrucoes = document.getElementById("instrucoes");
       mensagem.innerHTML = "";
-      instrucoes.innerHTML = "";
 
       const regexCodigo = /^E[EB]\d{2}$/;
 
@@ -75,32 +66,35 @@
       }
 
       const dataHora = new Date().toISOString();
-      const dados = {
+
+      // Salva no localStorage para o jogo acessar
+      localStorage.setItem("jogador", jogador);
+      localStorage.setItem("equipe", codigo);
+
+      // Gera o arquivo de autenticação
+      const dadosAutenticacao = {
         tipo: "autenticacao",
         jogador: jogador,
         equipe: codigo,
-        dataHora: dataHora
+        acesso: dataHora
       };
 
-      const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(dadosAutenticacao, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const nomeArquivo = `autenticacao_${jogador}_${dataHora}.json`.replace(/[:]/g, "-");
+
       const a = document.createElement("a");
       a.href = url;
       a.download = nomeArquivo;
+      a.style.display = "none";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
 
-      instrucoes.innerHTML = `
-        <p><strong>Arquivo salvo com sucesso!</strong></p>
-        <p>Agora, envie o arquivo para a pasta compartilhada do jogo no OneDrive.</p>
-        <p><em>Se você ainda não tem o link da pasta, peça ao organizador.</em></p>
-      `;
-
+      // Redireciona para o jogo após o download
       setTimeout(() => {
         window.location.href = "https://calypsobr.github.io/digitalStarfighter/indexTudo.html";
-      }, 3000);
+      }, 1000);
     }
   </script>
 </body>
