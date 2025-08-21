@@ -116,6 +116,7 @@
 	    <div class="hud-value" id="health-value">■■■■■</div>
 	</div>
 
+	// Botão da tela inicial para habilitar sons 
 	<button 
 	    id="unmute" 
 	    style="
@@ -136,6 +137,37 @@
 	</button>
 	
     <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.min.js"></script>
+
+	<script>
+		function salvarJogada(pontuacaoFinal) {
+		  const jogador = localStorage.getItem("jogador") || "Desconhecido";
+		  const equipe = localStorage.getItem("equipe") || "EE00";
+		  const dataHora = new Date().toISOString();
+		
+		  const dadosJogada = {
+		    tipo: "jogada",
+		    jogador: jogador,
+		    equipe: equipe,
+		    pontuacao: pontuacaoFinal,
+		    dataHora: dataHora
+		  };
+		
+		  const blob = new Blob([JSON.stringify(dadosJogada, null, 2)], { type: "application/json" });
+		  const url = URL.createObjectURL(blob);
+		  const nomeArquivo = `jogada_${jogador}_${dataHora}.json`.replace(/[:]/g, "-");
+		
+		  const a = document.createElement("a");
+		  a.href = url;
+		  a.download = nomeArquivo;
+		  a.style.display = "none";
+		  document.body.appendChild(a);
+		  a.click();
+		  document.body.removeChild(a);
+		
+		  alert("Jogada salva! Envie o arquivo para a pasta compartilhada no OneDrive.");
+		}
+	</script>
+
 	
     <script>    
 
@@ -1822,8 +1854,11 @@
 	                        gameOverOverlay = showOverlay(
 	                            'gameover', 
 	                            'GAME OVER', 
-	                            'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar'
+	                            'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar'							
 	                        );
+							//////////// Salva arquivo temporario //////////////////
+							salvarJogada(playerScore);
+							///////////////////////////////////////////////////////
 	                    }
 					}
                 }
@@ -2107,7 +2142,11 @@
                         'win', 
                         'VITÓRIA! VOCÊ ANIQUILOU A ARMADA KODAN!', 
                         'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar'
+						
                     );
+					//////////// Salva arquivo temporario //////////////////
+					salvarJogada(playerScore);
+					///////////////////////////////////////////////////////
                 }
         
                 // Verifica recarga de bombas por pontuação
