@@ -28,6 +28,12 @@
       text-align: center;
       margin-top: 20px;
     }
+    #instrucoes {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 0.95em;
+      color: #333;
+    }
   </style>
 </head>
 <body>
@@ -39,10 +45,11 @@
     <label for="jogador">Nome do Jogador:</label>
     <input type="text" id="jogador" name="jogador" required>
 
-    <button type="submit">Entrar no Jogo</button>
+    <button type="submit">Salvar Autenticação</button>
   </form>
 
   <div id="mensagem"></div>
+  <div id="instrucoes"></div>
 
   <script>
     function autenticarJogador(event) {
@@ -51,7 +58,9 @@
       const codigo = document.getElementById("codigo").value.trim().toUpperCase();
       const jogador = document.getElementById("jogador").value.trim();
       const mensagem = document.getElementById("mensagem");
+      const instrucoes = document.getElementById("instrucoes");
       mensagem.innerHTML = "";
+      instrucoes.innerHTML = "";
 
       const regexCodigo = /^E[EB]\d{2}$/;
 
@@ -83,10 +92,15 @@
       a.click();
       document.body.removeChild(a);
 
-      // Redireciona para o jogo
+      instrucoes.innerHTML = `
+        <p><strong>Arquivo salvo com sucesso!</strong></p>
+        <p>Agora, envie o arquivo para a pasta compartilhada do jogo no OneDrive.</p>
+        <p><em>Se você ainda não tem o link da pasta, peça ao organizador.</em></p>
+      `;
+
       setTimeout(() => {
         window.location.href = "https://calypsobr.github.io/digitalStarfighter/indexTudo.html";
-      }, 1000);
+      }, 3000);
     }
   </script>
 </body>
