@@ -164,7 +164,7 @@
 		  a.click();
 		  document.body.removeChild(a);
 		
-		  alert("Jogada salva! Envie o arquivo para a pasta compartilhada no OneDrive.");
+		  alert("Jogada salva! Ao terminar de jogar, envie todos os arquivos .json gerados para a pasta compartilhada no OneDrive.");
 		}
 	</script>
 
@@ -1856,8 +1856,10 @@
 	                            'GAME OVER', 
 	                            'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar'							
 	                        );
-							//////////// Salva arquivo temporario //////////////////
-							salvarJogada(playerScore);
+							//////////// Salva arquivo temporario //////////////////							
+							setTimeout(() => {
+								salvarJogada(playerScore);
+							}, 1500); // espera 1 segundo para garantir que o overlay apareceu
 							///////////////////////////////////////////////////////
 	                    }
 					}
@@ -2145,7 +2147,9 @@
 						
                     );
 					//////////// Salva arquivo temporario //////////////////
-					salvarJogada(playerScore);
+					setTimeout(() => {
+						salvarJogada(playerScore);
+					}, 1500); // espera 1 segundo para garantir que o overlay apareceu
 					///////////////////////////////////////////////////////
                 }
         
