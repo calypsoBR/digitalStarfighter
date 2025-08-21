@@ -36,7 +36,7 @@
     <label for="codigo">Código da Equipe (ex: EE01 ou EB02):</label>
     <input type="text" id="codigo" name="codigo" required>
 
-    <label for="jogador">Nome do Jogador (no mínimo o 1º e o último nomes):</label>
+    <label for="jogador">Nome do Jogador:</label>
     <input type="text" id="jogador" name="jogador" required>
 
     <button type="submit">Entrar no Jogo</button>
@@ -45,16 +45,14 @@
   <div id="mensagem"></div>
 
   <script>
-    async function autenticarJogador(event) {
+    function autenticarJogador(event) {
       event.preventDefault();
 
       const codigo = document.getElementById("codigo").value.trim().toUpperCase();
       const jogador = document.getElementById("jogador").value.trim();
-
       const mensagem = document.getElementById("mensagem");
       mensagem.innerHTML = "";
 
-      // Validação do formato do código da equipe     
       const regexCodigo = /^E[EB]\d{2}$/;
 
       if (!regexCodigo.test(codigo)) {
@@ -67,30 +65,9 @@
         return;
       }
 
-      try {
-        // Enviar dados para o Power Automate (substitua pela URL real do seu fluxo)
-        //await fetch("https://sua-url-do-power-automate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            equipe: codigo,
-            jogador: jogador,
-            timestamp: new Date().toISOString()
-          })
-        });
-
-        // Redirecionar para o jogo
-        window.location.href = "https://calypsobr.github.io/digitalStarfighter/indexTudo.html";
-      } catch (error) {
-        console.error("Erro ao autenticar:", error);
-        mensagem.innerHTML = "<p style='color:red;'>Erro ao autenticar. Tente novamente.</p>";
-      }
+      // Simulação de sucesso: redireciona para o jogo
+      window.location.href = "https://calypsobr.github.io/digitalStarfighter/indexTudo.html";
     }
   </script>
 </body>
 </html>
-
-
-
