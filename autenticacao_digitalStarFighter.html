@@ -65,8 +65,26 @@
         return;
       }
 
-      // Simulação de sucesso: redireciona para o jogo
-      window.location.href = "https://calypsobr.github.io/digitalStarfighter/indexTudo.html";
+      const dataHora = new Date().toISOString();
+      const dados = {
+        jogador: jogador,
+        equipe: codigo,
+        acesso: dataHora
+      };
+
+      const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `autenticacao_${jogador}_${dataHora}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      // Redireciona para o jogo
+      setTimeout(() => {
+        window.location.href = "https://calypsobr.github.io/digitalStarfighter/indexTudo.html";
+      }, 1000);
     }
   </script>
 </body>
