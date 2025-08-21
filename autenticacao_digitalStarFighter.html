@@ -54,8 +54,9 @@
       const mensagem = document.getElementById("mensagem");
       mensagem.innerHTML = "";
 
-      // Validação do formato do código da equipe
-      const regexCodigo = /^E[EB]\\d{2}$/;
+      // Validação do formato do código da equipe     
+      const regexCodigo = /^E[EB]\d{2}$/;
+
       if (!regexCodigo.test(codigo)) {
         mensagem.innerHTML = "<p style='color:red;'>O código da equipe deve estar no formato EE01 ou EB02.</p>";
         return;
@@ -90,3 +91,4 @@
   </script>
 </body>
 </html>
+
