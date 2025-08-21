@@ -1943,14 +1943,12 @@
 		    const zig = Math.sin(now / freq) * amp;
 		    const zag = Math.cos(now / (freq * 0.7)) * (amp * 0.8);
 			
-		    e.mesh.position.x += zig * dt;			
-			// Só move para baixo se não atingiu o limite  
-		    if (e.mesh.position.y > ENEMY_LIMIT_Y) {  
-		        e.mesh.position.y += zag * dt - (0.4 * phaseMultiplier * dt);  
-		    } else {  
-		        // Mantém no limite e só se move horizontalmente  
-		        e.mesh.position.y = ENEMY_LIMIT_Y;  		       
-		    }  
+			// Movimento horizontal (normal)
+		    e.mesh.position.x += zig * dt;
+			
+			// Movimento vertical COM limite (usando Math.max)
+			const newY = e.mesh.position.y + (zag * dt - (0.4 * phaseMultiplier * dt));  // controla a descida das naves em direção ao jogador
+			e.mesh.position.y = Math.max(ENEMY_LIMIT_Y, newY); 	// Só move para baixo se não atingiu o limite				
 		}
 		
 		// 2. Cruzadores (ondas suaves)
@@ -1959,15 +1957,13 @@
 		    const waveAmp = 0.4 + (phaseMultiplier * 0.2);
 		    const wave = Math.sin(now / waveFreq + e.mesh.position.x * 0.5) * waveAmp;
 		    
-			e.mesh.position.x += wave * dt;			
-			// Só move para baixo se não atingiu o limite  
-		    if (e.mesh.position.y > ENEMY_LIMIT_Y) {  
-		        e.mesh.position.y -= (0.3 + phaseMultiplier * 0.2) * dt;  // controla a descida das naves em direção ao jogador
-		    } else {  
-		        // Mantém no limite e só se move horizontalmente  
-		        e.mesh.position.y = ENEMY_LIMIT_Y;		    
-		    }
+			// Movimento horizontal (normal)
+			e.mesh.position.x += wave * dt;
 			
+			// Movimento vertical COM limite (usando Math.max)
+			const newY = e.mesh.position.y - (0.3 + phaseMultiplier * 0.2) * dt;  // controla a descida das naves em direção ao jogador
+			e.mesh.position.y = Math.max(ENEMY_LIMIT_Y, newY);    // Só move para baixo se não atingiu o limite			
+    		
 		}
 		
 		// 3. Destroyers (bloqueador tático)
@@ -1977,28 +1973,26 @@
 		    const blockMove = Math.sin(now / blockFreq) * blockAmp;
 		    const advance = Math.max(0, (player.y - e.mesh.position.y) * 0.01);
 			
-		    e.mesh.position.x += blockMove * dt;			
-			// Só move para baixo se não atingiu o limite  
-		    if (e.mesh.position.y > ENEMY_LIMIT_Y) {  
-		        e.mesh.position.y -= (0.2 + advance) * dt;   // controla a descida das naves em direção ao jogador
-		    } else {  
-		        // Mantém no limite e só se move horizontalmente  
-		        e.mesh.position.y = ENEMY_LIMIT_Y;  		        
-		    }
+			// Movimento horizontal (normal)
+		    e.mesh.position.x += blockMove * dt;
+			
+			// Movimento vertical COM limite (usando Math.max)
+			const newY = e.mesh.position.y - (0.2 + advance) * dt;   // controla a descida das naves em direção ao jogador
+			e.mesh.position.y = Math.max(ENEMY_LIMIT_Y, newY);  // Só move para baixo se não atingiu o limite  		    
 		}
 		
 		// 4. Nave-Mãe (ameaça imponente)
-		function updateMothershipMovement(e, dt, now) {
-		    const sway = Math.sin(now / 1200) * 0.8;
-		    const pulse = Math.sin(now / 800) * 0.3;
-		    e.mesh.position.x += sway * dt;
-			if (e.mesh.position.y > ENEMY_LIMIT_Y + 3) { // Para 5 unidades acima do limite  
-		        e.mesh.position.y += pulse * dt - 0.1 * dt;  
-		    } else {  
-		        // Fica estacionária em uma posição de "chefe"  
-		        e.mesh.position.y = ENEMY_LIMIT_Y + 3;  
-		    }			
-		}
+		function updateMothershipMovement(e, dt, now) {  
+		    const sway = Math.sin(now / 1200) * 0.8;  
+		    const pulse = Math.sin(now / 800) * 0.3;  
+		    
+		    // Movimento horizontal (normal)  
+		    e.mesh.position.x += sway * dt;  
+		    
+		    // Movimento vertical COM limite (usando Math.max)  
+		    const newY = e.mesh.position.y + (pulse * dt - 0.1 * dt);  
+		    e.mesh.position.y = Math.max(ENEMY_LIMIT_Y + 3, newY); // Travamento a 3 unidades acima do limite  
+		} 
 
 		// ============================================= //
 		
