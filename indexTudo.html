@@ -537,13 +537,19 @@
             {
               shape: 'octahedron', size: 3.0,
               generators: [], // Inicializa vazio (será preenchido em spawnMothership())
-              ev: function() {          
-                  const A = this.generators[0].value;
-                  const B = this.generators[1].value;
-                  return (A ^ B) & playerVLC;    // C = VLC do jogador				  
+              ev: function() {
+				  // Adicionar verificação de segurança
+				  if (!this.generators || this.generators.length < 2) {
+					  return 0; // Valor seguro temporário
+			      } 
+				  const A = this.generators[0].value; 
+				  const B = this.generators[1].value; 
+				  return (A ^ B) & playerVLC;    // C = VLC do jogador				  
               },
               expr: '(A⊕B).C',
               isBoss: true,
+			  isDynamic: true,  // ← CRÍTICO: marca como dinâmica
+    		  changeInterval: 5,  // ← OPICIONAL: define intervalo de mudança
               health: 12 + maxWaves
             }
             
