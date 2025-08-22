@@ -1013,10 +1013,16 @@
 		
 		        // 6. Atualiza o gerador B com um valor aleatório (0 ou 1):
 		        mothership.generators[1].value = Math.round(Math.random());
-		
+
+				// ATUALIZE OS VALORES VISUAIS A e B
+		        mothership.A = mothership.generators[0].value;
+		        mothership.B = mothership.generators[1].value;
+				
 		        // 7. Recalcula o valor lógico (ev) da nave-mãe usando a função definida em ENEMY_TYPES:
 		        //    - Acessa mothership.type.ev(), que calcula (A⊕B).C automaticamente, onde C = VLC do jogador
-		        mothership.ev = mothership.type.ev();
+		        //mothership.ev = mothership.type.ev();
+				mothership.ev = mothership.type.ev.call({
+            		generators: mothership.generators
 		
 		        // 8. Atualiza o HUD visual da nave-mãe com os novos valores (A, B, ev):
 		        updateEnemyEVSprite(mothership);
