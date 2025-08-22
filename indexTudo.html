@@ -143,12 +143,13 @@
 		function salvarJogada(pontuacaoFinal) {
 		  const jogador = localStorage.getItem("jogador") || "Desconhecido";
 		  const equipe = localStorage.getItem("equipe") || "EE00";
+		  const acesso = localStorage.getItem("acesso");
 		  const dataHora = new Date().toISOString();
 		
 		  const dadosJogada = {
-		    tipo: "jogada",
 		    jogador: jogador,
 		    equipe: equipe,
+			acesso: acessa,
 		    pontuacao: pontuacaoFinal,
 		    dataHora: dataHora
 		  };
@@ -165,7 +166,7 @@
 		  a.click();
 		  document.body.removeChild(a);
 		
-		  alert("Jogada salva! Ao terminar de jogar, envie todos os arquivos .json gerados para a pasta compartilhada no OneDrive.");
+		  alert("Jogada salva! Quando quiser parar em definitivo de jogar, envie todos os arquivos .json gerados para a pasta compartilhada no OneDrive.");
 		}
 	</script>
 
