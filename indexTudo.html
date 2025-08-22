@@ -557,8 +557,8 @@
         const POWERUP_COLOR = 0x00ff00;         // Cor verde dos power-ups
         
         // ===== [ CONSTANTES DA AREA DO JOGO ] ===== //
-        const PLAY_AREA = { x: 30, y: 26 };     	// Dimensões da área jogável (unidades 3D)  o dobro do original = x: 16, y: 10
-		const ENEMY_LIMIT_Y = -PLAY_AREA.y * 0.66;  // Limite de avanço vertical das naves inimigas (2/3 da tela, abaixo do centro)
+        const PLAY_AREA = { x: 30, y: 26 };     	// Dimensões da área jogável (o centro é 0,0, então x vai de +x/2 a -x/2; y vai de +y/2 a -4/2)
+		const ENEMY_LIMIT_Y = -PLAY_AREA.y/2 * 0.7;  // Limite de avanço vertical das naves inimigas (2/3 da tela, abaixo do centro)
 
         // ===== [ VARIÁVEIS DE RENDERIZAÇÃO ] ===== //
         let renderer, scene, camera;            // Objetos principais do Three.js
@@ -2115,12 +2115,12 @@
 				}  
 				
                 // Movimentação oscilatória dos inimigos (efeito "flutuante")
-                for (let e of enemies) {
+              /*  for (let e of enemies) {
                     if (!e.alive) continue;
                     let t = Math.sin(now / 800 + e.mesh.position.x * 0.7) * 0.7;
                     e.mesh.position.y += Math.sin(now / 1300 + e.mesh.position.x * 0.5) * 0.3 * dt;
                     e.mesh.position.x += t * dt * 0.25;
-                }
+                } */
 
 				// Movimentação dos inimigos (baseada no tipo)
 				for (let e of enemies) {
