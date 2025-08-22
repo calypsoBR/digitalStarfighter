@@ -145,7 +145,8 @@
 		  const equipe = localStorage.getItem("equipe") || "EE00";
 		  const acesso = localStorage.getItem("acesso");
 		  const dataHora = new Date().toISOString();
-		
+		  const dataHora = agora.toLocaleString("sv-SE").replace(" ", "T");			
+	     
 		  const dadosJogada = {
 		    jogador: jogador,
 		    equipe: equipe,
