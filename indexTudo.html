@@ -1023,6 +1023,7 @@
 		        //mothership.ev = mothership.type.ev();
 				mothership.ev = mothership.type.ev.call({
             		generators: mothership.generators
+				});
 		
 		        // 8. Atualiza o HUD visual da nave-mãe com os novos valores (A, B, ev):
 		        updateEnemyEVSprite(mothership);
