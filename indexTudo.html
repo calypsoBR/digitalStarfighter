@@ -1998,7 +1998,13 @@
 			
 			// Movimento vertical COM limite (usando Math.max)
 			const newY = e.mesh.position.y + (zag * dt - (0.4 * phaseMultiplier * dt));  // controla a descida das naves em direção ao jogador
-			e.mesh.position.y = Math.max(ENEMY_LIMIT_Y, newY); 	// Só move para baixo se não atingiu o limite				
+			e.mesh.position.y = Math.max(ENEMY_LIMIT_Y, newY); 	// Só move para baixo se não atingiu o limite
+
+			  // Garantia final - não importa o que aconteça
+		    if (e.mesh.position.y < ENEMY_LIMIT_Y) {
+		        e.mesh.position.y = ENEMY_LIMIT_Y;
+		    }
+			
 		}
 		
 		// 2. Cruzadores (ondas suaves)
@@ -2013,7 +2019,10 @@
 			// Movimento vertical COM limite (usando Math.max)
 			const newY = e.mesh.position.y - (0.3 + phaseMultiplier * 0.2) * dt;  // controla a descida das naves em direção ao jogador
 			e.mesh.position.y = Math.max(ENEMY_LIMIT_Y, newY);    // Só move para baixo se não atingiu o limite			
-    		
+    		  // Garantia final - não importa o que aconteça
+		    if (e.mesh.position.y < ENEMY_LIMIT_Y) {
+		        e.mesh.position.y = ENEMY_LIMIT_Y;
+		    }
 		}
 		
 		// 3. Destroyers (bloqueador tático)
@@ -2029,6 +2038,10 @@
 			// Movimento vertical COM limite (usando Math.max)
 			const newY = e.mesh.position.y - (0.2 + advance) * dt;   // controla a descida das naves em direção ao jogador
 			e.mesh.position.y = Math.max(ENEMY_LIMIT_Y, newY);  // Só move para baixo se não atingiu o limite  		    
+			// Garantia final - não importa o que aconteça
+		    if (e.mesh.position.y < ENEMY_LIMIT_Y) {
+		        e.mesh.position.y = ENEMY_LIMIT_Y;
+		    }
 		}
 		
 		// 4. Nave-Mãe (ameaça imponente)
@@ -2042,6 +2055,10 @@
 		    // Movimento vertical COM limite (usando Math.max)  
 		    const newY = e.mesh.position.y + (pulse * dt - 0.1 * dt);  
 		    e.mesh.position.y = Math.max(ENEMY_LIMIT_Y + 3, newY); // Travamento a 3 unidades acima do limite  
+			// Garantia final - não importa o que aconteça
+		    if (e.mesh.position.y < ENEMY_LIMIT_Y +3) {
+		        e.mesh.position.y = ENEMY_LIMIT_Y + 3;
+		    }
 		} 
 
 		// ============================================= //
