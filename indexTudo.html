@@ -556,7 +556,7 @@
               isBoss: true,
 			  isDynamic: true,  // ← CRÍTICO: marca como dinâmica
     		  changeInterval: 5,  // ← OPICIONAL: define intervalo de mudança
-              health: 12 + maxWaves
+              health: 16 + maxWaves
             }
             
         ];       
@@ -975,8 +975,14 @@
         
         function spawnMothership() {			
             const type = ENEMY_TYPES.find(t => t.isBoss);
-            mothership = spawnEnemy(type, 0, PLAY_AREA.y/2.5);                        
+            mothership = spawnEnemy(type, 0, PLAY_AREA.y/2.5);
+			
             mothership.mesh.scale.set(1.5, 1.5, 1.5);  // Expansão
+
+			// DIMINUA o sprite da expressão (escala menor)
+		    if (mothership.evMesh) {
+		        mothership.evMesh.scale.set(2.0, 1.5, 1);  // ← Diminui de 3.2, 2.0 para 2.0, 1.5
+		    }
             
             // Adiciona geradores
             mothership.generators = [ // Preenche os geradores aqui
@@ -1020,6 +1026,15 @@
 		
         function createEVSprite(text, A, B, expr) {
 
+			// DETECÇÃO ESPECIAL PARA NAVE MÃE
+		    const isMothership = expr === '(A⊕B).C';
+		    
+		    // Se for nave mãe, força exibição de A e B
+		    if (isMothership) {
+		        A = A !== null && A !== undefined ? A : 0;
+		        B = B !== null && B !== undefined ? B : 0;
+		    }
+			
             // Adicione no início da função:
             A = A !== undefined ? A : null;
             B = B !== undefined ? B : null;
@@ -1070,7 +1085,9 @@
                      //       +---------------------------+ ← Borda Inferior (y=164)
             
             // Se houver variáveis (A, B) e expressão (expr), desenha o fundo e os valores
-            if (A !== null && B !== null && expr) {
+            //if (A !== null && B !== null && expr) {
+			if ((A !== null && B !== null && expr) || isMothership) {
+				
                 // Fundo semi-transparente para as variáveis
                 ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
                 
@@ -1716,10 +1733,10 @@
 
 			// CONTROLE ESPECIAL PARA NAVE MÃE
 		    if (mothership && mothership.alive) {
-		        // Rajadas a cada 2 segundos
-		        if (now - lastEnemyFire > 2.0) {
-		            // Lança 5-8 projéteis de uma vez
-		            const numShots = 5 + Math.floor(Math.random() * 4);
+		        // Rajadas a cada 1 segundo
+		        if (now - lastEnemyFire > 1.0) {
+		            // Lança 7-12 projéteis de uma vez
+		            const numShots = 7 + Math.floor(Math.random() * 5);
 		            
 		            for (let i = 0; i < numShots; i++) {
 		                let dx = player.x - mothership.mesh.position.x;
@@ -2100,8 +2117,8 @@
 		
 		// 4. Nave-Mãe (ameaça imponente)
 		function updateMothershipMovement(e, dt, now) {  
-		    const sway = Math.sin(now / 1200) * 1.2;  
-		    const pulse = Math.sin(now / 800) * 0.5;  
+		    const sway = Math.sin(now / 1200) * 1.5;  
+		    const pulse = Math.sin(now / 800) * 0.8;  
 		    
 		    // Movimento horizontal (normal)  
 		    e.mesh.position.x += sway * dt;  
