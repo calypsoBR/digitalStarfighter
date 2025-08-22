@@ -543,9 +543,15 @@
 					  return 0; // Valor seguro temporário
 			      } 
 				  const A = this.generators[0].value; 
-				  const B = this.generators[1].value; 
+				  const B = this.generators[1].value;
+
+				  // ATUALIZE OS VALORES VISUAIS (adicione estas linhas)
+				  this.A = A;  // ← Atualiza para o HUD
+				  this.B = B;  // ← Atualiza para o HUD
+				  
 				  return (A ^ B) & playerVLC;    // C = VLC do jogador				  
               },
+				
               expr: '(A⊕B).C',
               isBoss: true,
 			  isDynamic: true,  // ← CRÍTICO: marca como dinâmica
@@ -944,7 +950,13 @@
         function updateEnemyEVSprite(enemy) {
             // Remove o sprite antigo
             enemy.mesh.remove(enemy.evMesh);
-        
+
+			// GARANTE que A e B existam para a nave mãe
+		    if (enemy.isBoss && enemy.generators) {
+		        enemy.A = enemy.generators[0]?.value ?? 0;
+		        enemy.B = enemy.generators[1]?.value ?? 0;
+		    }
+			
             // Cria texto que ficará acima da nave: expressão se houver ou valor lógico da nave
             let evText = enemy.expr || enemy.ev?.toString(); 
             
@@ -1701,7 +1713,43 @@
         function enemyFireLogic(dt) {
             // Obtém o tempo atual em segundos (para cálculos de intervalo de disparo)
             let now = performance.now() / 1000;
-        
+
+			// CONTROLE ESPECIAL PARA NAVE MÃE
+		    if (mothership && mothership.alive) {
+		        // Rajadas a cada 2 segundos
+		        if (now - lastEnemyFire > 2.0) {
+		            // Lança 5-8 projéteis de uma vez
+		            const numShots = 5 + Math.floor(Math.random() * 4);
+		            
+		            for (let i = 0; i < numShots; i++) {
+		                let dx = player.x - mothership.mesh.position.x;
+		                let dy = player.y - mothership.mesh.position.y;
+		                let mag = Math.sqrt(dx * dx + dy * dy);
+		                if (mag === 0) mag = 1;
+		                dx /= mag;
+		                dy /= mag;
+		                
+		                // Adiciona variação aleatória na direção
+		                const spread = 0.2;
+		                dx += (Math.random() - 0.5) * spread;
+		                dy += (Math.random() - 0.5) * spread;
+		                
+		                // Re-normaliza
+		                const newMag = Math.sqrt(dx * dx + dy * dy);
+		                dx /= newMag;
+		                dy /= newMag;
+		                
+		                spawnEnemyProjectile(
+		                    mothership.mesh.position.x, 
+		                    mothership.mesh.position.y - 0.6, 
+		                    dx * 11,  // ← Velocidade maior
+		                    dy * 11
+		                );
+		            }
+		            lastEnemyFire = now;
+		        }
+		    }
+			
             // Verifica se o tempo desde o último disparo inimigo é maior que o intervalo permitido
             if (now - lastEnemyFire > enemyFireDelay) {
         
@@ -2052,8 +2100,8 @@
 		
 		// 4. Nave-Mãe (ameaça imponente)
 		function updateMothershipMovement(e, dt, now) {  
-		    const sway = Math.sin(now / 1200) * 0.8;  
-		    const pulse = Math.sin(now / 800) * 0.3;  
+		    const sway = Math.sin(now / 1200) * 1.2;  
+		    const pulse = Math.sin(now / 800) * 0.5;  
 		    
 		    // Movimento horizontal (normal)  
 		    e.mesh.position.x += sway * dt;  
