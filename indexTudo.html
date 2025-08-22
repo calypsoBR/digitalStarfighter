@@ -955,10 +955,9 @@
             enemy.mesh.add(enemy.evMesh);
         }
         
-        function spawnMothership() {
-			
+        function spawnMothership() {			
             const type = ENEMY_TYPES.find(t => t.isBoss);
-            const mothership = spawnEnemy(type, 0, PLAY_AREA.y/2.5);                        
+            mothership = spawnEnemy(type, 0, PLAY_AREA.y/2.5);                        
             mothership.mesh.scale.set(1.5, 1.5, 1.5);  // Expansão
             
             // Adiciona geradores
@@ -970,7 +969,7 @@
             return mothership;
         }
 
-		
+				
 		function updateMothership(dt) {
 			
 		    // 1. Verifica se a nave-mãe existe e está viva. Se não, sai da função.
@@ -1317,7 +1316,8 @@
             // Fase 10: Nave-mãe + escoltas
             if (n === 10) {
                 playMothershipTrack();
-				spawnMothership();  // Spawna a nave-mãe (função separada que cria a nave-boss)
+				//spawnMothership();  // Spawna a nave-mãe (função separada que cria a nave-boss)
+				mothership = spawnMothership();  // Spawna a nave-mãe (função separada que cria a nave-boss)
                 waveEnemies = 1;    // Define o contador de inimigos como 1 (só a nave-mãe, escoltas são extras)
                 return;             // Sai da função, pois a wave 10 é tratada de forma especial
             } /*else if (n >= 1 && n <= 8) {
