@@ -141,36 +141,41 @@
 	<!-- Salvamento de dados da jogada -->
 	<script>
 		function salvarJogada(pontuacaoFinal) {
-		  const jogador = localStorage.getItem("jogador") || "Desconhecido";
-		  const equipe = localStorage.getItem("equipe") || "EE00";
-		  const acesso = localStorage.getItem("acesso");
-		  
-			// Formatação simplificada da data/hora local
-  		  const agora = new Date();
-  		  const dataHora = agora.toLocaleString("sv-SE").slice(0, 19).replace(" ", "T");
-			     
-		  const dadosJogada = {
-		    jogador: jogador,
-		    equipe: equipe,
-			acesso: acesso,
-		    pontuacao: pontuacaoFinal,
-		    dataHora: dataHora
-		  };
-		
-		  const blob = new Blob([JSON.stringify(dadosJogada, null, 2)], { type: "application/json" });
-		  const url = URL.createObjectURL(blob);
-		  const nomeArquivo = `jogada_${jogador}_${dataHora}.json`.replace(/[:]/g, "-");
-		
-		  const a = document.createElement("a");
-		  a.href = url;
-		  a.download = nomeArquivo;
-		  a.style.display = "none";
-		  document.body.appendChild(a);
-		  a.click();
-		  document.body.removeChild(a);
-		
-		  alert("Jogada salva! Quando quiser parar em definitivo de jogar, envie todos os arquivos .json gerados para a pasta compartilhada no OneDrive.");
-		}
+		    // Só salva se realmente for fim de jogo (Game Over ou Vitória)
+		    if (gameState !== GAME_STATE.GAME_OVER && gameState !== GAME_STATE.WIN) {
+		        return;
+		    }
+		    
+		    const jogador = localStorage.getItem("jogador") || "Desconhecido";
+		    const equipe = localStorage.getItem("equipe") || "EE00";
+		    const acesso = localStorage.getItem("acesso");
+		    
+		    // Formatação simplificada da data/hora local
+		    const agora = new Date();
+		    const dataHora = agora.toLocaleString("sv-SE").slice(0, 19).replace(" ", "T");
+		         
+		    const dadosJogada = {
+		        jogador: jogador,
+		        equipe: equipe,
+		        acesso: acesso,
+		        pontuacao: pontuacaoFinal,
+		        dataHora: dataHora
+		    };
+		    
+		    const blob = new Blob([JSON.stringify(dadosJogada, null, 2)], { type: "application/json" });
+		    const url = URL.createObjectURL(blob);
+		    const nomeArquivo = `jogada_${jogador}_${dataHora}.json`.replace(/[:]/g, "-");
+		    
+		    const a = document.createElement("a");
+		    a.href = url;
+		    a.download = nomeArquivo;
+		    a.style.display = "none";
+		    document.body.appendChild(a);
+		    a.click();
+		    document.body.removeChild(a);
+		    
+		    alert("Dados da partida salva! Quando parar em definitivo de jogar, envie todos os arquivos .json gerados para a pasta compartilhada no OneDrive.");
+		}		
 	</script>
 
 	<!-- Srcript principal -->
