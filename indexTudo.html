@@ -2088,18 +2088,11 @@
 		            ativarReserva();
 		            tempoSemBombas = 0;
 		        }
-		    } else {
-		        tempoSemBombas = 0; // Reset se tiver bombas ou não houver inimigos
-		    }
+		    } //else {
+		      //  tempoSemBombas = 0; // Reset se tiver bombas ou não houver inimigos
+		    //}
 		    
 		    // Game Over se tentar ativar pela terceira vez
-		    if (totalBombas === 0 && inimigosAtivos > 0 && reservasUsadas >= 2 && tempoSemBombas >= reservaCooldown) {		        
-					playerHealth = 0; // Força vida zero
-    				gameState = GAME_STATE.GAME_OVER; // Força estado de game over
-				// O loop principal naturalmente detectará isso e triggerará
-    			// todo o processo de game over (som, overlay, salvamento) automaticamente
-		    }
-
 			if (totalBombas === 0 && inimigosAtivos > 0 && reservasUsadas >= 2 && tempoSemBombas >= reservaCooldown) {
 			    // Replica EXATAMENTE a mesma lógica de game over
 			    gameState = GAME_STATE.GAME_OVER;
@@ -2146,7 +2139,7 @@
 		    feedback.style.left = '50%';
 		    feedback.style.transform = 'translate(-50%, -50%)';
 		    feedback.style.color = '#ffcc00';
-		    feedback.style.fontSize = '30px';
+		    feedback.style.fontSize = '25px';
 		    feedback.style.fontWeight = 'bold';
 		    feedback.style.textShadow = '0 0 10px #ff9900';
 		    feedback.style.opacity = '0';
@@ -2333,7 +2326,7 @@
 				}  
 
 				// Verifica se precisa ativar bombas de reserva
-    			verificarRecargaReserva(dt);
+    			(dt);
 				
 				// Movimentação dos inimigos (baseada no tipo)
 				for (let e of enemies) {
