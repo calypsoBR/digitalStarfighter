@@ -350,7 +350,7 @@
 		let elapsedTime = 0;    // Tempo acumulado em segundos
 
         // ===== [CONTROLE DE WAVES/FASES] ===== //
-        let wave = 5,       // Fase atual (começa na wave 1)
+        let wave = 1,       // Fase atual (começa na wave 1)
             maxWaves = 10,  // Número total de waves (última é a nave-mãe com escolta)
             waveEnemies = 0; // Contador de inimigos restantes na wave atual
 
@@ -1294,7 +1294,7 @@
             // Reseta status do jogador
             playerHealth = playerMaxHealth;  // Vida máxima
             playerScore = 0;                 // Pontuação zerada
-            wave = 5;                        // Volta para a fase 1
+            wave = 1;                        // Volta para a fase 1
             operatorIndex = 0;               // Operador lógico padrão (AND)
             playerVLC = 1;                   // Valor lógico inicial (1)
             updateVLCMesh(playerVLC);        // Atualiza visualização do VLC
