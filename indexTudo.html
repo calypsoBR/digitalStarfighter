@@ -350,7 +350,7 @@
 		let elapsedTime = 0;    // Tempo acumulado em segundos
 
         // ===== [CONTROLE DE WAVES/FASES] ===== //
-        let wave = 1,       // Fase atual (começa na wave 1)
+        let wave = 5,       // Fase atual (começa na wave 1)
             maxWaves = 10,  // Número total de waves (última é a nave-mãe com escolta)
             waveEnemies = 0; // Contador de inimigos restantes na wave atual
 
@@ -576,7 +576,9 @@
         // ===== [ CONSTANTES DA AREA DO JOGO ] ===== //
         const PLAY_AREA = { x: 30, y: 26 };     	// Dimensões da área jogável (o centro é 0,0, então x vai de +x/2 a -x/2; y vai de +y/2 a -4/2)
 		const ENEMY_LIMIT_Y = - (PLAY_AREA.y / 2) * 0.6;  // Limite de avanço vertical das naves inimigas (2/3 da tela, abaixo do centro)
-
+		const ENEMY_LIMIT_X_ESQUERDA = - (PLAY_AREA.x / 2) + 1.0;  // Limite esquerdo
+		const ENEMY_LIMIT_X_DIREITA = PLAY_AREA.x / 2 - 1.0;       // Limite direito
+		
         // ===== [ VARIÁVEIS DE RENDERIZAÇÃO ] ===== //
         let renderer, scene, camera;            // Objetos principais do Three.js
         let width = window.innerWidth,          // Largura da janela
@@ -1276,7 +1278,7 @@
             // Reseta status do jogador
             playerHealth = playerMaxHealth;  // Vida máxima
             playerScore = 0;                 // Pontuação zerada
-            wave = 1;                        // Volta para a fase 1
+            wave = 5;                        // Volta para a fase 1
             operatorIndex = 0;               // Operador lógico padrão (AND)
             playerVLC = 1;                   // Valor lógico inicial (1)
             updateVLCMesh(playerVLC);        // Atualiza visualização do VLC
@@ -2076,8 +2078,9 @@
 		    const zig = Math.sin(now / freq) * amp;
 		    const zag = Math.cos(now / (freq * 0.7)) * (amp * 0.8);
 			
-			// Movimento horizontal (normal)
+			// Movimento horizontal COM limite
 		    e.mesh.position.x += zig * dt;
+		    e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
 			
 			// Movimento vertical COM limite (usando Math.max)
 			const newY = e.mesh.position.y + (zag * dt - (0.4 * phaseMultiplier * dt));  // controla a descida das naves em direção ao jogador
@@ -2096,8 +2099,9 @@
 		    const waveAmp = 0.4 + (phaseMultiplier * 0.2);
 		    const wave = Math.sin(now / waveFreq + e.mesh.position.x * 0.5) * waveAmp;
 		    
-			// Movimento horizontal (normal)
-			e.mesh.position.x += wave * dt;
+			// Movimento horizontal COM limite
+		    e.mesh.position.x += wave * dt;
+		    e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
 			
 			// Movimento vertical COM limite (usando Math.max)
 			const newY = e.mesh.position.y - (0.3 + phaseMultiplier * 0.2) * dt;  // controla a descida das naves em direção ao jogador
@@ -2115,8 +2119,9 @@
 		    const blockMove = Math.sin(now / blockFreq) * blockAmp;
 		    const advance = Math.max(0, (player.y - e.mesh.position.y) * 0.01);
 			
-			// Movimento horizontal (normal)
+			// Movimento horizontal COM limite
 		    e.mesh.position.x += blockMove * dt;
+		    e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
 			
 			// Movimento vertical COM limite (usando Math.max)
 			const newY = e.mesh.position.y - (0.2 + advance) * dt;   // controla a descida das naves em direção ao jogador
@@ -2132,8 +2137,9 @@
 		    const sway = Math.sin(now / 1200) * 1.5;  
 		    const pulse = Math.sin(now / 800) * 0.8;  
 		    
-		    // Movimento horizontal (normal)  
-		    e.mesh.position.x += sway * dt;  
+		    // Movimento horizontal COM limite
+		    e.mesh.position.x += sway * dt;
+		    e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
 		    
 		    // Movimento vertical COM limite (usando Math.max)  
 		    const newY = e.mesh.position.y + (pulse * dt - 0.1 * dt);  
