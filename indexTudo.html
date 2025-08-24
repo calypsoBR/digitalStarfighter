@@ -2088,13 +2088,15 @@
 		            ativarReserva();
 		            tempoSemBombas = 0; // Reset após ativação
 		        }
-		        // Verifica se deve dar game over (2 reservas usadas)
-		        else if (reservasUsadas >= 2 && tempoSemBombas >= reservaCooldown) {
+		        
+		        // Verifica se deve dar game over (2 reservas usadas E tempo esgotado)
+		        if (reservasUsadas >= 2 && tempoSemBombas >= reservaCooldown) {
 		            gameState = GAME_STATE.GAME_OVER;
 		            if (sounds.currentTrack) sounds.currentTrack.pause();
 		            playSound('gameOver');
 		            gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar');
 		            setTimeout(() => salvarJogada(playerScore), 1500);
+		            return; // Para evitar execução adicional
 		        }
 		    } else {
 		        tempoSemBombas = 0; // Reset se tiver bombas ou não houver inimigos
