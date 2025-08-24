@@ -363,7 +363,23 @@
             { key: 'NOR',  fn: (a, b) => 1 - (a | b) },
             { key: 'XNOR', fn: (a, b) => 1 - (a ^ b) }
         ];
+		
+		// ===== [ SISTEMA DE BOMBAS DE RESERVA  ] ===== //
+		//
+		// Quando acaba as bombas, o jogador não tem mais como conseguir novos powerups visto que não 
+		// consegue abater mais nenhuma nave inimiga. Assim, o jogo entraria em "dead lock", pois mesmo 
+		// fugindo, não terá qualquer chance progredir. Nesse caso, aciona-se as bombas de resera: 2 recargas 
+		// automáticas a cada 30 seg, com 2 bombas de cada, funcionando da seguinte forma:
+		//  - Primeira recarga (30s sem bombas) → "BOMBAS DE RESERVA ATIVADAS! (1/2)"
+		//  - Segunda recarga (30s sem bombas novamente) → "BOMBAS DE RESERVA ATIVADAS! (2/2)"
+		//  - Terceira vez sem bombas, sem eliminar todas as naves (30s sem bombas de novo) → GAME OVER
+		// -------------------------------------------------------
+		
+		let reservasUsadas = 0;       // Contador de reservas usadas na fase atual
+		let tempoSemBombas = 0;       // Timer sem bombas
+		let reservaCooldown = 30;     // 30 segundos para ativar reserva
 
+		
       // ===== [ TIPOS DE INIMIGOS (NAVES E SUAS CARACTERÍSTICAS) ] ===== //
 
       //  Nível	    Tipo de Nave	           Comportamento Esperado	             Intervalo
@@ -378,7 +394,7 @@
       //   8		Destroyers dinâmicos	Expressões complexas com A e B dinâmicos	 5s
       //   9		Nave-Mãe	            Geradores A e B mudam aleatoriamente	     5s
       //  --------------------------------------------------------------------------------------
-            
+		
         const ENEMY_TYPES = [
             
         // --- NÍVEL 1 (caças, com valor lógico constante, gearado aleatoriamente)
@@ -1301,6 +1317,10 @@
 			// Inicia o cronômetro
 		    gameStartTime = Date.now();
 		    elapsedTime = 0;
+
+			// Reseta sistema de bombas de reserva
+		    reservasUsadas = 0;
+		    tempoSemBombas = 0;
 			
         }
 
@@ -1361,7 +1381,11 @@
         }
         
         function startWave(n) {
-            
+
+			// Reset do contador de reservas a cada nova fase
+		    reservasUsadas = 0;
+		    tempoSemBombas = 0;
+			
             // Fase 10: Nave-mãe + escoltas
             if (n === 10) {
                 playMothershipTrack();
@@ -2050,6 +2074,71 @@
             }
         }
 
+		// ===== [FUNÇÕES SOBRE A BOMBAS DE RESERVA] =====
+
+		function verificarRecargaReserva(dt) {
+		    
+		    const totalBombas = Object.values(bombCounts).reduce((a, b) => a + b, 0);
+		    const inimigosAtivos = enemies.filter(e => e.alive).length + (mothership && mothership.alive ? 1 : 0);
+			
+		    // Condições para ativar: sem bombas, inimigos na tela, menos de 2 reservas usadas (ainda ter)
+		    if (totalBombas === 0 && inimigosAtivos > 0 && reservasUsadas < 2) {
+		        tempoSemBombas += dt;
+		        
+		        if (tempoSemBombas >= reservaCooldown) {
+		            ativarReserva();
+		            tempoSemBombas = 0;
+		        }
+		    } else {
+		        tempoSemBombas = 0; // Reset se tiver bombas ou não houver inimigos
+		    }
+		    
+		    // Game Over se tentar ativar pela terceira vez
+		    if (totalBombas === 0 && inimigosAtivos > 0 && reservasUsadas >= 2 && tempoSemBombas >= reservaCooldown) {
+		        // Use a função existente de game over para uniformidade
+				    playerHealth = 0; // Força o game over
+				// O sistema natural de game over será acionado no update normal
+		    }
+		}
+
+		function ativarReserva() {
+		    reservasUsadas++;
+		    
+		    // Recarrega +2 de cada bomba
+		    for (let key in bombCounts) {
+		        bombCounts[key] = Math.min(bombCounts[key] + 2, 20);
+		    }
+		    
+		    // Feedback visual
+		    mostrarFeedbackReserva();
+		    playSound('powerupCollect'); // Reusa som existente
+		}
+
+		function mostrarFeedbackReserva() {
+		    const feedback = document.createElement('div');
+		    feedback.style.position = 'fixed';
+		    feedback.style.top = '50%';
+		    feedback.style.left = '50%';
+		    feedback.style.transform = 'translate(-50%, -50%)';
+		    feedback.style.color = '#ffcc00';
+		    feedback.style.fontSize = '32px';
+		    feedback.style.fontWeight = 'bold';
+		    feedback.style.textShadow = '0 0 10px #ff9900';
+		    feedback.style.opacity = '0';
+		    feedback.style.transition = 'opacity 0.5s';
+		    feedback.style.zIndex = '10000';
+		    feedback.innerHTML = `BOMBAS DE RESERVA ATIVADAS! (${reservasUsadas} de 2)`;
+		    
+		    document.body.appendChild(feedback);
+		    
+		    // Animação fade in/out
+		    setTimeout(() => feedback.style.opacity = '1', 10);
+		    setTimeout(() => feedback.style.opacity = '0', 2500);
+		    setTimeout(() => feedback.remove(), 3000);
+		}
+
+		//--------------------------------------------------------------------
+		
         function updatePlayer(dt) {
             let moveX = 0, moveY = 0;
             if (keys['KeyA'] || keys['ArrowLeft']) moveX -= 1;
@@ -2217,15 +2306,10 @@
 				        shieldTimer = 0;    			   // Reseta o timer  
 				    }  
 				}  
-				
-                // Movimentação oscilatória dos inimigos (efeito "flutuante")
-              /*  for (let e of enemies) {
-                    if (!e.alive) continue;
-                    let t = Math.sin(now / 800 + e.mesh.position.x * 0.7) * 0.7;
-                    e.mesh.position.y += Math.sin(now / 1300 + e.mesh.position.x * 0.5) * 0.3 * dt;
-                    e.mesh.position.x += t * dt * 0.25;
-                } */
 
+				// Verifica se precisa ativar bombas de reserva
+    			verificarRecargaReserva(dt);
+				
 				// Movimentação dos inimigos (baseada no tipo)
 				for (let e of enemies) {
 				    if (!e.alive) continue;
