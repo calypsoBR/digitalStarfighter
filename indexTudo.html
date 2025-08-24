@@ -2080,7 +2080,12 @@
 			
 			// Movimento horizontal COM limite
 		    e.mesh.position.x += zig * dt;
-		    e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
+		    //e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
+			if (e.mesh.position.x < ENEMY_LIMIT_X_ESQUERDA) {
+			    e.mesh.position.x = ENEMY_LIMIT_X_ESQUERDA + Math.random() * 1.5; // Variação de 0-1.5 unidades
+			} else if (e.mesh.position.x > ENEMY_LIMIT_X_DIREITA) {
+			    e.mesh.position.x = ENEMY_LIMIT_X_DIREITA - Math.random() * 1.5; // Variação de 0-1.5 unidades
+			}
 			
 			// Movimento vertical COM limite (usando Math.max)
 			const newY = e.mesh.position.y + (zag * dt - (0.4 * phaseMultiplier * dt));  // controla a descida das naves em direção ao jogador
@@ -2101,7 +2106,12 @@
 		    
 			// Movimento horizontal COM limite
 		    e.mesh.position.x += wave * dt;
-		    e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
+		    //e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
+			if (e.mesh.position.x < ENEMY_LIMIT_X_ESQUERDA) {
+			    e.mesh.position.x = ENEMY_LIMIT_X_ESQUERDA + Math.random() * 1.5; // Variação de 0-1.5 unidades
+			} else if (e.mesh.position.x > ENEMY_LIMIT_X_DIREITA) {
+			    e.mesh.position.x = ENEMY_LIMIT_X_DIREITA - Math.random() * 1.5; // Variação de 0-1.5 unidades
+			}
 			
 			// Movimento vertical COM limite (usando Math.max)
 			const newY = e.mesh.position.y - (0.3 + phaseMultiplier * 0.2) * dt;  // controla a descida das naves em direção ao jogador
@@ -2121,7 +2131,12 @@
 			
 			// Movimento horizontal COM limite
 		    e.mesh.position.x += blockMove * dt;
-		    e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
+		    //e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
+			if (e.mesh.position.x < ENEMY_LIMIT_X_ESQUERDA) {
+			    e.mesh.position.x = ENEMY_LIMIT_X_ESQUERDA + Math.random() * 1.5; // Variação de 0-1.5 unidades
+			} else if (e.mesh.position.x > ENEMY_LIMIT_X_DIREITA) {
+			    e.mesh.position.x = ENEMY_LIMIT_X_DIREITA - Math.random() * 1.5; // Variação de 0-1.5 unidades
+			}
 			
 			// Movimento vertical COM limite (usando Math.max)
 			const newY = e.mesh.position.y - (0.2 + advance) * dt;   // controla a descida das naves em direção ao jogador
