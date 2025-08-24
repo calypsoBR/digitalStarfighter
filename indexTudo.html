@@ -2076,49 +2076,31 @@
 		// ===== [FUNÇÕES SOBRE A BOMBAS DE RESERVA] =====
 
 		function verificarRecargaReserva(dt) {
-		    
 		    const totalBombas = Object.values(bombCounts).reduce((a, b) => a + b, 0);
 		    const inimigosAtivos = enemies.filter(e => e.alive).length + (mothership && mothership.alive ? 1 : 0);
-			
-		    // Condições para ativar: sem bombas, inimigos na tela, menos de 2 reservas usadas (ainda ter)
-		    if (totalBombas === 0 && inimigosAtivos > 0 && reservasUsadas < 2) {
+		    
+		    // Só incrementa timer se estiver sem bombas e com inimigos
+		    if (totalBombas === 0 && inimigosAtivos > 0) {
 		        tempoSemBombas += dt;
 		        
-		        if (tempoSemBombas >= reservaCooldown) {
+		        // Verifica se pode ativar reserva (0 ou 1 reservas usadas)
+		        if (reservasUsadas < 2 && tempoSemBombas >= reservaCooldown) {
 		            ativarReserva();
-		            tempoSemBombas = 0;
+		            tempoSemBombas = 0; // Reset após ativação
 		        }
-		    } //else {
-		      //  tempoSemBombas = 0; // Reset se tiver bombas ou não houver inimigos
-		    //}
-		    
-		    // Game Over se tentar ativar pela terceira vez
-			if (totalBombas === 0 && inimigosAtivos > 0 && reservasUsadas >= 2 && tempoSemBombas >= reservaCooldown) {
-			    // Replica EXATAMENTE a mesma lógica de game over
-			    gameState = GAME_STATE.GAME_OVER;
-			    
-			    // Para a música atual
-			    if (sounds.currentTrack && !sounds.currentTrack.paused) {
-			        sounds.currentTrack.pause();
-			        sounds.currentTrack.currentTime = 0;
-			    }
-			    
-			    playSound('gameOver');
-			    
-			    // Exibe overlay de Game Over
-			    gameOverOverlay = showOverlay(
-			        'gameover', 
-			        'GAME OVER', 
-			        'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar'
-			    );
-			    
-			    // Salva a jogada
-			    setTimeout(() => {
-			        salvarJogada(playerScore);
-			    }, 1500);
-			}
+		        // Verifica se deve dar game over (2 reservas usadas)
+		        else if (reservasUsadas >= 2 && tempoSemBombas >= reservaCooldown) {
+		            gameState = GAME_STATE.GAME_OVER;
+		            if (sounds.currentTrack) sounds.currentTrack.pause();
+		            playSound('gameOver');
+		            gameOverOverlay = showOverlay('gameover', 'GAME OVER', 'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar');
+		            setTimeout(() => salvarJogada(playerScore), 1500);
+		        }
+		    } else {
+		        tempoSemBombas = 0; // Reset se tiver bombas ou não houver inimigos
+		    }
 		}
-
+		
 		function ativarReserva() {
 		    reservasUsadas++;
 		    
