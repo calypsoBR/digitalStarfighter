@@ -719,7 +719,7 @@
             // Primeiro, cria o objeto 'player' com as posições iniciais
             player = {
                 x: 0,
-                y: -PLAY_AREA.y / 2.2,
+                y: -PLAY_AREA.y / 2.5,
                 speed: 7.5
             };
         
@@ -2094,10 +2094,11 @@
 		    }
 		    
 		    // Game Over se tentar ativar pela terceira vez
-		    if (totalBombas === 0 && inimigosAtivos > 0 && reservasUsadas >= 2 && tempoSemBombas >= reservaCooldown) {
-		        // Use a função existente de game over para uniformidade
-				    playerHealth = 0; // Força o game over
-				// O sistema natural de game over será acionado no update normal
+		    if (totalBombas === 0 && inimigosAtivos > 0 && reservasUsadas >= 2 && tempoSemBombas >= reservaCooldown) {		        
+					playerHealth = 0; // Força vida zero
+    				gameState = GAME_STATE.GAME_OVER; // Força estado de game over
+				// O loop principal naturalmente detectará isso e triggerará
+    			// todo o processo de game over (som, overlay, salvamento) automaticamente
 		    }
 		}
 
