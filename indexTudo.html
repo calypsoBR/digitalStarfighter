@@ -1961,8 +1961,7 @@
 	                        // Ativa estado de Game Over
 	                        gameState = GAME_STATE.GAME_OVER;
 							
-							// Para a música atual
-							
+							// Para a música atual							
 							if (sounds.currentTrack && !sounds.currentTrack.paused) {
 								sounds.currentTrack.pause(); // Para a música atual
 	    						sounds.currentTrack.currentTime = 0; // Reinicia a música								
@@ -2100,6 +2099,31 @@
 				// O loop principal naturalmente detectará isso e triggerará
     			// todo o processo de game over (som, overlay, salvamento) automaticamente
 		    }
+
+			if (totalBombas === 0 && inimigosAtivos > 0 && reservasUsadas >= 2 && tempoSemBombas >= reservaCooldown) {
+			    // Replica EXATAMENTE a mesma lógica de game over
+			    gameState = GAME_STATE.GAME_OVER;
+			    
+			    // Para a música atual
+			    if (sounds.currentTrack && !sounds.currentTrack.paused) {
+			        sounds.currentTrack.pause();
+			        sounds.currentTrack.currentTime = 0;
+			    }
+			    
+			    playSound('gameOver');
+			    
+			    // Exibe overlay de Game Over
+			    gameOverOverlay = showOverlay(
+			        'gameover', 
+			        'GAME OVER', 
+			        'Pontuação: ' + playerScore + '<br><br>Tecle R para reiniciar'
+			    );
+			    
+			    // Salva a jogada
+			    setTimeout(() => {
+			        salvarJogada(playerScore);
+			    }, 1500);
+			}
 		}
 
 		function ativarReserva() {
@@ -2364,7 +2388,7 @@
 					    sounds.currentTrack.currentTime = 0;
 					}
 					
-					// Toca som de derrota
+					// Toca som de vitoria
 					playSound('victory');
                     
                     // Mostra overlay de vitória
