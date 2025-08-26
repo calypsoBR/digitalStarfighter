@@ -609,8 +609,8 @@
 		const SHIELD_MAX_CHARGE = 5;		// Carga máxima de proteção do escudo booleano
         let player,                         // Objeto com posição/speed do jogador
             playerVLC = 1,                  // Valor lógico atual do jogador (0 ou 1)
-            playerHealth = 5,               // Vida atual
-            playerMaxHealth = 5,            // Vida máxima
+            playerHealth = 7,               // Vida atual
+            playerMaxHealth = 7,            // Vida máxima
             playerScore = 0,                // Pontuação
 			playerShield = false,         	// Estado do escudo (ativo/inativo)  
 			shieldCharge = SHIELD_MAX_CHARGE,	// Carga inicial do escudo			
@@ -2173,9 +2173,9 @@
 		    e.mesh.position.x += zig * dt;
 		    //e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
 			if (e.mesh.position.x < ENEMY_LIMIT_X_ESQUERDA) {
-			    e.mesh.position.x = ENEMY_LIMIT_X_ESQUERDA + Math.random() * 1.5; // Variação de 0-1.5 unidades
+			    e.mesh.position.x = ENEMY_LIMIT_X_ESQUERDA + Math.random() * 2.5; // Variação de 0-1.5 unidades
 			} else if (e.mesh.position.x > ENEMY_LIMIT_X_DIREITA) {
-			    e.mesh.position.x = ENEMY_LIMIT_X_DIREITA - Math.random() * 1.5; // Variação de 0-1.5 unidades
+			    e.mesh.position.x = ENEMY_LIMIT_X_DIREITA - Math.random() * 2.5; // Variação de 0-1.5 unidades
 			}
 			
 			// Movimento vertical COM limite (usando Math.max)
@@ -2199,9 +2199,9 @@
 		    e.mesh.position.x += wave * dt;
 		    //e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
 			if (e.mesh.position.x < ENEMY_LIMIT_X_ESQUERDA) {
-			    e.mesh.position.x = ENEMY_LIMIT_X_ESQUERDA + Math.random() * 1.5; // Variação de 0-1.5 unidades
+			    e.mesh.position.x = ENEMY_LIMIT_X_ESQUERDA + Math.random() * 2.5; // Variação de 0-1.5 unidades
 			} else if (e.mesh.position.x > ENEMY_LIMIT_X_DIREITA) {
-			    e.mesh.position.x = ENEMY_LIMIT_X_DIREITA - Math.random() * 1.5; // Variação de 0-1.5 unidades
+			    e.mesh.position.x = ENEMY_LIMIT_X_DIREITA - Math.random() * 2.5; // Variação de 0-1.5 unidades
 			}
 			
 			// Movimento vertical COM limite (usando Math.max)
@@ -2224,9 +2224,9 @@
 		    e.mesh.position.x += blockMove * dt;
 		    //e.mesh.position.x = Math.max(ENEMY_LIMIT_X_ESQUERDA, Math.min(ENEMY_LIMIT_X_DIREITA, e.mesh.position.x));
 			if (e.mesh.position.x < ENEMY_LIMIT_X_ESQUERDA) {
-			    e.mesh.position.x = ENEMY_LIMIT_X_ESQUERDA + Math.random() * 1.5; // Variação de 0-1.5 unidades
+			    e.mesh.position.x = ENEMY_LIMIT_X_ESQUERDA + Math.random() * 2.5; // Variação de 0-1.5 unidades
 			} else if (e.mesh.position.x > ENEMY_LIMIT_X_DIREITA) {
-			    e.mesh.position.x = ENEMY_LIMIT_X_DIREITA - Math.random() * 1.5; // Variação de 0-1.5 unidades
+			    e.mesh.position.x = ENEMY_LIMIT_X_DIREITA - Math.random() * 2.5; // Variação de 0-1.5 unidades
 			}
 			
 			// Movimento vertical COM limite (usando Math.max)
